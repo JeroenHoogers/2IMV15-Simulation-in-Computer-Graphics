@@ -2,7 +2,7 @@
 #define IMAGE_IO_H
 
 #include <stdlib.h>
-#include <libpng/png.h>
+#include <libpng\png.h>
 
 //
 // COMPILATION
@@ -12,7 +12,7 @@
 // Sets tbe width and height to the appropriate values and mallocs
 // a char *buffer loading up the values in row-major, RGBA format.
 // The memory associated with the buffer can be deallocated with free().
-// If there was an error reading file, then 0 is returned, and
+// If there ewas an error reading file, then 0 is returned, and
 // width = height = -1. 
 unsigned char *loadImageRGBA(unsigned char *fileName, int *width, int *height);
 
