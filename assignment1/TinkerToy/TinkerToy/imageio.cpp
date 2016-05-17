@@ -95,7 +95,7 @@ unsigned char *_loadImageRGBApng(char *fileName, int *width, int *height) {
 
   // finally, read the file
   unsigned char *buffer = (unsigned char *) malloc((*width) * (*height) * 4);
-  png_bytep row_pointers[*height];
+  png_bytep* row_pointers;// [*height];
   for (int y = 0 ; y < (*height) ; y++)
 	row_pointers[y] = (png_byte *) (buffer + ((*height) - 1 - y) * (*width) * 4);
   png_read_rows(png_ptr, row_pointers, 0, (long unsigned int) (*height));
@@ -142,7 +142,7 @@ bool _saveImageRGBApng(char *fileName, unsigned char *buffer, int width, int hei
   png_set_flush(png_ptr, 10);
 
   // write the image
-  png_bytep row_pointers[height];
+  png_bytep* row_pointers;// [height];
   for (int y = 0 ; y < height ; y++)
 	row_pointers[y] = (png_byte *) (buffer + (height - 1 - y) * width * 4);
   png_write_image(png_ptr, row_pointers);

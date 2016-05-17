@@ -10,8 +10,8 @@
 #include <vector>
 #include <stdlib.h>
 #include <stdio.h>
-#include <GL/glut.h>
-
+//#include <GL/glut.h>
+#include "GLUtil.h"
 /* macros */
 
 /* external definitions (from solver) */
