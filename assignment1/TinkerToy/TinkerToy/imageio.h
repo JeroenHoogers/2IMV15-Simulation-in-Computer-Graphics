@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <libpng\png.h>
 
+#pragma comment(lib, "libpng.lib")
+
 //
 // COMPILATION
 //
@@ -14,8 +16,8 @@
 // The memory associated with the buffer can be deallocated with free().
 // If there ewas an error reading file, then 0 is returned, and
 // width = height = -1. 
-unsigned char *loadImageRGBA(unsigned char *fileName, int *width, int *height);
 
+unsigned char* loadImageRGBA(char *fileName, int *width, int *height);
 // Saves image given by buffer with specicified with and height
 // to the given file name, returns true on success, false otherwise.
 // The image format is RGBA.

@@ -15,10 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Makefile" />
-    <None Include="Makefile" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="CircularWireConstraint.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
