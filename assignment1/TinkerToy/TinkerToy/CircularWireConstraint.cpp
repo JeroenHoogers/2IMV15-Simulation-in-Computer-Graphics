@@ -23,3 +23,18 @@ void CircularWireConstraint::draw()
 {
 	draw_circle(m_center, m_radius);
 }
+
+Vec2f CircularWireConstraint::apply()
+{
+	//C(x, y, x_c, y_c) = Pow(x - x_c) + Pow(y - y_c) - Pow(r)
+
+	//Calculate difference between particles
+	Vec2f difference = m_p->m_Position - m_center;
+
+	//Calculate C(x, y, x_c, y_c)
+	/*return*/Vec2f result = ((difference[0] * difference[0]) + (difference[1] * difference[1]) - (m_radius * m_radius));
+
+	m_p->m_Position += result;
+
+	return result;
+}

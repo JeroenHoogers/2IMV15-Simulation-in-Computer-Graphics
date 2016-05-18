@@ -2,8 +2,8 @@
 //#include <GL/glut.h>
 #include "GLUtil.h"
 
-Particle::Particle(const Vec2f & ConstructPos) :
-	m_ConstructPos(ConstructPos), m_Position(Vec2f(0.0, 0.0)), m_Velocity(Vec2f(0.0, 0.0))
+Particle::Particle(const Vec2f & ConstructPos, float mass) :
+	m_ConstructPos(ConstructPos), m_Position(Vec2f(0.0, 0.0)), m_Velocity(Vec2f(0.0, 0.0)), m_Mass(mass)
 {
 }
 

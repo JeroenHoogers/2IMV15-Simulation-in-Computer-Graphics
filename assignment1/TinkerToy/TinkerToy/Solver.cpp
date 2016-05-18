@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#define DAMP 0.98f
+#define DAMP 0.1f
 #define RAND (((rand()%2000)/1000.f)-1.f)
 
 void simulation_step(std::vector<Particle*> pVector, std::vector<Force*> forces, float dt)
@@ -16,7 +16,7 @@ void simulation_step(std::vector<Particle*> pVector, std::vector<Force*> forces,
 		pVector[ii]->m_Position += dt * pVector[ii]->m_Velocity;
 		
 		
-		pVector[ii]->m_Velocity = DAMP*pVector[ii]->m_Velocity + Vec2f(RAND,RAND) * 0.005f;
+		pVector[ii]->m_Velocity += dt * pVector[ii]->m_Force / pVector[ii]->m_Mass;// +Vec2f(RAND, RAND) * 0.005f;
 	}
 
 	size = forces.size();
@@ -25,6 +25,5 @@ void simulation_step(std::vector<Particle*> pVector, std::vector<Force*> forces,
 		// Apply force
 		forces[ii]->apply();
 	}
-
 }
 

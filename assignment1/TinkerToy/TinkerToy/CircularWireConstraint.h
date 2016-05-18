@@ -8,6 +8,7 @@ class CircularWireConstraint
   CircularWireConstraint(Particle *p, const Vec2f & center, const double radius);
 
   void draw();
+  Vec2f apply();
 
  private:
 

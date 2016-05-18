@@ -26,9 +26,11 @@ void SpringForce::apply()
 	// calculate dotproduct
 	float dotProduct = velocityDiff * positionDiff;
 
+	positionDiff[0] /= distance;
+	positionDiff[1] /= distance;
 	// calculate result force
-	Vec2f result = (m_ks * (distance - m_dist) + m_kd * (dotProduct / distance)) * (positionDiff / distance);
-
+	Vec2f result = (m_ks * (distance - m_dist) + m_kd * (dotProduct / distance));
+	result = result * positionDiff;
 	// apply force to both particles
 	m_particle1->m_Force -= result;
 	m_particle2->m_Force += result;
