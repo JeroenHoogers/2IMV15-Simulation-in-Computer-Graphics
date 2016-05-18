@@ -5,6 +5,7 @@
 #include "SpringForce.h"
 #include "RodConstraint.h"
 #include "CircularWireConstraint.h"
+#include "GravityForce.h"
 #include "imageio.h"
 
 #include <vector>
@@ -36,9 +37,10 @@ static int mouse_shiftclick[3];
 static int omx, omy, mx, my;
 static int hmx, hmy;
 
-static SpringForce * delete_this_dummy_spring = NULL;
+static std::vector<Force*> forces = std::vector<Force*>();
 static RodConstraint * delete_this_dummy_rod = NULL;
 static CircularWireConstraint * delete_this_dummy_wire = NULL;
+//static GravityForce*  = NULL;
 
 
 /*
@@ -50,14 +52,16 @@ free/clear/allocate simulation data
 static void free_data ( void )
 {
 	pVector.clear();
+	forces.clear();
+	
 	if (delete_this_dummy_rod) {
 		delete delete_this_dummy_rod;
 		delete_this_dummy_rod = NULL;
 	}
-	if (delete_this_dummy_spring) {
-		delete delete_this_dummy_spring;
-		delete_this_dummy_spring = NULL;
-	}
+	//if (delete_this_dummy_spring) {
+	//	delete delete_this_dummy_spring;
+	//	delete_this_dummy_spring = NULL;
+	//}
 	if (delete_this_dummy_wire) {
 		delete delete_this_dummy_wire;
 		delete_this_dummy_wire = NULL;
@@ -88,7 +92,11 @@ static void init_system(void)
 	
 	// You shoud replace these with a vector generalized forces and one of
 	// constraints...
-	delete_this_dummy_spring = new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0);
+	//delete_this_dummy_spring = new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0);
+	
+	forces.push_back(new GravityForce(pVector[1]));
+	forces.push_back(new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0));
+
 	delete_this_dummy_rod = new RodConstraint(pVector[1], pVector[2], dist);
 	delete_this_dummy_wire = new CircularWireConstraint(pVector[0], center, dist);
 }
@@ -147,9 +155,15 @@ static void draw_particles ( void )
 
 static void draw_forces ( void )
 {
-	// change this to iteration over full set
-	if (delete_this_dummy_spring)
-		delete_this_dummy_spring->draw();
+
+	//if (delete_this_dummy_spring)
+	//	delete_this_dummy_spring->draw();
+
+	// draw forces
+	for (int i = 0; i < forces.size(); i++)
+	{
+		forces[i]->draw();
+	}
 }
 
 static void draw_constraints ( void )
@@ -268,8 +282,13 @@ static void reshape_func ( int width, int height )
 
 static void idle_func ( void )
 {
-	if ( dsim ) simulation_step( pVector, dt );
-	else        {get_from_UI();remap_GUI();}
+	if ( dsim ) 
+		simulation_step( pVector, dt );
+	else        
+	{
+		get_from_UI();
+		remap_GUI();
+	}
 
 	glutSetWindow ( win_id );
 	glutPostRedisplay ();
