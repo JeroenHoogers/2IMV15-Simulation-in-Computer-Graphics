@@ -16,7 +16,7 @@ void RodConstraint::draw()
 
 }
 
-Vec2f RodConstraint::apply()
+void RodConstraint::apply()
 {
 	//C(x1, y1, x2, y2) = Pow(x1 - x2) + Pow(y1-y2) - Pow(r)
 
@@ -24,10 +24,8 @@ Vec2f RodConstraint::apply()
 	Vec2f difference = m_p1->m_Position - m_p2->m_Position;
 
 	//Calculate C(x1, y1, x2, y2)
-	/*return*/Vec2f result = ((difference[0] * difference[0]) + (difference[1] * difference[1]) - (m_dist * m_dist));
+	Vec2f result = ((difference[0] * difference[0]) + (difference[1] * difference[1]) - (m_dist * m_dist));
 
-	m_p1->m_Position -= result;
-	m_p2->m_Position += result;
-
-	return result;
+	m_p1->m_Force += result;
+	m_p2->m_Force -= result;
 }

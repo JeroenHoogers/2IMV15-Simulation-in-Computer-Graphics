@@ -2,10 +2,9 @@
 #include "Particle.h"
 #include "GLUtil.h"
 
-class Force
+class IForce
 {
 public:
-	Force();
 
 	virtual void draw() = 0;
 	virtual void apply() = 0;

@@ -15,7 +15,9 @@ void Particle::reset()
 {
 	m_Position = m_ConstructPos;
 	m_Velocity = Vec2f(0.0, 0.0);
+	m_Force = Vec2f(0.0, 0.0);
 }
+
 void Particle::draw()
 {
 	const double h = 0.03;

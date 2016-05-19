@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Force.h"
+#include "IForce.h"
 
-class GravityForce : public Force
+class GravityForce : public IForce
 {
 public:
 	GravityForce(Particle* particle);
