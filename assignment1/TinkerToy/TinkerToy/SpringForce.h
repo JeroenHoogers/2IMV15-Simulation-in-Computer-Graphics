@@ -12,8 +12,8 @@ class SpringForce : public IForce{
 
  private:
 
-  Particle * const m_particle1;   // particle 1
-  Particle * const m_particle2;   // particle 2 
+  Particle * const m_p1;   // particle 1
+  Particle * const m_p2;   // particle 2 
   double const m_dist;     // rest length
   double const m_ks, m_kd; // spring strength constants
 };

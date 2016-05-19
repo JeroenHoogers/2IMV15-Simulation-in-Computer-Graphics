@@ -1,18 +1,19 @@
 #pragma once
-#include "IForce.h"
+#include "IConstraint.h"
 #include "Particle.h"
 
-class CircularWireConstraint : public IForce
+class CircularWireConstraint : public IConstraint
 {
  public:
-  CircularWireConstraint(Particle *p, const Vec2f & center, const double radius);
+	CircularWireConstraint(Particle *p, const Vec2f & center, const double radius);
 
-  void draw();
-  void apply();
+	void draw() override;
+	float getC() override;
+	float getCd() override;
 
  private:
 
-  Particle * const m_p;
-  Vec2f const m_center;
-  double const m_radius;
+	Particle * const m_p;
+	Vec2f const m_center;
+	double const m_radius;
 };

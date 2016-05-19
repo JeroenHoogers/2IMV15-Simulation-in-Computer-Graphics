@@ -1,14 +1,16 @@
 #pragma once
 
 #include "Particle.h"
-#include "IForce.h"
+#include "IConstraint.h"
 
-class RodConstraint : public IForce {
+class RodConstraint : public IConstraint {
  public:
   RodConstraint(Particle *p1, Particle * p2, double dist);
 
-  void draw();
-  void apply();
+  void draw() override;
+
+  float getC() override;
+  float getCd() override;
 
  private:
 

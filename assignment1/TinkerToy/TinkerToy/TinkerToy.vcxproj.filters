@@ -71,5 +71,8 @@
     <ClInclude Include="IForce.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="IConstraint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

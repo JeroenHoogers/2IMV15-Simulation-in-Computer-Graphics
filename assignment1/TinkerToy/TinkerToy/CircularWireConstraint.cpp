@@ -24,7 +24,7 @@ void CircularWireConstraint::draw()
 	draw_circle(m_center, m_radius);
 }
 
-void CircularWireConstraint::apply()
+float CircularWireConstraint::getC()
 {
 	//C(x, y, x_c, y_c) = Pow(x - x_c) + Pow(y - y_c) - Pow(r)
 
@@ -32,8 +32,14 @@ void CircularWireConstraint::apply()
 	Vec2f difference = m_p->m_Position - m_center;
 
 	//Calculate C(x, y, x_c, y_c)
-	Vec2f result = ((difference[0] * difference[0]) + (difference[1] * difference[1]) - (m_radius * m_radius));
+	float result = ((difference[0] * difference[0]) + (difference[1] * difference[1]) - (m_radius * m_radius));
 
-	m_p->m_Force -= result;
-	//return result;
+	//m_p->m_Force -= result;
+	return result;
+}
+
+float CircularWireConstraint::getCd()
+{
+	// TODO: implement
+	return 0;
 }

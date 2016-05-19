@@ -17,10 +17,9 @@
 /* macros */
 
 /* external definitions (from solver) */
-extern void simulation_step( std::vector<Particle*> pVector, std::vector<IForce*> forces, std::vector<IForce*> constraints, float dt );
+extern void simulation_step( std::vector<Particle*> pVector, std::vector<IForce*> forces, std::vector<IConstraint*> constraints, float dt );
 
 /* global variables */
-
 static int N;
 static float dt, d;
 static int dsim;
@@ -39,7 +38,7 @@ static int omx, omy, mx, my;
 static int hmx, hmy;
 
 static std::vector<IForce*> forces = std::vector<IForce*>();
-static std::vector<IForce*> constraints = std::vector<IForce*>();
+static std::vector<IConstraint*> constraints = std::vector<IConstraint*>();
 
 
 
@@ -90,18 +89,20 @@ static void init_system(void)
 	pVector.push_back(new Particle(center + offset, 1));
 	pVector.push_back(new Particle(center + offset + offset, 1));
 	pVector.push_back(new Particle(center + offset + offset + offset, 1));
-	
+
 	// You shoud replace these with a vector generalized forces and one of
 	// constraints...
 	//delete_this_dummy_spring = new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0);
 	
 	forces.push_back(new GravityForce(pVector[0]));
 	//forces.push_back(new GravityForce(pVector[1]));
+	forces.push_back(new GravityForce(pVector[2]));
 	forces.push_back(new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0));
 	//forces.push_back(new SpringForce(pVector[1], pVector[2], dist, 1.0, 1.0));
+	//forces.push_back(new SpringForce(pVector[0], pVector[2], dist, 1.0, 1.0));
 
 	//constraints.push_back(new RodConstraint(pVector[1], pVector[0], dist));
-	//constraints.push_back(new CircularWireConstraint(pVector[0], center, dist));
+	constraints.push_back(new CircularWireConstraint(pVector[0], center, dist));
 }
 
 /*
