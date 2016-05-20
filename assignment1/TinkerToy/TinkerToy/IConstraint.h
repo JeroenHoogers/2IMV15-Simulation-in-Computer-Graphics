@@ -12,5 +12,8 @@ public:
 
 	virtual float getC() = 0;
 	virtual float getCd() = 0;
+
+	virtual float getJ() = 0;
+	virtual float getJd() = 0;
 };
 

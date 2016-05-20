@@ -18,7 +18,7 @@ void RodConstraint::draw()
 
 float RodConstraint::getC()
 {
-	//C(x1, y1, x2, y2) = Pow(x1 - x2) + Pow(y1-y2) - Pow(r)
+	//C(x1, y1, x2, y2) = Pow(x1 - x2) + Pow(y1-y2) - Pow(dist)
 
 	//Calculate difference between particles
 	Vec2f difference = m_p1->m_Position - m_p2->m_Position;
@@ -27,13 +27,15 @@ float RodConstraint::getC()
 	float result = ((difference[0] * difference[0]) + (difference[1] * difference[1]) - (m_dist * m_dist));
 
 	return result;
-
-	//m_p1->m_Force += result;
-	//m_p2->m_Force -= result;
 }
 
 float RodConstraint::getCd()
 {
-	// TODO: implement
-	return 0;
+	//C(x1, y1, x2, y2) = 2 * (x1 - x2) + 2 * (y1-y2)
+	Vec2f positionDiff = 2.0f * (m_p1->m_Position - m_p2->m_Position);
+	Vec2f velocityDiff = 2.0f * (m_p1->m_Velocity - m_p2->m_Velocity);
+
+	float result = positionDiff[0] * velocityDiff[0] + positionDiff[1] * velocityDiff[1];
+
+	return result;
 }

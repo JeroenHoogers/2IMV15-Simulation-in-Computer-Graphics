@@ -1,7 +1,7 @@
 #include "GravityForce.h"
 
 GravityForce::GravityForce(Particle* p) :
-	m_p(p), m_Gravity(Vec2f(0, -0.000981)) 
+	m_p(p), m_Gravity(Vec2f(0, -0.00000981)) 
 {
 }
 

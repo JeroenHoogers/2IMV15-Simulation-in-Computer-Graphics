@@ -32,18 +32,25 @@ void SpringForce::draw()
 void SpringForce::apply()
 {
 	// calculate positional and velocity differences
-	Vec2f positionDiff = m_p1->m_Position - m_p2->m_Position;
-	Vec2f velocityDiff = m_p1->m_Velocity - m_p2->m_Velocity;
+	Vec2f positionDiff = m_p1->m_Position - m_p2->m_Position;			//l
+	Vec2f velocityDiff = m_p1->m_Velocity - m_p2->m_Velocity;			//i
 	
 	// calculate distance
 	float distance = sqrt(positionDiff[0] * positionDiff[0] + positionDiff[1] * positionDiff[1]);
 	
 	// calculate dotproduct
-	float dotProduct = velocityDiff * positionDiff;
+	float dotProduct = positionDiff[0] * velocityDiff[0] + positionDiff[1] * velocityDiff[1]; //velocityDiff * positionDiff;
 
+	double distanceDiff =  distance - m_dist;
+	double stiffness = m_ks * distanceDiff;
+	
+	double dotdiv = dotProduct / distance;
+	
 	// calculate result force
-	Vec2f result = (m_ks * (distance - m_dist) + m_kd * (dotProduct / distance));
-	result = result * (positionDiff / distance);
+	//Vec2f result = (stiffness + m_kd * dotdiv);
+	float scalar = (m_ks * (distance - m_dist) + m_kd * (dotProduct / distance));
+	//Vec2f result = (m_ks * (distanceDiff) + 0 * (dotProduct / distance));
+	Vec2f result = scalar * (positionDiff / distance);
 
 	// apply force to both particles
 	m_p1->m_Force -= result;

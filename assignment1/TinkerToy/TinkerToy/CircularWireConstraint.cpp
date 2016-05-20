@@ -28,18 +28,22 @@ float CircularWireConstraint::getC()
 {
 	//C(x, y, x_c, y_c) = Pow(x - x_c) + Pow(y - y_c) - Pow(r)
 
-	//Calculate difference between particles
+	//Calculate difference vector between the particle and center of the wire circle
 	Vec2f difference = m_p->m_Position - m_center;
 
 	//Calculate C(x, y, x_c, y_c)
 	float result = ((difference[0] * difference[0]) + (difference[1] * difference[1]) - (m_radius * m_radius));
 
-	//m_p->m_Force -= result;
 	return result;
 }
 
 float CircularWireConstraint::getCd()
 {
-	// TODO: implement
-	return 0;
+	//C(x, y, x_c, y_c) = 2 * (x - x_c) + 2 * (y - y_c)
+	Vec2f positionDiff = 2.0f * (m_p->m_Position - m_center);
+	Vec2f velocityDiff = (m_p->m_Velocity);
+
+	float result = positionDiff[0] * velocityDiff[0] + positionDiff[1] * velocityDiff[1];
+
+	return result;
 }

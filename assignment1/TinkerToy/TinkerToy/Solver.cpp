@@ -16,8 +16,8 @@ void applyForces(std::vector<Particle*> pVector, std::vector<IForce*> forces, st
 
 void simulation_step(std::vector<Particle*> pVector, std::vector<IForce*> forces, std::vector<IConstraint*> constraints, float dt)
 {
-	solveMidpoint(pVector, forces, constraints, dt);
-	//solveEuler(pVector, forces, constraints, dt);
+	//solveMidpoint(pVector, forces, constraints, dt);
+	solveEuler(pVector, forces, constraints, dt);
 }
 
 //--------------------------------------------------------------
@@ -52,17 +52,14 @@ void solveEuler(std::vector<Particle*> pVector, std::vector<IForce*> forces, std
 	applyForces(pVector, forces, constraints);
 
 	// Loop particles
-	for (int i = 0; i < pVector.size(); i++)
+	for (int i = 1; i < pVector.size(); i++)
 	{
 		// Set new position
 		pVector[i]->m_Position += dt * pVector[i]->m_Velocity;
-
 		pVector[i]->m_Velocity += dt * (pVector[i]->m_Force / pVector[i]->m_Mass);
+		
 
 		// +Vec2f(RAND, RAND) * 0.005f;
-
-		Vec2f veloc = pVector[i]->m_Velocity;
-		Vec2f force = pVector[i]->m_Force;
 	}
 }
 
