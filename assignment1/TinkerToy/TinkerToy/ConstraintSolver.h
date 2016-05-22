@@ -2,6 +2,7 @@
 #include <vector>
 #include "Particle.h"
 #include "IConstraint.h"
+#include "linearSolver.h"
 
 class ConstraintSolver
 {

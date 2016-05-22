@@ -2,6 +2,8 @@
 
 #include <gfx/vec2.h>
 
+using namespace std;
+
 class Particle
 {
 public:

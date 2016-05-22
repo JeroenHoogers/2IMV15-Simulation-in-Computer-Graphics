@@ -134,6 +134,7 @@
     <ClCompile Include="GravityForce.cpp" />
     <ClCompile Include="imageio.cpp" />
     <ClCompile Include="linearSolver.cpp" />
+    <ClCompile Include="matrix.cpp" />
     <ClCompile Include="Particle.cpp" />
     <ClCompile Include="RodConstraint.cpp" />
     <ClCompile Include="Solver.cpp" />
@@ -150,9 +151,14 @@
     <ClInclude Include="GravityForce.h" />
     <ClInclude Include="imageio.h" />
     <ClInclude Include="linearSolver.h" />
+    <ClInclude Include="matrix.h" />
     <ClInclude Include="Particle.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="RodConstraint.h" />
     <ClInclude Include="SpringForce.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="TinkerToy.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

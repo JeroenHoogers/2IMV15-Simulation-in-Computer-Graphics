@@ -15,10 +15,14 @@
 #include <stdio.h>
 //#include <GL/glut.h>
 #include "GLUtil.h"
+
+using namespace std;
+
 /* macros */
 
+
 /* external definitions (from solver) */
-extern void simulation_step( std::vector<Particle*> pVector, std::vector<IForce*> forces, std::vector<IConstraint*> constraints, float dt );
+extern void simulation_step(vector<Particle*> pVector, vector<IForce*> forces, vector<IConstraint*> constraints, float dt );
 
 /* global variables */
 static int N;
@@ -28,7 +32,7 @@ static int dump_frames;
 static int frame_number;
 
 // static Particle *pList;
-static std::vector<Particle*> pVector;
+static vector<Particle*> pVector;
 
 static int win_id;
 static int win_x, win_y;
@@ -38,8 +42,8 @@ static int mouse_shiftclick[3];
 static int omx, omy, mx, my;
 static int hmx, hmy;
 
-static std::vector<IForce*> forces = std::vector<IForce*>();
-static std::vector<IConstraint*> constraints = std::vector<IConstraint*>();
+static vector<IForce*> forces = vector<IForce*>();
+static vector<IConstraint*> constraints = vector<IConstraint*>();
 
 
 
@@ -106,13 +110,12 @@ static void init_system(void)
 	forces.push_back(new DragForce(pVector[2]));
 	//forces.push_back(new GravityForce(pVector[3]));
 	//forces.push_back(new GravityForce(pVector[4]));
-	forces.push_back(new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0));
+	//forces.push_back(new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0));
 	forces.push_back(new SpringForce(pVector[1], pVector[2], dist, 1.0, 1.0));
 	//forces.push_back(new SpringForce(pVector[0], pVector[2], dist, 1.0, 0.5));
 
-
-	//constraints.push_back(new RodConstraint(pVector[1], pVector[0], dist));
-	//constraints.push_back(new CircularWireConstraint(pVector[0], center, dist));
+	constraints.push_back(new RodConstraint(pVector[1], pVector[0], dist));
+	constraints.push_back(new CircularWireConstraint(pVector[0], center, dist));
 }
 
 /*
