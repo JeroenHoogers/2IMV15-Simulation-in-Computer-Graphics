@@ -14,6 +14,8 @@ public:
 	void reset();
 	void draw();
 
+	int m_index;
+
 	Vec2f m_ConstructPos;
 	Vec2f m_Position;
 	Vec2f m_Velocity;

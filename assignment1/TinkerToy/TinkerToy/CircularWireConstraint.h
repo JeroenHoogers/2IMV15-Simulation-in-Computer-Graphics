@@ -10,8 +10,10 @@ class CircularWireConstraint : public IConstraint
 	void draw() override;
 	float getC() override;
 	float getCd() override;
-	std::vector<Vec2f> getJ() override;
-	std::vector<Vec2f> getJd() override;
+	vector<Vec2f> getJ() override;
+	vector<Vec2f> getJd() override;
+
+	vector<Particle*> getParticles() override;
 
  private:
 

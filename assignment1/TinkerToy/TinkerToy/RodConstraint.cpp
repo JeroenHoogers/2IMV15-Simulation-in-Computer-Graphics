@@ -40,9 +40,9 @@ float RodConstraint::getCd()
 	return Cd;
 }
 
-std::vector<Vec2f> RodConstraint::getJ() 
+vector<Vec2f> RodConstraint::getJ() 
 {
-	std::vector<Vec2f> J;
+	vector<Vec2f> J;
 
 	Vec2f positionDiff = 2.0f * (m_p1->m_Position - m_p2->m_Position);
 	J.push_back(positionDiff);
@@ -51,13 +51,23 @@ std::vector<Vec2f> RodConstraint::getJ()
 	return J;
 }
 
-std::vector<Vec2f> RodConstraint::getJd()
+vector<Vec2f> RodConstraint::getJd()
 {
-	std::vector<Vec2f> Jd;
+	vector<Vec2f> Jd;
 
 	Vec2f velocityDiff = 2.0f * (m_p1->m_Velocity - m_p2->m_Velocity);
 	Jd.push_back(velocityDiff);
 	Jd.push_back(-velocityDiff);
 
 	return Jd;
+}
+
+vector<Particle*> RodConstraint::getParticles()
+{
+	vector<Particle*> particles;
+
+	particles.push_back(m_p1);
+	particles.push_back(m_p2);
+
+	return particles;
 }

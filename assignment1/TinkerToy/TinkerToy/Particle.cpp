@@ -3,7 +3,7 @@
 #include "GLUtil.h"
 
 Particle::Particle(const Vec2f & ConstructPos, float mass, bool isFixed) :
-	m_ConstructPos(ConstructPos), m_Position(Vec2f(0.0, 0.0)), m_Velocity(Vec2f(0.0, 0.0)), m_Mass(mass), m_isFixed(isFixed)
+	m_ConstructPos(ConstructPos), m_Position(Vec2f(0.0, 0.0)), m_Velocity(Vec2f(0.0, 0.0)), m_index(-1), m_Mass(mass), m_isFixed(isFixed)
 {
 }
 

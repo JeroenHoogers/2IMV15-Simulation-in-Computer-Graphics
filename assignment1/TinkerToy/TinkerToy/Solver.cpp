@@ -1,6 +1,7 @@
 #include "Particle.h"
 #include "IForce.h";
 #include "IConstraint.h"
+#include "ConstraintSolver.h"
 
 #include <vector>
 
@@ -41,6 +42,8 @@ void applyForces(std::vector<Particle*> pVector, std::vector<IForce*> forces, st
 	}
 
 	// TODO: solve constraints
+	//ConstraintSolver::Solve(pVector, constraints, 60, 2);
+
 
 }
 

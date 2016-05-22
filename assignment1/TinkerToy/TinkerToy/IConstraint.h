@@ -13,7 +13,9 @@ public:
 	virtual float getC() = 0;
 	virtual float getCd() = 0;
 
-	virtual std::vector<Vec2f> getJ() = 0;
-	virtual std::vector<Vec2f> getJd() = 0;
+	virtual vector<Vec2f> getJ() = 0;
+	virtual vector<Vec2f> getJd() = 0;
+
+	virtual vector<Particle*> getParticles() = 0;
 };
 

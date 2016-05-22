@@ -15,67 +15,108 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 	if (constraints.empty())
 		return;
 
-
-
-	// Initialize particle matrices and vectors
+	// Define sizes
 	int n = pVector.size();
+	int m = constraints.size();
 	int n2 = n * 2;
 
-	vector<float> q = vector<float>(n2);			// Positions
-	vector<float> qd = vector<float>(n2);			// Velocities
-	vector<float> Q = vector<float>(n2);			// Force accumulators
-	vector<float> M = vector<float>(n2 * n2);		// Mass
-	vector<float> W = vector<float>(n2 * n2);		// M-inverse
+	// Initialize particle matrices and vectors
 
-	// Fill matrices
+	matrix q = matrix::matrix(n2, 1);			// Positions
+	matrix qd = matrix::matrix(n2, 1);			// Velocities
+	matrix Q = matrix::matrix(n2, 1);			// Force accumulators
+	matrix M = matrix::matrix(n2, n2);			// Mass
+	matrix W = matrix::matrix(n2, n2);			// M-inverse
+	
+	// Fill matrices / vectors
 	for (int i = 0; i < n; i++)
 	{
-		int xy = i * 2;
+		int i2 = i * 2;
+
+		// Set the particle index (to be used in the jacobian matrices)
+		pVector[i]->m_index = i;
 
 		// Position and Velocity
-		q[xy + 0] = pVector[i]->m_Position[0];
-		q[xy + 1] = pVector[i]->m_Position[1];
-		qd[xy + 0] = pVector[i]->m_Velocity[0];
-		qd[xy + 1] = pVector[i]->m_Velocity[1];
+		q.setValue(i2, 0, pVector[i]->m_Position[0]);
+		q.setValue(i2 + 1, 0, pVector[i]->m_Position[1]);
+		qd.setValue(i2, 0, pVector[i]->m_Velocity[0]);
+		qd.setValue(i2 + 1, 0, pVector[i]->m_Velocity[1]);
 
 		// Force accumulators
-		Q[xy + 0] = pVector[i]->m_Force[0];
-		Q[xy + 1] = pVector[i]->m_Force[1];
+		Q.setValue(i2, 0, pVector[i]->m_Force[0]);
+		Q.setValue(i2 + 1, 0, pVector[i]->m_Force[1]);
 
 		// Mass
-		M[n2 * (xy + 0) + (xy + 0)] = pVector[i]->m_Mass;
-		M[n2 * (xy + 1) + (xy + 1)] = pVector[i]->m_Mass;
-		W[n2 * (xy + 0) + (xy + 0)] = 1 / pVector[i]->m_Mass;
-		W[n2 * (xy + 1) + (xy + 1)] = 1 / pVector[i]->m_Mass;
+		M.setValue(i2, i2, pVector[i]->m_Mass);
+		M.setValue(i2 + 1, i2 + 1, pVector[i]->m_Mass);
+		M.setValue(i2, i2, 1 / pVector[i]->m_Mass);
+		M.setValue(i2 + 1, i2 + 1, 1 / pVector[i]->m_Mass);
 	}
 
 	// Initialize constraint matrices and vectors
-	int m = constraints.size();
+	matrix C = matrix(m, 1);
+	matrix Cd = matrix(m, 1);
 
-	vector<float> C = vector<float>(m);												
-	vector<float> Cd = vector<float>(m);											
-	vector<vector<float>> J = vector<vector<float>>(m, vector<float>(n2));
-	vector<vector<float>> Jd = vector<vector<float>>(m, vector<float>(n2));
-	vector<vector<float>> JT = vector<vector<float>>(n2, vector<float>(m));
+	matrix J = matrix(m, n2);
+	matrix Jd = matrix(m, n2);
+	matrix JT = matrix(n2, m);
 
 	// Fill matrices
 	for (int i = 0; i < m; i++)
 	{
-		C[i] = constraints[i]->getC();
-		Cd[i] = constraints[i]->getCd();
+		C.setValue(i, 0, constraints[i]->getC());
+		Cd.setValue(i, 0, constraints[i]->getCd());
 
 		vector<Vec2f> jacobian = constraints[i]->getJ();
-		vector<Vec2f> jacobianDot = constraints[i]->getJd();
+		vector<Vec2f> jacobiand = constraints[i]->getJd();
+		vector<Particle*> particles = constraints[i]->getParticles();
 
-		// TODO: fix jacobian
+		// Calculate Jacobian matrices
+		for (int j = 0; j < particles.size(); j++)
+		{
+
+			for (int dim = 0; dim < 2; dim++)
+			{
+				J.setValue(i, particles[j]->m_index * 2 + dim, jacobian[j][dim]);
+				Jd.setValue(i, particles[j]->m_index * 2 + dim, jacobiand[j][dim]);
+
+				// Transpose of J
+				JT.setValue(particles[j]->m_index * 2 + dim, i, jacobian[j][dim]);
+			}
+		}
 	}
 
-	// (JWJTLamba = -Jd * qd - JWQ -ks*C - kd*Cd)*
-	vector<vector<float>> JW = vector<vector<float>>(m, vector<float>(n2));
-	vector<vector<float>> JWJT = vector<vector<float>>(m, vector<float>(n2));
+	matrix JW = J * W;
+	matrix JWJT = JW * JT;
 
+	// JWJTLamba = -Jd * qd - JWQ -ks*C - kd*Cd 
+	matrix Jdqd = Jd * qd;
+	matrix JWQ = JW * Q;
 
+	matrix Cks = C * ks;
+	matrix Cdkd = Cd * kd;
+
+	matrix JWJTLambda = Jdqd - JWQ - Cks - Cdkd;
 	
+	// Obtain lambda using the conjugate gradient solver
+	double* lambda = new double[m];
 
+	int stepSize = 100;
+	ConjGrad(m, &JWJT, lambda, JWJTLambda.getData(), 1 / 1000, &stepSize);
+
+	// convert lambda to a 1 column matrix (vector)
+	matrix lambdaMat = matrix(m, 1);
+	lambdaMat.setData(lambda);
+
+	// Calculate the resulting force using lambda Qh = lambda * JT
+	matrix Qh = JT * lambdaMat;
+
+	// Finally apply the constraint forces to the particles
+	for (int i = 0; i < n; i++)
+	{
+		pVector[i]->m_Force += Vec2f( Qh.getValue(i * 2, 1), 
+									  Qh.getValue(i * 2 + 1, 1));
+	}
 	
+	free(lambda);
 }

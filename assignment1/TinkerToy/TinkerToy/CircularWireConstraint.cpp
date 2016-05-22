@@ -48,7 +48,7 @@ float CircularWireConstraint::getCd()
 	return Cd;
 }
 
-std::vector<Vec2f> CircularWireConstraint::getJ()
+vector<Vec2f> CircularWireConstraint::getJ()
 {
 	std::vector<Vec2f> J;
 
@@ -58,7 +58,7 @@ std::vector<Vec2f> CircularWireConstraint::getJ()
 	return J;
 }
 
-std::vector<Vec2f> CircularWireConstraint::getJd()
+vector<Vec2f> CircularWireConstraint::getJd()
 {
 	std::vector<Vec2f> Jd;
 
@@ -66,4 +66,13 @@ std::vector<Vec2f> CircularWireConstraint::getJd()
 	Jd.push_back(velocityDiff);
 
 	return Jd;
+}
+
+vector<Particle*> CircularWireConstraint::getParticles()
+{
+	vector<Particle*> particles;
+
+	particles.push_back(m_p);
+
+	return particles;
 }

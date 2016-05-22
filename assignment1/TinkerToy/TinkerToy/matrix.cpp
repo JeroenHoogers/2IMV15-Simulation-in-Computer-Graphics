@@ -1,10 +1,5 @@
 #include "matrix.h"
 
-matrix::matrix(int size)
-{
-	matrix(size, size);
-}
-
 matrix::matrix(int rows, int cols)
 {
 	m_rows = rows;
@@ -35,10 +30,21 @@ matrix& matrix::operator+ (const matrix& rhs)
 	return (*this += rhs);
 }
  
-matrix& matrix::operator* ( const matrix& rhs)
+matrix& matrix::operator- ( const matrix& rhs)
+{
+	return (*this -= rhs);
+}
+
+matrix& matrix::operator* (const matrix& rhs)
 {
 	return (*this *= rhs);
 }
+
+matrix& matrix::operator* (const float& rhs)
+{
+	return (*this *= rhs);
+}
+
 
 matrix& matrix::operator+= (const matrix& rhs)
 {
@@ -53,6 +59,20 @@ matrix& matrix::operator+= (const matrix& rhs)
 	return *this;
 }
 
+matrix& matrix::operator-= (const matrix& rhs)
+{
+	for (int i = 0; i < m_rows; i++)
+	{
+		for (int j = 0; j < m_cols; j++)
+		{
+			m_data[i][j] -= rhs.m_data[i][j];
+		}
+	}
+
+	return *this;
+}
+
+
 matrix& matrix::operator*= (const matrix& rhs)
 {
 	if (m_cols == rhs.m_rows)
@@ -63,6 +83,19 @@ matrix& matrix::operator*= (const matrix& rhs)
 			{
 				m_data[i][k] *= rhs.m_data[k][i];
 			}
+		}
+	}
+
+	return *this;
+}
+
+matrix& matrix::operator*= (const float& rhs)
+{
+	for (int i = 0; i < m_rows; ++i)
+	{
+		for (int k = 0; k < m_cols; ++k)
+		{
+			m_data[i][k] *= rhs;
 		}
 	}
 

@@ -16,6 +16,8 @@ public:
 	vector<Vec2f> getJ() override;
 	vector<Vec2f> getJd() override;
 
+	vector<Particle*> getParticles() override;
+
 private:
 
 	Particle * const m_p1;
