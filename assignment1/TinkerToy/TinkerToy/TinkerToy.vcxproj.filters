@@ -42,6 +42,12 @@
     <ClCompile Include="GravityForce.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DragForce.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstraintSolver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CircularWireConstraint.h">
@@ -72,6 +78,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="IConstraint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DragForce.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstraintSolver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

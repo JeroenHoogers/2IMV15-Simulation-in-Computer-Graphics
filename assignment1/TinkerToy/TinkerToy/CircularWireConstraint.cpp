@@ -29,21 +29,41 @@ float CircularWireConstraint::getC()
 	//C(x, y, x_c, y_c) = Pow(x - x_c) + Pow(y - y_c) - Pow(r)
 
 	//Calculate difference vector between the particle and center of the wire circle
-	Vec2f difference = m_p->m_Position - m_center;
+	Vec2f positionDiff = m_p->m_Position - m_center;
 
 	//Calculate C(x, y, x_c, y_c)
-	float result = ((difference[0] * difference[0]) + (difference[1] * difference[1]) - (m_radius * m_radius));
+	float C = (positionDiff * positionDiff) - (m_radius * m_radius);
 
-	return result;
+	return C;
 }
 
 float CircularWireConstraint::getCd()
 {
-	//C(x, y, x_c, y_c) = 2 * (x - x_c) + 2 * (y - y_c)
+	// C(x, y, x_c, y_c) = 2 * (x - x_c) * 2 * (y - y_c)
 	Vec2f positionDiff = 2.0f * (m_p->m_Position - m_center);
-	Vec2f velocityDiff = (m_p->m_Velocity);
+	Vec2f velocityDiff = 2.0f * (m_p->m_Velocity);
 
-	float result = positionDiff[0] * velocityDiff[0] + positionDiff[1] * velocityDiff[1];
+	float Cd = positionDiff * velocityDiff;
 
-	return result;
+	return Cd;
+}
+
+std::vector<Vec2f> CircularWireConstraint::getJ()
+{
+	std::vector<Vec2f> J;
+
+	Vec2f positionDiff = 2.0f * (m_p->m_Position - m_center);
+	J.push_back(positionDiff);
+
+	return J;
+}
+
+std::vector<Vec2f> CircularWireConstraint::getJd()
+{
+	std::vector<Vec2f> Jd;
+
+	Vec2f velocityDiff = 2.0f * m_p->m_Velocity;
+	Jd.push_back(velocityDiff);
+
+	return Jd;
 }

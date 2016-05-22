@@ -3,18 +3,22 @@
 #include "Particle.h"
 #include "IConstraint.h"
 
-class RodConstraint : public IConstraint {
- public:
-  RodConstraint(Particle *p1, Particle * p2, double dist);
+class RodConstraint : public IConstraint 
+{
+public:
+	RodConstraint(Particle *p1, Particle * p2, double dist);
 
-  void draw() override;
+	void draw() override;
 
-  float getC() override;
-  float getCd() override;
+	float getC() override;
+	float getCd() override;
 
- private:
+	std::vector<Vec2f> getJ() override;
+	std::vector<Vec2f> getJd() override;
 
-  Particle * const m_p1;
-  Particle * const m_p2;
-  double const m_dist;
+private:
+
+	Particle * const m_p1;
+	Particle * const m_p2;
+	double const m_dist;
 };

@@ -16,8 +16,8 @@ void applyForces(std::vector<Particle*> pVector, std::vector<IForce*> forces, st
 
 void simulation_step(std::vector<Particle*> pVector, std::vector<IForce*> forces, std::vector<IConstraint*> constraints, float dt)
 {
-	//solveMidpoint(pVector, forces, constraints, dt);
-	solveEuler(pVector, forces, constraints, dt);
+	solveMidpoint(pVector, forces, constraints, dt);
+	//solveEuler(pVector, forces, constraints, dt);
 }
 
 //--------------------------------------------------------------
@@ -52,11 +52,14 @@ void solveEuler(std::vector<Particle*> pVector, std::vector<IForce*> forces, std
 	applyForces(pVector, forces, constraints);
 
 	// Loop particles
-	for (int i = 1; i < pVector.size(); i++)
+	for (int i = 0; i < pVector.size(); i++)
 	{
 		// Set new position
-		pVector[i]->m_Position += dt * pVector[i]->m_Velocity;
-		pVector[i]->m_Velocity += dt * (pVector[i]->m_Force / pVector[i]->m_Mass);
+		if (!pVector[i]->m_isFixed)
+		{
+			pVector[i]->m_Position += dt * pVector[i]->m_Velocity;
+			pVector[i]->m_Velocity += dt * (pVector[i]->m_Force / pVector[i]->m_Mass);
+		}
 		
 
 		// +Vec2f(RAND, RAND) * 0.005f;
@@ -84,11 +87,14 @@ void solveMidpoint(std::vector<Particle*> pVector, std::vector<IForce*> forces, 
 
 	for (int i = 0; i < pVector.size(); i++)
 	{
-		// Update velocity
-		pVector[i]->m_Velocity += pVector[i]->m_Force * dt;
+		if (!pVector[i]->m_isFixed)
+		{
+			// Update velocity
+			pVector[i]->m_Velocity += pVector[i]->m_Force * dt;
 
-		// Position particles halfway of the next timestep
-		pVector[i]->m_Position += pVector[i]->m_Velocity * (dt / 2);
+			// Position particles halfway of the next timestep
+			pVector[i]->m_Position += pVector[i]->m_Velocity * (dt / 2);
+		}
 	}
 
 	// Apply forces
@@ -96,8 +102,11 @@ void solveMidpoint(std::vector<Particle*> pVector, std::vector<IForce*> forces, 
 
 	for (int i = 0; i < pVector.size(); i++)
 	{
-		pVector[i]->m_Velocity = startVelocities[i] + (pVector[i]->m_Force / pVector[i]->m_Mass) * dt;
-		pVector[i]->m_Position = startPositions[i] + pVector[i]->m_Velocity * dt;
+		if (!pVector[i]->m_isFixed)
+		{
+			pVector[i]->m_Velocity = startVelocities[i] + (pVector[i]->m_Force / pVector[i]->m_Mass) * dt;
+			pVector[i]->m_Position = startPositions[i] + pVector[i]->m_Velocity * dt;
+		}
 	}
 }
 

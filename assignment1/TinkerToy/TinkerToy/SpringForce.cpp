@@ -7,26 +7,21 @@ SpringForce::SpringForce(Particle *p1, Particle * p2, double dist, double ks, do
 
 void SpringForce::draw() 
 {
+	Vec2f positionDiff = m_p1->m_Position - m_p2->m_Position;
+	float distance = sqrt(positionDiff[0] * positionDiff[0] + positionDiff[1] * positionDiff[1]);
+	float stretch = (distance / m_dist) - 1;
+
+	// Color changes as the spring distance changes
+	// blue = rest distance
+	// red = > rest distance
+
 	glBegin(GL_LINES);
-	glColor3f(0.6, 0.7, 0.8);
+	glColor3f(0.5 + stretch, 0.3, 1 - stretch * 2);
 	glVertex2f(m_p1->m_Position[0], m_p1->m_Position[1]);
-	glColor3f(0.6, 0.7, 0.8);
+	glColor3f(0.5 + stretch, 0.3, 1 - stretch * 2);
 	glVertex2f(m_p2->m_Position[0], m_p2->m_Position[1]);
 	glEnd();
 
-	// calculate positional and velocity differences
-	Vec2f positionDiff = m_p1->m_Position - m_p2->m_Position;
-	Vec2f velocityDiff = m_p1->m_Velocity - m_p2->m_Velocity;
-	velocityDiff = velocityDiff * 3.0f;
-	//velocityDiff = -(velocityDiff / norm(velocityDiff)) * 0.3f;
-
-
-	glBegin(GL_LINES);
-	glColor3f(0.1, 0.7, 0.8);
-	glVertex2f(m_p1->m_Position[0], m_p1->m_Position[1]);
-	glColor3f(0.1, 0.7, 0.8);
-	glVertex2f(m_p1->m_Position[0] + velocityDiff [0], m_p1->m_Position[1] + velocityDiff[1]);
-	glEnd();
 }
 
 void SpringForce::apply()
@@ -40,16 +35,10 @@ void SpringForce::apply()
 	
 	// calculate dotproduct
 	float dotProduct = positionDiff[0] * velocityDiff[0] + positionDiff[1] * velocityDiff[1]; //velocityDiff * positionDiff;
-
-	double distanceDiff =  distance - m_dist;
-	double stiffness = m_ks * distanceDiff;
-	
-	double dotdiv = dotProduct / distance;
 	
 	// calculate result force
 	//Vec2f result = (stiffness + m_kd * dotdiv);
 	float scalar = (m_ks * (distance - m_dist) + m_kd * (dotProduct / distance));
-	//Vec2f result = (m_ks * (distanceDiff) + 0 * (dotProduct / distance));
 	Vec2f result = scalar * (positionDiff / distance);
 
 	// apply force to both particles

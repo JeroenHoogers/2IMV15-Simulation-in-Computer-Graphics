@@ -18,24 +18,46 @@ void RodConstraint::draw()
 
 float RodConstraint::getC()
 {
-	//C(x1, y1, x2, y2) = Pow(x1 - x2) + Pow(y1-y2) - Pow(dist)
+	// C(x1, y1, x2, y2) = Pow(x1 - x2) + Pow(y1-y2) - Pow(dist)
 
-	//Calculate difference between particles
-	Vec2f difference = m_p1->m_Position - m_p2->m_Position;
+	// calculate difference in position between particles
+	Vec2f positionDiff = m_p1->m_Position - m_p2->m_Position;
 
-	//Calculate C(x1, y1, x2, y2)
-	float result = ((difference[0] * difference[0]) + (difference[1] * difference[1]) - (m_dist * m_dist));
+	float C = (positionDiff * positionDiff) - (m_dist * m_dist);
 
-	return result;
+	return C;
 }
 
 float RodConstraint::getCd()
 {
-	//C(x1, y1, x2, y2) = 2 * (x1 - x2) + 2 * (y1-y2)
+	// C(x1, y1, x2, y2) = 2 * (x1 - x2) + 2 * (y1-y2)
 	Vec2f positionDiff = 2.0f * (m_p1->m_Position - m_p2->m_Position);
 	Vec2f velocityDiff = 2.0f * (m_p1->m_Velocity - m_p2->m_Velocity);
 
-	float result = positionDiff[0] * velocityDiff[0] + positionDiff[1] * velocityDiff[1];
+	// Take the dot product of both differences
+	float Cd = positionDiff * velocityDiff;
 
-	return result;
+	return Cd;
+}
+
+std::vector<Vec2f> RodConstraint::getJ() 
+{
+	std::vector<Vec2f> J;
+
+	Vec2f positionDiff = 2.0f * (m_p1->m_Position - m_p2->m_Position);
+	J.push_back(positionDiff);
+	J.push_back(-positionDiff);
+	
+	return J;
+}
+
+std::vector<Vec2f> RodConstraint::getJd()
+{
+	std::vector<Vec2f> Jd;
+
+	Vec2f velocityDiff = 2.0f * (m_p1->m_Velocity - m_p2->m_Velocity);
+	Jd.push_back(velocityDiff);
+	Jd.push_back(-velocityDiff);
+
+	return Jd;
 }

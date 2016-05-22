@@ -129,6 +129,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CircularWireConstraint.cpp" />
+    <ClCompile Include="ConstraintSolver.cpp" />
+    <ClCompile Include="DragForce.cpp" />
     <ClCompile Include="GravityForce.cpp" />
     <ClCompile Include="imageio.cpp" />
     <ClCompile Include="linearSolver.cpp" />
@@ -140,6 +142,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CircularWireConstraint.h" />
+    <ClInclude Include="ConstraintSolver.h" />
+    <ClInclude Include="DragForce.h" />
     <ClInclude Include="IConstraint.h" />
     <ClInclude Include="IForce.h" />
     <ClInclude Include="GLUtil.h" />
