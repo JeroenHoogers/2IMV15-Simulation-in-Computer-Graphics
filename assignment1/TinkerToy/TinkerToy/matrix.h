@@ -21,8 +21,8 @@ public:
 	int getRows() { return m_rows; };
 	int getCols() { return m_cols; };
 
-	double getValue(int row, int col) { return m_data[col][row]; };
-	void setValue(int row, int col, double value) { m_data[col][row] = value; };
+	double getValue(int row, int col) { return m_data[row][col]; };
+	void setValue(int row, int col, double value) { m_data[row][col] = value; };
 	double* getData() { return *m_data; };
 	void setData(double* data) { m_data = &data; };
 

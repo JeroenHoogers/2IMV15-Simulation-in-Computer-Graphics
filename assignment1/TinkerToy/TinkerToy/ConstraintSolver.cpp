@@ -32,7 +32,7 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 	for (int i = 0; i < n; i++)
 	{
 		int i2 = i * 2;
-
+		
 		// Set the particle index (to be used in the jacobian matrices)
 		pVector[i]->m_index = i;
 
@@ -49,8 +49,8 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 		// Mass
 		M.setValue(i2, i2, pVector[i]->m_Mass);
 		M.setValue(i2 + 1, i2 + 1, pVector[i]->m_Mass);
-		M.setValue(i2, i2, 1 / pVector[i]->m_Mass);
-		M.setValue(i2 + 1, i2 + 1, 1 / pVector[i]->m_Mass);
+		W.setValue(i2, i2, 1 / pVector[i]->m_Mass);
+		W.setValue(i2 + 1, i2 + 1, 1 / pVector[i]->m_Mass);
 	}
 
 	// Initialize constraint matrices and vectors
@@ -69,6 +69,7 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 
 		vector<Vec2f> jacobian = constraints[i]->getJ();
 		vector<Vec2f> jacobiand = constraints[i]->getJd();
+		//int bla = jacobiand.size();
 		vector<Particle*> particles = constraints[i]->getParticles();
 
 		// Calculate Jacobian matrices
@@ -77,6 +78,10 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 
 			for (int dim = 0; dim < 2; dim++)
 			{
+				int x = i;
+				int y = particles[j]->m_index * 2 + dim;
+				//double hoi = jacobian[j][dim];
+				//double hoid = jacobiand[j][dim];
 				J.setValue(i, particles[j]->m_index * 2 + dim, jacobian[j][dim]);
 				Jd.setValue(i, particles[j]->m_index * 2 + dim, jacobiand[j][dim]);
 
@@ -85,26 +90,43 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 			}
 		}
 	}
-
+	
 	matrix JW = J * W;
 	matrix JWJT = JW * JT;
 
 	// JWJTLamba = -Jd * qd - JWQ -ks*C - kd*Cd 
+	//matrix Jdqd = matrix(n2, 1);
+	//matrix JWQ = matrix(n2, 1);
 	matrix Jdqd = Jd * qd;
+	Jdqd = Jdqd * -1.0;
 	matrix JWQ = JW * Q;
 
+	//matrix Cks = matrix(m, 1);
+	//matrix Cdkd = matrix(m, 1);
 	matrix Cks = C * ks;
 	matrix Cdkd = Cd * kd;
 
-	matrix JWJTLambda = Jdqd - JWQ - Cks - Cdkd;
+	matrix JWJTLambda = Jdqd - JWQ;// - Cks - Cdkd;
 	
 	// Obtain lambda using the conjugate gradient solver
 	double* lambda = new double[m];
+	for (int i = 0; i < m; i++)
+	{
+		lambda[i] = 0;
+	}
 
+	//int size = JWJTLambda.m_cols * JWJTLambda.m_rows;
+	//double* jwjtlam = new double[size];
+	//for (unsigned int i = 0; i < size; i++)
+	//{
+	//	jwjtlam[i] = JWJTLambda.getValue(i / JWJTLambda.m_rows, i % JWJTLambda.m_rows);
+	//}
+	
 	int stepSize = 100;
-	ConjGrad(m, &JWJT, lambda, JWJTLambda.getData(), 1 / 1000, &stepSize);
+	ConjGrad(m, &JWJT, lambda, JWJTLambda.m_data[0], 1.0 / 100.0, &stepSize);
 
 	// convert lambda to a 1 column matrix (vector)
+	double lam = lambda[0];
 	matrix lambdaMat = matrix(m, 1);
 	lambdaMat.setData(lambda);
 
@@ -114,6 +136,8 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 	// Finally apply the constraint forces to the particles
 	for (int i = 0; i < n; i++)
 	{
+		Vec2f asdfsadf = Vec2f(Qh.getValue(i * 2, 1),
+			Qh.getValue(i * 2 + 1, 1));
 		pVector[i]->m_Force += Vec2f( Qh.getValue(i * 2, 1), 
 									  Qh.getValue(i * 2 + 1, 1));
 	}

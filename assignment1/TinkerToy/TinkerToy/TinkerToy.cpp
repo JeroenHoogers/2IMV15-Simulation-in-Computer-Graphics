@@ -93,7 +93,7 @@ static void init_system(void)
 	// Create three particles, attach them to each other, then add a
 	// circular wire constraint to the first.
 
-	pVector.push_back(new Particle(center + offset, 1, true));
+	pVector.push_back(new Particle(center + offset, 1));
 	pVector.push_back(new Particle(center + offset + offset, 1));
 	pVector.push_back(new Particle(center + offset + offset + offset, 10));
 
@@ -116,7 +116,7 @@ static void init_system(void)
 	forces.push_back(new SpringForce(pVector[1], pVector[2], dist, 1.0, 1.0));
 	//forces.push_back(new SpringForce(pVector[0], pVector[2], dist, 1.0, 0.5));
 
-	constraints.push_back(new RodConstraint(pVector[1], pVector[0], dist));
+	//constraints.push_back(new RodConstraint(pVector[1], pVector[0], dist));
 	constraints.push_back(new CircularWireConstraint(pVector[0], center, dist));
 
 	// Add mouse force
