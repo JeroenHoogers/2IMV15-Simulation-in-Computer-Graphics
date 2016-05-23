@@ -128,6 +128,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AngularForce.cpp" />
     <ClCompile Include="CircularWireConstraint.cpp" />
     <ClCompile Include="ConstraintSolver.cpp" />
     <ClCompile Include="DragForce.cpp" />
@@ -143,6 +144,7 @@
     <ClCompile Include="TinkerToy.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AngularForce.h" />
     <ClInclude Include="CircularWireConstraint.h" />
     <ClInclude Include="ConstraintSolver.h" />
     <ClInclude Include="DragForce.h" />
