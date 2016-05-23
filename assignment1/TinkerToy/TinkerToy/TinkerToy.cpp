@@ -93,7 +93,7 @@ static void init_system(void)
 	// Create three particles, attach them to each other, then add a
 	// circular wire constraint to the first.
 
-	pVector.push_back(new Particle(center + offset, 1));
+	pVector.push_back(new Particle(center + offset, 1, true));
 	pVector.push_back(new Particle(center + offset + offset, 1));
 	pVector.push_back(new Particle(center + offset + offset + offset, 10));
 
@@ -116,13 +116,71 @@ static void init_system(void)
 	forces.push_back(new SpringForce(pVector[1], pVector[2], dist, 1.0, 1.0));
 	//forces.push_back(new SpringForce(pVector[0], pVector[2], dist, 1.0, 0.5));
 
-	//constraints.push_back(new RodConstraint(pVector[1], pVector[0], dist));
+	constraints.push_back(new RodConstraint(pVector[1], pVector[0], dist));
 	constraints.push_back(new CircularWireConstraint(pVector[0], center, dist));
 
 	// Add mouse force
 	mouseForce = new MouseForce(pVector[0], Vec2f(0, 0), dist, 1.0, 1.0);
 	forces.push_back(mouseForce);
 }	
+
+static void createClothGrid()
+{
+	const double dist = 0.1;
+	const int length = 12;
+	const Vec2f center(0.0, 0.0);
+	const Vec2f offset(dist, 0.0);
+	const Vec2f offseth(0.0, dist);
+	int mass = 1;
+	for (int i = -(length/2); i < (length/2); i++)
+	{
+		for (int j = -(length/2); j < (length/2); j++)
+		{
+			//add a higher mass to outer particles
+			if (i == -(length / 2) || i == (length / 2) - 1 || j == -(length / 2) || j == (length / 2) - 1)
+				mass = 3;
+			else
+				mass = 1;
+			
+			//set 2 fixed points for the cloth
+			if ((j == -(length/2) || j == (length/2 - 1)) && i == (length / 2 - 1))
+				pVector.push_back(new Particle(center + ((float)i * offseth) + ((float)j * offset), mass, true));
+			//add remaining points
+			else
+				pVector.push_back(new Particle(center + ((float)i * offseth) + ((float)j * offset), mass));
+		}
+	}
+	
+	for (int i = 0; i < pVector.size(); i++)
+	{
+		// Add gravity
+		forces.push_back(new GravityForce(pVector[i]));
+
+		// Add drag
+		forces.push_back(new DragForce(pVector[i]));
+	}
+
+	for (int i = 0; i < pVector.size() - 1; i++)
+	{
+		//add horizontal springs
+		if (!((i + 1) % length == 0))
+			forces.push_back(new SpringForce(pVector[i], pVector[i + 1], dist, 0.6, 0.5));
+		if (i < pVector.size() - length)
+		{
+			//add vertical springs
+			forces.push_back(new SpringForce(pVector[i], pVector[i + length], dist, 0.6, 0.5));
+
+			//add diagonal springs
+			if (!((i + 1) % length == 0))
+				forces.push_back(new SpringForce(pVector[i + length], pVector[i + 1], dist * sqrt(2), 1.2, 0.5));
+			if (!((i) % length == 0))
+				forces.push_back(new SpringForce(pVector[i + length], pVector[i - 1], dist * sqrt(2), 1.2, 0.5));
+		}
+	}
+
+	mouseForce = new MouseForce(pVector[0], Vec2f(0, 0), dist, 1.0, 1.0);
+	forces.push_back(mouseForce);
+}
 
 /*
 ----------------------------------------------------------------------
@@ -420,8 +478,8 @@ int main ( int argc, char ** argv )
 	dump_frames = 0;
 	frame_number = 0;
 	
-	init_system();
-	
+	//init_system();
+	createClothGrid();
 	win_x = 512;
 	win_y = 512;
 	open_glut_window ();
