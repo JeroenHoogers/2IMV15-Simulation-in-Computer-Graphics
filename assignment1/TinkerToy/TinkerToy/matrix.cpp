@@ -30,6 +30,19 @@ void matrix::matVecMult(double x[], double r[])
 	}
 }
 
+void matrix::printMatrix()
+{
+	cout << "The matrix is:\n";
+	for (int i = 0; i < m_rows; i++)
+	{
+		for (int j = 0; j < m_cols; j++)
+		{
+			cout << m_data[i][j] << " ";
+		}
+		cout << endl;
+	}
+}
+
 matrix& matrix::operator+ (const matrix& rhs)
 {
 	return (*this += rhs);

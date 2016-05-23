@@ -10,14 +10,14 @@ void GravityForce::draw()
 	// Draw gravity vector
 	if (!m_p->m_isFixed)
 	{
-		Vec2f direction = m_Gravity;
-		direction = (direction / norm(direction)) * 0.2f;
-		glBegin(GL_LINES);
-		glColor3f(0.6, 0.7, 0.4);
-		glVertex2f(m_p->m_Position[0], m_p->m_Position[1]);
-		glColor3f(0.6, 0.7, 0.4);
-		glVertex2f(m_p->m_Position[0] + direction[0], m_p->m_Position[1] + direction[1]);
-		glEnd();
+		//Vec2f direction = m_Gravity;
+		//direction = (direction / norm(direction)) * 0.2f;
+		//glBegin(GL_LINES);
+		//glColor3f(0.6, 0.7, 0.4);
+		//glVertex2f(m_p->m_Position[0], m_p->m_Position[1]);
+		//glColor3f(0.6, 0.7, 0.4);
+		//glVertex2f(m_p->m_Position[0] + direction[0], m_p->m_Position[1] + direction[1]);
+		//glEnd();
 	}	
 }
 

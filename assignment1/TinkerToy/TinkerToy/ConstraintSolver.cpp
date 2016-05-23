@@ -101,6 +101,15 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 	Jdqd = Jdqd * -1.0;
 	matrix JWQ = JW * Q;
 
+	cout << endl << "JW:" << endl;
+	JW.printMatrix();
+
+	cout << endl << "Jdqd:" << endl;
+	Jdqd.printMatrix();
+
+	cout << endl << "JWQ:" << endl;
+	JWQ.printMatrix();
+
 	//matrix Cks = matrix(m, 1);
 	//matrix Cdkd = matrix(m, 1);
 	matrix Cks = C * ks;
