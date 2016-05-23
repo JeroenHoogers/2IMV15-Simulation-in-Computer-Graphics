@@ -4,6 +4,7 @@
 #include "Particle.h"
 #include "IForce.h"
 #include "SpringForce.h"
+#include "MouseForce.h"
 #include "RodConstraint.h"
 #include "DragForce.h"
 #include "CircularWireConstraint.h"
@@ -44,7 +45,7 @@ static int hmx, hmy;
 
 static vector<IForce*> forces = vector<IForce*>();
 static vector<IConstraint*> constraints = vector<IConstraint*>();
-
+static MouseForce* mouseForce = NULL;
 
 
 /*
@@ -58,7 +59,8 @@ static void free_data ( void )
 	pVector.clear();
 	forces.clear();
 	constraints.clear();
-
+	if (mouseForce != NULL)
+		mouseForce->newMousePosition(Vec2f(0, 0));
 	/*if (delete_this_dummy_rod) {
 		delete delete_this_dummy_rod;
 		delete_this_dummy_rod = NULL;
@@ -110,13 +112,17 @@ static void init_system(void)
 	forces.push_back(new DragForce(pVector[2]));
 	//forces.push_back(new GravityForce(pVector[3]));
 	//forces.push_back(new GravityForce(pVector[4]));
-	//forces.push_back(new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0));
+	forces.push_back(new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0));
 	forces.push_back(new SpringForce(pVector[1], pVector[2], dist, 1.0, 1.0));
 	//forces.push_back(new SpringForce(pVector[0], pVector[2], dist, 1.0, 0.5));
 
 	constraints.push_back(new RodConstraint(pVector[1], pVector[0], dist));
 	constraints.push_back(new CircularWireConstraint(pVector[0], center, dist));
-}
+
+	// Add mouse force
+	mouseForce = new MouseForce(pVector[0], Vec2f(0, 0), dist, 1.0, 1.0);
+	forces.push_back(mouseForce);
+}	
 
 /*
 ----------------------------------------------------------------------
@@ -207,20 +213,38 @@ relates mouse movements to tinker toy construction
 
 static void get_from_UI ()
 {
-	int i, j;
+	float i, j;
 	// int size, flag;
 	int hi, hj;
 	// float x, y;
 	if ( !mouse_down[0] && !mouse_down[2] && !mouse_release[0] 
 	&& !mouse_shiftclick[0] && !mouse_shiftclick[2] ) return;
 
-	i = (int)((       mx /(float)win_x)*N);
-	j = (int)(((win_y-my)/(float)win_y)*N);
+	i = (float)(1 - ((win_x-mx)/((float)win_x / 2.0)));
+	j = (float)(1 - ((		my)/((float)win_y / 2.0)));
 
-	if ( i<1 || i>N || j<1 || j>N ) return;
+	//if ( i<1 || i>N || j<1 || j>N ) return;
 
 	if ( mouse_down[0] ) {
-
+		if (!mouseForce->selected)
+		{
+			Vec2f currentdis = Vec2f(2, 2);
+			Vec2f newdis = Vec2f(2, 2);
+			for (int ii = 0; ii < pVector.size(); ii++)
+			{
+				
+				newdis = pVector[ii]->m_Position - Vec2f(i, j);
+				if (abs(newdis[0]) + abs(newdis[1]) < abs(currentdis[0]) + abs(currentdis[1]))
+				{
+					currentdis = newdis;
+					mouseForce->selectParticle(pVector[ii]);
+				}
+			}
+		}
+		mouseForce->newMousePosition(Vec2f(i, j));
+	}
+	else {
+		mouseForce->clearParticle();
 	}
 
 	if ( mouse_down[2] ) {
@@ -311,10 +335,10 @@ static void idle_func ( void )
 		simulation_step( pVector, forces, constraints, dt);
 	else        
 	{
-		get_from_UI();
 		remap_GUI();
 	}
 
+	get_from_UI();
 	glutSetWindow ( win_id );
 	glutPostRedisplay ();
 }

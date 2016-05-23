@@ -135,6 +135,7 @@
     <ClCompile Include="imageio.cpp" />
     <ClCompile Include="linearSolver.cpp" />
     <ClCompile Include="matrix.cpp" />
+    <ClCompile Include="MouseForce.cpp" />
     <ClCompile Include="Particle.cpp" />
     <ClCompile Include="RodConstraint.cpp" />
     <ClCompile Include="Solver.cpp" />
@@ -152,6 +153,7 @@
     <ClInclude Include="imageio.h" />
     <ClInclude Include="linearSolver.h" />
     <ClInclude Include="matrix.h" />
+    <ClInclude Include="MouseForce.h" />
     <ClInclude Include="Particle.h" />
     <ClInclude Include="RodConstraint.h" />
     <ClInclude Include="SpringForce.h" />

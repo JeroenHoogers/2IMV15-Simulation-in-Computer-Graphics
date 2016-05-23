@@ -19,6 +19,7 @@ void simulation_step(std::vector<Particle*> pVector, std::vector<IForce*> forces
 {
 	solveMidpoint(pVector, forces, constraints, dt);
 	//solveEuler(pVector, forces, constraints, dt);
+	//solveRungeKutta(pVector, forces, constraints, dt);
 }
 
 //--------------------------------------------------------------
@@ -120,4 +121,94 @@ void solveRungeKutta(std::vector<Particle*> pVector, std::vector<IForce*> forces
 {
 	std::vector<Vec2f> startPositions = std::vector<Vec2f>();
 	std::vector<Vec2f> startVelocities = std::vector<Vec2f>();
+	std::vector<Vec2f> k1 = std::vector<Vec2f>();
+	std::vector<Vec2f> k2 = std::vector<Vec2f>();
+	std::vector<Vec2f> k3 = std::vector<Vec2f>();
+	std::vector<Vec2f> k4 = std::vector<Vec2f>();
+	std::vector<Vec2f> vel1 = std::vector<Vec2f>();
+	std::vector<Vec2f> vel2 = std::vector<Vec2f>();
+	std::vector<Vec2f> vel3 = std::vector<Vec2f>();
+	std::vector<Vec2f> vel4 = std::vector<Vec2f>();
+
+
+	for (int i = 0; i < pVector.size(); i++)
+	{
+		// Store starting positions
+		startPositions.push_back(pVector[i]->m_Position);
+		startVelocities.push_back(pVector[i]->m_Velocity);
+		k1.push_back(Vec2f(0, 0));
+		k2.push_back(Vec2f(0, 0));
+		k3.push_back(Vec2f(0, 0));
+		k4.push_back(Vec2f(0, 0));
+		vel1.push_back(Vec2f(0, 0));
+		vel2.push_back(Vec2f(0, 0));
+		vel3.push_back(Vec2f(0, 0));
+		vel4.push_back(Vec2f(0, 0));
+	}
+
+	// Apply forces
+	applyForces(pVector, forces, constraints);
+
+	for (int i = 0; i < pVector.size(); i++)
+	{
+		if (!pVector[i]->m_isFixed)
+		{
+			// Update velocity
+			k1[i] = pVector[i]->m_Force / pVector[i]->m_Mass;
+			vel1[i] = pVector[i]->m_Velocity;
+
+			// Position particles on the beginning of the next timestep
+			pVector[i]->m_Velocity = startVelocities[i] + vel1[i] * (dt / 2);
+			pVector[i]->m_Position = startPositions[i] + k1[i] * (dt / 2);
+		}
+	}
+
+	// Apply forces
+	applyForces(pVector, forces, constraints);
+
+	for (int i = 0; i < pVector.size(); i++)
+	{
+		if (!pVector[i]->m_isFixed)
+		{
+
+			k2[i] = pVector[i]->m_Force / pVector[i]->m_Mass;
+			vel2[i] = pVector[i]->m_Velocity;
+
+			// Position particles on the midpoint of the next timestep
+			pVector[i]->m_Velocity = startVelocities[i] + vel2[i] * (dt / 2);
+			pVector[i]->m_Position = startPositions[i] + k2[i] * (dt / 2);
+		}
+	}
+
+	// Apply forces
+	applyForces(pVector, forces, constraints);
+
+	for (int i = 0; i < pVector.size(); i++)
+	{
+		if (!pVector[i]->m_isFixed)
+		{
+			k3[i] = pVector[i]->m_Force / pVector[i]->m_Mass;
+			vel3[i] = pVector[i]->m_Velocity;
+
+			// Position particles on the midpoint of the next timestep
+			pVector[i]->m_Velocity = startVelocities[i] + vel3[i] * dt;
+			pVector[i]->m_Position = startPositions[i] + k3[i] * dt;
+		}
+	}
+
+	// Apply forces
+	applyForces(pVector, forces, constraints);
+
+	for (int i = 0; i < pVector.size(); i++)
+	{
+		if (!pVector[i]->m_isFixed)
+		{
+			k2[i] = pVector[i]->m_Force / pVector[i]->m_Mass;
+			vel2[i] = pVector[i]->m_Velocity;
+
+			// Position particles on the end of the next timestep
+			pVector[i]->m_Velocity = startVelocities[i] + dt / 6.0f * (k1[i] + 2.0f * k2[i] + 2.0f * k3[i] + k4[i]);
+			pVector[i]->m_Position = startPositions[i] + dt / 6.0f * (vel1[i] + 2.0f * vel2[i] + 2.0f * vel3[i] + vel4[i]);
+		}
+	}
 }
