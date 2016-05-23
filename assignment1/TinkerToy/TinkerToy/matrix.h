@@ -9,7 +9,6 @@ using namespace std;
 class matrix : public implicitMatrix
 {
 
-
 public:
 
 	int m_rows;
@@ -18,7 +17,6 @@ public:
 	double** m_data;
 
 	matrix(int row, int col);
-
 	int getRows() { return m_rows; };
 	int getCols() { return m_cols; };
 
@@ -33,17 +31,21 @@ public:
 	void matVecMult(double x[], double r[]) override;
 	//void matTransVecMult(double x[], double r[]) override;
 
-	matrix& operator+ (const matrix& rhs);
-	matrix& operator- (const matrix& rhs);
-	matrix& operator* (const matrix& rhs);
+	//matrix& operator+ (const matrix& rhs);
+	//matrix& operator- (const matrix& rhs);
+	//matrix& operator* (const matrix& rhs);
 
-	matrix& operator* (const float& rhs);
+	//matrix& operator* (const float& rhs);
 
-	matrix& operator+= (const matrix& rhs);
-	matrix& operator-= (const matrix& rhs);
-	matrix& operator*= (const matrix& rhs);
+	//matrix& operator+= (const matrix& rhs);
+	//matrix& operator-= (const matrix& rhs);
+	//matrix& operator*= (const matrix& rhs);
 
-	matrix& operator*= (const float& rhs);
+	//matrix& operator*= (const float& rhs);
+
+	friend matrix operator-(const matrix lhs, const matrix rhs);
+	friend matrix operator*(const matrix lhs, const float rhs);
+	friend matrix operator*(const matrix lhs, const matrix rhs);
 
 };
 

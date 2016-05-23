@@ -68,7 +68,7 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 		Cd.setValue(i, 0, constraints[i]->getCd());
 
 		vector<Vec2f> jacobian = constraints[i]->getJ();
-		vector<Vec2f> jacobiand = constraints[i]->getJd();
+		vector<Vec2f> jacobianD = constraints[i]->getJd();
 		//int bla = jacobiand.size();
 		vector<Particle*> particles = constraints[i]->getParticles();
 
@@ -82,8 +82,11 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 				int y = particles[j]->m_index * 2 + dim;
 				//double hoi = jacobian[j][dim];
 				//double hoid = jacobiand[j][dim];
+				cout << "jac: " << jacobian[j][dim] << endl;
+				cout << "jacD: " << jacobianD[j][dim] << endl;
+
 				J.setValue(i, particles[j]->m_index * 2 + dim, jacobian[j][dim]);
-				Jd.setValue(i, particles[j]->m_index * 2 + dim, jacobiand[j][dim]);
+				Jd.setValue(i, particles[j]->m_index * 2 + dim, jacobianD[j][dim]);
 
 				// Transpose of J
 				JT.setValue(particles[j]->m_index * 2 + dim, i, jacobian[j][dim]);
@@ -101,6 +104,20 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 	Jdqd = Jdqd * -1.0;
 	matrix JWQ = JW * Q;
 
+
+	cout << endl << "Q:" << endl;
+	Q.printMatrix();
+
+	cout << endl << "J:" << endl;
+	J.printMatrix();
+
+	cout << endl << "Jd:" << endl;
+	Jd.printMatrix();
+
+	cout << endl << "JT:" << endl;
+	JT.printMatrix();
+
+
 	cout << endl << "JW:" << endl;
 	JW.printMatrix();
 
@@ -115,7 +132,7 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 	matrix Cks = C * ks;
 	matrix Cdkd = Cd * kd;
 
-	matrix JWJTLambda = Jdqd - JWQ;// - Cks - Cdkd;
+	matrix JWJTLambda = Jdqd - JWQ - Cks - Cdkd;
 	
 	// Obtain lambda using the conjugate gradient solver
 	double* lambda = new double[m];

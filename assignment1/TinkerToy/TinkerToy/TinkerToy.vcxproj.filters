@@ -45,13 +45,13 @@
     <ClCompile Include="DragForce.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ConstraintSolver.cpp">
+    <ClCompile Include="MouseForce.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstraintSolver2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="matrix.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MouseForce.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AngularForce.cpp">
@@ -95,10 +95,10 @@
     <ClInclude Include="ConstraintSolver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="matrix.h">
+    <ClInclude Include="MouseForce.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MouseForce.h">
+    <ClInclude Include="matrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AngularForce.h">
