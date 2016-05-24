@@ -24,7 +24,7 @@ using namespace std;
 
 
 /* external definitions (from solver) */
-extern void simulation_step(vector<Particle*> pVector, vector<IForce*> forces, vector<IConstraint*> constraints, float dt );
+extern void simulation_step(vector<Particle*> pVector, vector<IForce*> forces, vector<IConstraint*> constraints, float dt, int method );
 
 /* global variables */
 static int N;
@@ -48,6 +48,7 @@ static vector<IForce*> forces = vector<IForce*>();
 static vector<IConstraint*> constraints = vector<IConstraint*>();
 static MouseForce* mouseForce = NULL;
 
+static int method = 0;
 static bool enableGravity = true;
 static bool enableSprings = true;
 static bool enableMouse = true;
@@ -103,7 +104,7 @@ static void init_system(void)
 	// Create three particles, attach them to each other, then add a
 	// circular wire constraint to the first.
 
-	pVector.push_back(new Particle(center + offset, 1, true));
+	pVector.push_back(new Particle(center + offset, 1));
 	pVector.push_back(new Particle(center + offset + offset, 1));
 	pVector.push_back(new Particle(center + offset + offset + offset, 10));
 
@@ -152,7 +153,7 @@ static void init_system(void)
 static void createClothGrid()
 {
 	const double dist = 0.05;
-	const int length = 16;
+	const int length = 12;
 	const Vec2f center(0.0, 0.3);
 	const Vec2f offset(dist, 0.0);
 	const Vec2f offseth(0.0, dist);
@@ -214,11 +215,18 @@ static void createClothGrid()
 				if (i < pVector.size() - (2 * length))
 				{
 					forces.push_back(new SpringForce(pVector[i], pVector[i + 2 * length], 2*dist, 0.05, 0.02));
+
+					//if (pVector[i + 2]->m_isFixed == false)
+					//	forces.push_back(new AngularForce(pVector[i], pVector[i + 1], pVector[i + 2], 180, 0.005, 0.05));
 				}
 			}
 			//add vertical damping springs
 			if (!((i + 2) % length == 0) && !((i + 1) % length == 0))
-				forces.push_back(new SpringForce(pVector[i], pVector[i + 2], 2*dist, 0.05, 0.02));
+			{
+				forces.push_back(new SpringForce(pVector[i], pVector[i + 2], 2 * dist, 0.05, 0.02));
+				//if (pVector[i + 2]->m_isFixed == false)
+				//	forces.push_back(new AngularForce(pVector[i], pVector[i + 1], pVector[i + 2], 180, 0.005, 0.05));
+			}
 		}
 	}
 
@@ -232,6 +240,9 @@ static void createClothGrid()
 	if (enableConstraints)
 	{
 		//Contstraints
+		//test : 
+		//constraints.push_back(new CircularWireConstraint(pVector[length*length - 1], pVector[length*length - 1]->m_ConstructPos + offseth, dist));
+		//constraints.push_back(new CircularWireConstraint(pVector[length*length - length], pVector[length*length - length]->m_ConstructPos + offseth, dist));
 	}
 
 	if (enableAngularSprings)
@@ -280,20 +291,6 @@ static void createHairDisplay()
 			//add horizontal springs
 			if (!((i + 1) % length == 0))
 				forces.push_back(new SpringForce(pVector[i], pVector[i + 1], dist, 0.1, 0.5));
-			//if (i < pVector.size() - length)
-			//{
-			//	//add vertical springs
-			//	forces.push_back(new SpringForce(pVector[i], pVector[i + length], dist, 0.1, 0.5));
-
-			//	//add diagonal springs
-			//	if (!((i + 1) % length == 0))
-			//		forces.push_back(new SpringForce(pVector[i + length], pVector[i + 1], dist * sqrt(2), 0.17, 0.5));
-			//	if (!((i) % length == 0))
-			//		forces.push_back(new SpringForce(pVector[i + length], pVector[i - 1], dist * sqrt(2), 0.17, 0.5));
-
-			//	if (!((i) % length == 0))
-			//		forces.push_back(new SpringForce(pVector[i + length], pVector[i - 1], dist * sqrt(2), 0.17, 0.5));
-			//}
 		}
 	}
 
@@ -512,19 +509,18 @@ static void key_func ( unsigned char key, int x, int y )
 		break;
 
 	case '1':
-		enableGravity = !enableGravity;
+		method = 0;
 		break;
 	case '2':
-		enableSprings = !enableSprings;
+		method = 1;
 		break;
 	case '3':
-		enableMouse = !enableMouse;
+		method = 2;
 		break;
 	case '4':
-		enableAngularSprings = !enableAngularSprings;
 		break;
 	case '5':
-		enableConstraints = !enableConstraints;
+		enableMouse = !enableMouse;
 		break;
 	case '6':
 		enableStandard = !enableStandard;
@@ -591,7 +587,7 @@ static void reshape_func ( int width, int height )
 static void idle_func ( void )
 {
 	if ( dsim ) 
-		simulation_step(pVector, forces, constraints, dt);
+		simulation_step(pVector, forces, constraints, dt, method);
 	else        
 	{
 		remap_GUI();
@@ -677,11 +673,10 @@ int main ( int argc, char ** argv )
 	printf ( "\n\nHow to use this application:\n\n" );
 	printf ( "\t Toggle construction/simulation display with the spacebar key\n" );
 	printf("\t Use the '1-9' keys to enable/disable the following functions : \n");
-	printf("\t 1 : Gravity force \n");
-	printf("\t 2 : Spring forces \n");
-	printf("\t 3 : Mouse interaction \n");
-	printf("\t 4 : Angular springs \n");
-	printf("\t 5 : Constraints \n");
+	printf("\t 1 : Eulers method \n");
+	printf("\t 2 : Midpoint \n");
+	printf("\t 3 : RungKutta \n");
+	printf("\t 5 : Mouse interaction \n");
 	printf("\t 6 : Standard display \n");
 	printf("\t 7 : Cloth display \n");
 	printf("\t 8 : Hair display \n");

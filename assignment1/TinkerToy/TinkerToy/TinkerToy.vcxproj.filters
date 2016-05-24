@@ -57,6 +57,9 @@
     <ClCompile Include="ConstraintSolver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="WallConstraint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CircularWireConstraint.h">
@@ -102,6 +105,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AngularForce.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WallConstraint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

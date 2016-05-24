@@ -142,6 +142,7 @@
     <ClCompile Include="Solver.cpp" />
     <ClCompile Include="SpringForce.cpp" />
     <ClCompile Include="TinkerToy.cpp" />
+    <ClCompile Include="WallConstraint.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AngularForce.h" />
@@ -159,6 +160,7 @@
     <ClInclude Include="Particle.h" />
     <ClInclude Include="RodConstraint.h" />
     <ClInclude Include="SpringForce.h" />
+    <ClInclude Include="WallConstraint.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
