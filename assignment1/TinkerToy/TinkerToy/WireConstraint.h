@@ -7,9 +7,10 @@ class WireConstraint : public IConstraint
 private:
 	Particle* const m_p;
 	Vec2f const m_pos;
+	int const m_axis;
 
 public:
-	WireConstraint(Particle* p, const Vec2f & pos);
+	WireConstraint(Particle* p, const Vec2f & pos, const int axis);
 
 	void draw() override;
 	float getC() override;

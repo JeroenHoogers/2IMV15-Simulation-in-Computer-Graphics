@@ -88,28 +88,31 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 			JT.setValue(p + 1, i, jacobian[j][1]);
 		}
 	}
-	
+
+
 	matrix JW = J * W;
 	matrix JWJT = JW * JT;
+
 
 	// JWJTLamba = -Jd * qd - JWQ -ks*C - kd*Cd 
 	matrix Jdqd = Jd * qd;
 	Jdqd = Jdqd * -1.0;
 	matrix JWQ = JW * Q;
 
+
 	matrix Cks = C * ks;
 	matrix Cdkd = Cd * kd;
 
-	matrix JWJTLambda = matrix(m, 1);
-	JWJTLambda = Jdqd - JWQ - Cks - Cdkd;
+	matrix JWJTLambda = Jdqd - JWQ - Cks - Cdkd;
 	
-	// Obtain lambda using the conjugate gradient solver
+	// Construct input for the solver
 	double* JWJTLambdaArray = new double[m];
 	for (int i = 0; i < m; i++)
 	{
 		JWJTLambdaArray[i] = JWJTLambda.getValue(i, 0);
 	}
 
+	// Obtain lambda using the conjugate gradient solver
 	double* lambda = new double[m];
 	
 	int stepSize = 100;
@@ -133,8 +136,33 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 									  Qh.getValue(i * 2 + 1, 0));
 	}
 	
+	// Release memory
 	free(lambda);
+	free(JWJTLambdaArray);
 
+	q.release();
+	qd.release();
+	Q.release();
+	M.release();
+	W.release();
+
+	C.release();
+	Cd.release();
+
+	J.release();
+	Jd.release();
+	JT.release();
+
+	JW.release();
+	JWJT.release();
+	Jdqd.release();
+	JWQ.release();
+	Cks.release();
+	Cdkd.release();
+	JWJTLambda.release();
+
+	lambdaMat.release();
+	Qh.release();
 
 	//cout << endl << "Q:" << endl;
 	//Q.printMatrix();

@@ -91,7 +91,7 @@ static void init_system(void)
 	// Create three particles
 	pVector.push_back(new Particle(center + offset, 1));
 	pVector.push_back(new Particle(center + offset + offset, 1));
-	pVector.push_back(new Particle(center + offset + offset + offset, 10));
+	pVector.push_back(new Particle(center + offset + offset + offset, 1));
 
 	// Add gravity
 	forces.push_back(new GravityForce(pVector[0]));
@@ -111,6 +111,8 @@ static void init_system(void)
 	//Add Constraints
 	constraints.push_back(new RodConstraint(pVector[1], pVector[0], dist));
 	constraints.push_back(new CircularWireConstraint(pVector[0], center, dist));
+	//constraints.push_back(new WireConstraint(pVector[0], pVector[0]->m_ConstructPos, 0));
+	//constraints.push_back(new WireConstraint(pVector[0], pVector[0]->m_ConstructPos, 1));
 	
 	// Add mouse force
 	if (enableMouse)
@@ -120,9 +122,9 @@ static void init_system(void)
 	}
 
 	//Add wall forces
-	forces.push_back(new WallForce(pVector[0]));
-	forces.push_back(new WallForce(pVector[1]));
-	forces.push_back(new WallForce(pVector[2]));
+	//forces.push_back(new WallForce(pVector[0]));
+	//forces.push_back(new WallForce(pVector[1]));
+	//forces.push_back(new WallForce(pVector[2]));
 }	
 
 static void createClothGrid()
@@ -154,8 +156,9 @@ static void createClothGrid()
 
 			if ((j == -(length / 2) || j == (length / 2 - 1) || j == 1) && i == (length / 2 - 1))
 			{
-				constraints.push_back(new WireConstraint(pVector[pVector.size() - 1], pVector[pVector.size() - 1]->m_ConstructPos));
-				constraints.push_back(new PointConstraint(pVector[pVector.size() - 1], pVector[pVector.size() - 1]->m_ConstructPos));
+				//constraints.push_back(new WireConstraint(pVector[pVector.size() - 1], pVector[pVector.size() - 1]->m_ConstructPos, 0));
+				constraints.push_back(new WireConstraint(pVector[pVector.size() - 1], pVector[pVector.size() - 1]->m_ConstructPos, 1));
+				//constraints.push_back(new PointConstraint(pVector[pVector.size() - 1], pVector[pVector.size() - 1]->m_ConstructPos));
 			}
 		}
 	}
