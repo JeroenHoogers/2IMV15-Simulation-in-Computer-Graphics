@@ -53,7 +53,10 @@ static bool enableSprings = true;
 static bool enableMouse = true;
 static bool enableAngularSprings = true;
 static bool enableConstraints = true;
-static bool enableCloth = true;
+static bool enableStandard = true;
+static bool enableCloth = false;
+static bool enableHair = false;
+static bool enableDrawParticles = true;
 
 /*
 ----------------------------------------------------------------------
@@ -148,12 +151,12 @@ static void init_system(void)
 
 static void createClothGrid()
 {
-	const double dist = 0.2;
-	const int length = 4;
+	const double dist = 0.05;
+	const int length = 16;
 	const Vec2f center(0.0, 0.3);
 	const Vec2f offset(dist, 0.0);
 	const Vec2f offseth(0.0, dist);
-	int mass = 1;
+	double mass = 0.5;
 
 	//Initialise grid
 	for (int i = -(length/2); i < (length/2); i++)
@@ -162,9 +165,9 @@ static void createClothGrid()
 		{
 			//add a higher mass to outer particles
 			if (i == -(length / 2) || i == (length / 2) - 1 || j == -(length / 2) || j == (length / 2) - 1)
-				mass = 3;
+				mass = 1.5;
 			else
-				mass = 1;
+				mass = 0.5;
 			
 			//set 2 fixed points for the cloth
 			if ((j == -(length / 2) || j == (length / 2 - 1) || j == 1) && i == (length / 2 - 1))
@@ -176,7 +179,7 @@ static void createClothGrid()
 	}
 
 	//Add gravity and Drag force
-	if (!enableGravity)
+	if (enableGravity)
 	{
 		for (int i = 0; i < pVector.size(); i++)
 		{
@@ -194,28 +197,28 @@ static void createClothGrid()
 		for (int i = 0; i < pVector.size() - 1; i++)
 		{
 			//add horizontal springs
-			//if (!((i + 1) % length == 0))
-				//forces.push_back(new SpringForce(pVector[i], pVector[i + 1], dist, 0.1, 0.5));
+			if (!((i + 1) % length == 0))
+				forces.push_back(new SpringForce(pVector[i], pVector[i + 1], dist, 0.1, 0.05));
 			if (i < pVector.size() - length)
 			{
 				//add vertical springs
-				//forces.push_back(new SpringForce(pVector[i], pVector[i + length], dist, 0.1, 0.5));
+				forces.push_back(new SpringForce(pVector[i], pVector[i + length], dist, 0.1, 0.05));
 
 				//add diagonal springs
-				//if (!((i + 1) % length == 0))
-				//	forces.push_back(new SpringForce(pVector[i + length], pVector[i + 1], dist * sqrt(2), 0.17, 0.5));
-				//if (!((i) % length == 0))
-				//	forces.push_back(new SpringForce(pVector[i + length], pVector[i - 1], dist * sqrt(2), 0.17, 0.5));
+				if (!((i + 1) % length == 0))
+					forces.push_back(new SpringForce(pVector[i + length], pVector[i + 1], dist * sqrt(2), 0.16, 0.1));
+				if (!((i) % length == 0))
+					forces.push_back(new SpringForce(pVector[i + length], pVector[i - 1], dist * sqrt(2), 0.16, 0.1));
 
-				//if (!((i) % length == 0))
-					//	forces.push_back(new SpringForce(pVector[i + length], pVector[i - 1], dist * sqrt(2), 0.17, 0.5));
+				//add horizontal damping springs
 				if (i < pVector.size() - (2 * length))
 				{
-					forces.push_back(new AngularForce(pVector[i], pVector[i + length], pVector[i + (2 * length)], 170, 1.5, 1));
+					forces.push_back(new SpringForce(pVector[i], pVector[i + 2 * length], 2*dist, 0.05, 0.02));
 				}
 			}
+			//add vertical damping springs
 			if (!((i + 2) % length == 0) && !((i + 1) % length == 0))
-				forces.push_back(new AngularForce(pVector[i], pVector[i + 1], pVector[i + 2], 170, 1.5, 1));
+				forces.push_back(new SpringForce(pVector[i], pVector[i + 2], 2*dist, 0.05, 0.02));
 		}
 	}
 
@@ -234,6 +237,86 @@ static void createClothGrid()
 	if (enableAngularSprings)
 	{
 		//Angular springs
+	}
+}
+
+static void createHairDisplay()
+{
+	const double dist = 0.04;
+	const int length = 32;
+	const Vec2f center(0.0, 0.35);
+	const Vec2f offseth(0.0, dist);
+	double mass = 0.1;
+
+	//Initialise grid
+	for (int i = -(length / 2); i < (length / 2); i++)
+	{
+			//set 2 fixed points for the cloth
+			if (i == (length / 2 - 1))
+				pVector.push_back(new Particle(center + ((float)i * offseth), mass, true));
+			//add remaining points
+			else
+				pVector.push_back(new Particle(center + ((float)i * offseth), mass));
+	}
+
+	//Add gravity and Drag force
+	if (enableGravity)
+	{
+		for (int i = 0; i < pVector.size(); i++)
+		{
+			// Add gravity
+			forces.push_back(new GravityForce(pVector[i]));
+
+			// Add drag
+			forces.push_back(new DragForce(pVector[i]));
+		}
+	}
+
+	//Add spring force
+	if (enableSprings)
+	{
+		for (int i = 0; i < pVector.size() - 1; i++)
+		{
+			//add horizontal springs
+			if (!((i + 1) % length == 0))
+				forces.push_back(new SpringForce(pVector[i], pVector[i + 1], dist, 0.1, 0.5));
+			//if (i < pVector.size() - length)
+			//{
+			//	//add vertical springs
+			//	forces.push_back(new SpringForce(pVector[i], pVector[i + length], dist, 0.1, 0.5));
+
+			//	//add diagonal springs
+			//	if (!((i + 1) % length == 0))
+			//		forces.push_back(new SpringForce(pVector[i + length], pVector[i + 1], dist * sqrt(2), 0.17, 0.5));
+			//	if (!((i) % length == 0))
+			//		forces.push_back(new SpringForce(pVector[i + length], pVector[i - 1], dist * sqrt(2), 0.17, 0.5));
+
+			//	if (!((i) % length == 0))
+			//		forces.push_back(new SpringForce(pVector[i + length], pVector[i - 1], dist * sqrt(2), 0.17, 0.5));
+			//}
+		}
+	}
+
+	//Add mouse force
+	if (enableMouse)
+	{
+		mouseForce = new MouseForce(pVector[0], Vec2f(0, 0), dist, 1.0, 1.0);
+		forces.push_back(mouseForce);
+	}
+
+	if (enableConstraints)
+	{
+		//Contstraints
+	}
+
+	if (enableAngularSprings)
+	{
+		//Angular springs
+		for (int i = 0; i < pVector.size() - 2; i++)
+		{
+			if (pVector[i + 2]->m_isFixed == false)
+			forces.push_back(new AngularForce(pVector[i], pVector[i + 1], pVector[i + 2], 180, 0.005, 0.05));
+		}
 	}
 }
 
@@ -384,6 +467,20 @@ static void remap_GUI()
 	}
 }
 
+static void load_Scene(void)
+{
+	dsim = 0;
+	dump_frames = 0;
+	frame_number = 0;
+
+	if (enableStandard)
+		init_system();
+	else if (enableCloth)
+		createClothGrid();
+	else if (enableHair)
+		createHairDisplay();
+}
+
 /*
 ----------------------------------------------------------------------
 GLUT callback routines
@@ -430,7 +527,37 @@ static void key_func ( unsigned char key, int x, int y )
 		enableConstraints = !enableConstraints;
 		break;
 	case '6':
+		enableStandard = !enableStandard;
+		if (enableStandard) 
+		{
+			enableCloth = false;
+			enableHair = false;
+		}
+		free_data();
+		load_Scene();
+		break;
+	case '7':
 		enableCloth = !enableCloth;
+		if (enableCloth)
+		{
+			enableStandard = false;
+			enableHair = false;
+		}
+		free_data();
+		load_Scene();
+		break;
+	case '8':
+		enableHair = !enableHair;
+		if (enableHair)
+		{
+			enableStandard = false;
+			enableCloth = false;
+		}
+		free_data();
+		load_Scene();
+		break;
+	case '9':
+		enableDrawParticles = !enableDrawParticles;
 		break;
 	}
 }
@@ -481,7 +608,11 @@ static void display_func ( void )
 
 	draw_forces();
 	draw_constraints();
-	draw_particles();
+
+	if (enableDrawParticles)
+	{
+		draw_particles();
+	}
 
 	post_display ();
 }
@@ -551,16 +682,15 @@ int main ( int argc, char ** argv )
 	printf("\t 3 : Mouse interaction \n");
 	printf("\t 4 : Angular springs \n");
 	printf("\t 5 : Constraints \n");
-	printf("\t 6 : Cloth grid \n");
+	printf("\t 6 : Standard display \n");
+	printf("\t 7 : Cloth display \n");
+	printf("\t 8 : Hair display \n");
+	printf("\t 9 : Draw particles \n");
 	printf ( "\t Dump frames by pressing the 'd' key\n" );
 	printf ( "\t Quit by pressing the 'q' key\n" );
-
-	dsim = 0;
-	dump_frames = 0;
-	frame_number = 0;
 	
-	//init_system();
-	createClothGrid();
+	load_Scene();
+
 	win_x = 512;
 	win_y = 512;
 	open_glut_window ();
