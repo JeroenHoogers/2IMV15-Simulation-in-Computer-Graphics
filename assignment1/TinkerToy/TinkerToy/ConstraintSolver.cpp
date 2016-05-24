@@ -64,6 +64,7 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 	// Fill matrices
 	for (int i = 0; i < m; i++)
 	{
+		// Fill C and Cd matrices
 		C.setValue(i, 0, constraints[i]->getC());
 		Cd.setValue(i, 0, constraints[i]->getCd());
 
@@ -75,22 +76,16 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 		// Calculate Jacobian matrices
 		for (int j = 0; j < particles.size(); j++)
 		{
+			int p = particles[j]->m_index * 2;
 
-			for (int dim = 0; dim < 2; dim++)
-			{
-				int x = i;
-				int y = particles[j]->m_index * 2 + dim;
-				//double hoi = jacobian[j][dim];
-				//double hoid = jacobiand[j][dim];
-				cout << "jac: " << jacobian[j][dim] << endl;
-				cout << "jacD: " << jacobianD[j][dim] << endl;
+			J.setValue(i, p + 0, jacobian[j][0]);
+			J.setValue(i, p + 1, jacobian[j][1]);
+			Jd.setValue(i, p + 0, jacobianD[j][0]);
+			Jd.setValue(i, p + 1, jacobianD[j][1]);
 
-				J.setValue(i, particles[j]->m_index * 2 + dim, jacobian[j][dim]);
-				Jd.setValue(i, particles[j]->m_index * 2 + dim, jacobianD[j][dim]);
-
-				// Transpose of J
-				JT.setValue(particles[j]->m_index * 2 + dim, i, jacobian[j][dim]);
-			}
+			// Transpose of J
+			JT.setValue(p + 0, i, jacobian[j][0]);
+			JT.setValue(p + 1, i, jacobian[j][1]);
 		}
 	}
 	
@@ -98,63 +93,35 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 	matrix JWJT = JW * JT;
 
 	// JWJTLamba = -Jd * qd - JWQ -ks*C - kd*Cd 
-	//matrix Jdqd = matrix(n2, 1);
-	//matrix JWQ = matrix(n2, 1);
 	matrix Jdqd = Jd * qd;
 	Jdqd = Jdqd * -1.0;
 	matrix JWQ = JW * Q;
 
-
-	cout << endl << "Q:" << endl;
-	Q.printMatrix();
-
-	cout << endl << "J:" << endl;
-	J.printMatrix();
-
-	cout << endl << "Jd:" << endl;
-	Jd.printMatrix();
-
-	cout << endl << "JT:" << endl;
-	JT.printMatrix();
-
-
-	cout << endl << "JW:" << endl;
-	JW.printMatrix();
-
-	cout << endl << "Jdqd:" << endl;
-	Jdqd.printMatrix();
-
-	cout << endl << "JWQ:" << endl;
-	JWQ.printMatrix();
-
-	//matrix Cks = matrix(m, 1);
-	//matrix Cdkd = matrix(m, 1);
 	matrix Cks = C * ks;
 	matrix Cdkd = Cd * kd;
 
-	matrix JWJTLambda = Jdqd - JWQ - Cks - Cdkd;
+	matrix JWJTLambda = matrix(m, 1);
+	JWJTLambda = Jdqd - JWQ - Cks - Cdkd;
 	
 	// Obtain lambda using the conjugate gradient solver
-	double* lambda = new double[m];
+	double* JWJTLambdaArray = new double[m];
 	for (int i = 0; i < m; i++)
 	{
-		lambda[i] = 0;
+		JWJTLambdaArray[i] = JWJTLambda.getValue(i, 0);
 	}
 
-	//int size = JWJTLambda.m_cols * JWJTLambda.m_rows;
-	//double* jwjtlam = new double[size];
-	//for (unsigned int i = 0; i < size; i++)
-	//{
-	//	jwjtlam[i] = JWJTLambda.getValue(i / JWJTLambda.m_rows, i % JWJTLambda.m_rows);
-	//}
+	double* lambda = new double[m];
 	
 	int stepSize = 100;
-	ConjGrad(m, &JWJT, lambda, JWJTLambda.m_data[0], 1.0 / 100.0, &stepSize);
+	ConjGrad(m, &JWJT, lambda, JWJTLambdaArray, 1.0 / 1000.0, &stepSize);
 
 	// convert lambda to a 1 column matrix (vector)
 	double lam = lambda[0];
 	matrix lambdaMat = matrix(m, 1);
-	lambdaMat.setData(lambda);
+	for (int i = 0; i < m; i++)
+	{
+		lambdaMat.setValue(i, 0, lambda[i]);
+	}
 
 	// Calculate the resulting force using lambda Qh = lambda * JT
 	matrix Qh = JT * lambdaMat;
@@ -162,11 +129,32 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 	// Finally apply the constraint forces to the particles
 	for (int i = 0; i < n; i++)
 	{
-		Vec2f asdfsadf = Vec2f(Qh.getValue(i * 2, 1),
-			Qh.getValue(i * 2 + 1, 1));
-		pVector[i]->m_Force += Vec2f( Qh.getValue(i * 2, 1), 
-									  Qh.getValue(i * 2 + 1, 1));
+		pVector[i]->m_Force += Vec2f( Qh.getValue(i * 2, 0), 
+									  Qh.getValue(i * 2 + 1, 0));
 	}
 	
 	free(lambda);
+
+
+	//cout << endl << "Q:" << endl;
+	//Q.printMatrix();
+
+	//cout << endl << "J:" << endl;
+	//J.printMatrix();
+
+	//cout << endl << "Jd:" << endl;
+	//Jd.printMatrix();
+
+	//cout << endl << "JT:" << endl;
+	//JT.printMatrix();
+
+
+	//cout << endl << "JW:" << endl;
+	//JW.printMatrix();
+
+	//cout << endl << "Jdqd:" << endl;
+	//Jdqd.printMatrix();
+
+	//cout << endl << "JWQ:" << endl;
+	//JWQ.printMatrix();
 }

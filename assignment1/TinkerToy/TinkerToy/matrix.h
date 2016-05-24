@@ -44,6 +44,7 @@ public:
 	//matrix& operator*= (const float& rhs);
 
 	friend matrix operator-(const matrix lhs, const matrix rhs);
+
 	friend matrix operator*(const matrix lhs, const float rhs);
 	friend matrix operator*(const matrix lhs, const matrix rhs);
 
