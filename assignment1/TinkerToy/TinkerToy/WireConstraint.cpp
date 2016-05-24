@@ -1,8 +1,8 @@
 #include "WireConstraint.h"
 
 
-WireConstraint::WireConstraint(Particle* p, const Vec2f & pos1, const Vec2f & pos2) : 
-	m_p(p), m_pos1(pos1), m_pos2(pos2) 
+WireConstraint::WireConstraint(Particle* p, const Vec2f & pos) : 
+	m_p(p), m_pos(pos)
 {
 
 }
@@ -11,38 +11,11 @@ void WireConstraint::draw()
 {
 	glBegin(GL_LINES);
 	glColor3f(0.8, 0.7, 0.6);
-	glVertex2f(m_pos1[0], m_pos1[1]);
+	glVertex2f(-1, m_pos[1]);
 	glColor3f(0.8, 0.7, 0.6);
-	glVertex2f(m_pos2[0], m_pos2[1]);
+	glVertex2f(1, m_pos[1]);
 	glEnd();
 
-}
-
-float WireConstraint::getC()
-{
-	//C(x, y, x_c, y_c) = Pow(x - x_c) + Pow(y - y_c) - Pow(r)
-
-	//Calculate difference vector between the particle and center of the wire circle
-	Vec2f positionDiff = m_pos1 - m_pos2;
-
-	//Calculate C(x, y, x_c, y_c)
-
-	return -1.0f;
-}
-
-float WireConstraint::getCd()
-{
-	return -1.0f;
-}
-
-vector<Vec2f> WireConstraint::getJ()
-{
-	return vector<Vec2f>();
-}
-
-vector<Vec2f> WireConstraint::getJd()
-{
-	return vector<Vec2f>();
 }
 
 vector<Particle*> WireConstraint::getParticles()
@@ -50,5 +23,37 @@ vector<Particle*> WireConstraint::getParticles()
 	vector<Particle*> particles;
 	particles.push_back(m_p);
 
- 	return particles;
+	return particles;
 }
+
+float WireConstraint::getC()
+{
+	//C(x, y) = (y - h)
+	float C = m_p->m_Position[1] - m_pos[1];
+	return C;
+}
+
+float WireConstraint::getCd()
+{
+	float Cd = m_p->m_Velocity[1];
+	return Cd;
+}
+
+vector<Vec2f> WireConstraint::getJ()
+{
+	vector<Vec2f> J;
+
+	J.push_back(Vec2f(0, 1));
+
+	return J;
+}
+
+vector<Vec2f> WireConstraint::getJd()
+{
+	vector<Vec2f> Jd;
+
+	Jd.push_back(Vec2f(0, 0));
+
+	return Jd;
+}
+

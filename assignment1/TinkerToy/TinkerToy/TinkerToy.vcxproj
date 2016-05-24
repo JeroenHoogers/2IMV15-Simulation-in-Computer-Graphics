@@ -143,7 +143,6 @@
     <ClCompile Include="Solver.cpp" />
     <ClCompile Include="SpringForce.cpp" />
     <ClCompile Include="TinkerToy.cpp" />
-    <ClCompile Include="WallConstraint.cpp" />
     <ClCompile Include="WireConstraint.cpp" />
   </ItemGroup>
   <ItemGroup>

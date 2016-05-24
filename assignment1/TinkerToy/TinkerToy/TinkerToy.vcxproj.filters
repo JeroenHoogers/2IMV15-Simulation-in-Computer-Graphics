@@ -57,14 +57,11 @@
     <ClCompile Include="ConstraintSolver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WallConstraint.cpp">
+    <ClCompile Include="WireConstraint.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PointConstraint.cpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
-    <ClCompile Include="WireConstraint.cpp">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

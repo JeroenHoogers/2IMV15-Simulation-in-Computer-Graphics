@@ -113,7 +113,7 @@ void ConstraintSolver::Solve(std::vector<Particle*> pVector, std::vector<IConstr
 	double* lambda = new double[m];
 	
 	int stepSize = 100;
-	ConjGrad(m, &JWJT, lambda, JWJTLambdaArray, 1.0 / 1000.0, &stepSize);
+	ConjGrad(m, &JWJT, lambda, JWJTLambdaArray, 0.001, &stepSize);
 
 	// convert lambda to a 1 column matrix (vector)
 	double lam = lambda[0];
