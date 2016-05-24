@@ -9,7 +9,10 @@
 #include "RodConstraint.h"
 #include "DragForce.h"
 #include "CircularWireConstraint.h"
+#include "WireConstraint.h"
+#include "PointConstraint.h"
 #include "GravityForce.h"
+#include "WallForce.h"
 #include "imageio.h"
 
 #include <vector>
@@ -49,11 +52,7 @@ static vector<IConstraint*> constraints = vector<IConstraint*>();
 static MouseForce* mouseForce = NULL;
 
 static int method = 0;
-static bool enableGravity = true;
-static bool enableSprings = true;
 static bool enableMouse = true;
-static bool enableAngularSprings = true;
-static bool enableConstraints = true;
 static bool enableStandard = true;
 static bool enableCloth = false;
 static bool enableHair = false;
@@ -72,18 +71,6 @@ static void free_data ( void )
 	constraints.clear();
 	if (mouseForce != NULL)
 		mouseForce->newMousePosition(Vec2f(0, 0));
-	/*if (delete_this_dummy_rod) {
-		delete delete_this_dummy_rod;
-		delete_this_dummy_rod = NULL;
-	}*/
-	//if (delete_this_dummy_spring) {
-	//	delete delete_this_dummy_spring;
-	//	delete_this_dummy_spring = NULL;
-	//}
-	/*if (delete_this_dummy_wire) {
-		delete delete_this_dummy_wire;
-		delete_this_dummy_wire = NULL;
-	}*/
 }
 
 static void clear_data ( void )
@@ -101,60 +88,46 @@ static void init_system(void)
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 
-	// Create three particles, attach them to each other, then add a
-	// circular wire constraint to the first.
-
+	// Create three particles
 	pVector.push_back(new Particle(center + offset, 1));
 	pVector.push_back(new Particle(center + offset + offset, 1));
 	pVector.push_back(new Particle(center + offset + offset + offset, 10));
 
-	// You shoud replace these with a vector generalized forces and one of
-	// constraints...
-	//delete_this_dummy_spring = new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0);
-	
 	// Add gravity
-	if (enableGravity)
-	{
-		forces.push_back(new GravityForce(pVector[0]));
-		forces.push_back(new GravityForce(pVector[1]));
-		forces.push_back(new GravityForce(pVector[2]));
+	forces.push_back(new GravityForce(pVector[0]));
+	forces.push_back(new GravityForce(pVector[1]));
+	forces.push_back(new GravityForce(pVector[2]));
 
-		// Add drag
-		forces.push_back(new DragForce(pVector[0]));
-		forces.push_back(new DragForce(pVector[1]));
-		forces.push_back(new DragForce(pVector[2]));
-	}
-	//forces.push_back(new GravityForce(pVector[3]));
-	//forces.push_back(new GravityForce(pVector[4]));
+	// Add drag
+	forces.push_back(new DragForce(pVector[0]));
+	forces.push_back(new DragForce(pVector[1]));
+	forces.push_back(new DragForce(pVector[2]));
 
 	//Add spring forces
-	if (enableSprings)
-	{
-		forces.push_back(new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0));
-		forces.push_back(new SpringForce(pVector[1], pVector[2], dist, 1.0, 1.0));
-		//forces.push_back(new SpringForce(pVector[0], pVector[2], dist, 1.0, 0.5));
-	}
-
+	forces.push_back(new SpringForce(pVector[1], pVector[2], dist, 1.0, 1.0));
+	//forces.push_back(new SpringForce(pVector[0], pVector[2], dist, 1.0, 0.5));
+	
 	//Add Constraints
-	if (enableConstraints)
-	{
-		//constraints.push_back(new RodConstraint(pVector[1], pVector[0], dist));
-		//constraints.push_back(new CircularWireConstraint(pVector[0], center, dist));
-	}
-
+	constraints.push_back(new RodConstraint(pVector[1], pVector[0], dist));
+	
 	// Add mouse force
 	if (enableMouse)
 	{
 		mouseForce = new MouseForce(pVector[0], Vec2f(0, 0), dist, 1.0, 1.0);
 		forces.push_back(mouseForce);
 	}
+
+	//Add wall forces
+	forces.push_back(new WallForce(pVector[0]));
+	forces.push_back(new WallForce(pVector[1]));
+	forces.push_back(new WallForce(pVector[2]));
 }	
 
 static void createClothGrid()
 {
-	const double dist = 0.05;
+	const double dist = 0.1;
 	const int length = 12;
-	const Vec2f center(0.0, 0.3);
+	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 	const Vec2f offseth(0.0, dist);
 	double mass = 0.5;
@@ -171,63 +144,63 @@ static void createClothGrid()
 				mass = 0.5;
 			
 			//set 2 fixed points for the cloth
-			if ((j == -(length / 2) || j == (length / 2 - 1) || j == 1) && i == (length / 2 - 1))
-				pVector.push_back(new Particle(center + ((float)i * offseth) + ((float)j * offset), mass, true));
+			//if ((j == -(length / 2) || j == (length / 2 - 1) || j == 1) && i == (length / 2 - 1))
+				//pVector.push_back(new Particle(center + ((float)i * offseth) + ((float)j * offset), mass, true));
 			//add remaining points
-			else
-				pVector.push_back(new Particle(center + ((float)i * offseth) + ((float)j * offset), mass));
+			//else
+			pVector.push_back(new Particle(center + ((float)i * offseth) + ((float)j * offset), mass));
+
+			if ((j == -(length / 2) || j == (length / 2 - 1) || j == 1) && i == (length / 2 - 1))
+			{
+				constraints.push_back(new WireConstraint(pVector[pVector.size() - 1], pVector[pVector.size() - 1]->m_ConstructPos));
+				constraints.push_back(new PointConstraint(pVector[pVector.size() - 1], pVector[pVector.size() - 1]->m_ConstructPos));
+			}
 		}
 	}
 
-	//Add gravity and Drag force
-	if (enableGravity)
+	for (int i = 0; i < pVector.size(); i++)
 	{
-		for (int i = 0; i < pVector.size(); i++)
-		{
-			// Add gravity
-			forces.push_back(new GravityForce(pVector[i]));
+		// Add gravity
+		forces.push_back(new GravityForce(pVector[i]));
 
-			// Add drag
-			forces.push_back(new DragForce(pVector[i]));
-		}
+		// Add drag
+		forces.push_back(new DragForce(pVector[i]));
 	}
 
 	//Add spring force
-	if (enableSprings)
+	for (int i = 0; i < pVector.size() - 1; i++)
 	{
-		for (int i = 0; i < pVector.size() - 1; i++)
+		//add horizontal springs
+		if (!((i + 1) % length == 0))
+			forces.push_back(new SpringForce(pVector[i], pVector[i + 1], dist, 0.04, 0.25));
+		if (i < pVector.size() - length)
 		{
-			//add horizontal springs
+			//add vertical springs
+			forces.push_back(new SpringForce(pVector[i], pVector[i + length], dist, 0.04, 0.25));
+
+			//add diagonal springs
 			if (!((i + 1) % length == 0))
-				forces.push_back(new SpringForce(pVector[i], pVector[i + 1], dist, 0.1, 0.05));
-			if (i < pVector.size() - length)
+				forces.push_back(new SpringForce(pVector[i + length], pVector[i + 1], dist * sqrt(2), 0.06, 0.5));
+			if (!((i) % length == 0))
+				forces.push_back(new SpringForce(pVector[i + length], pVector[i - 1], dist * sqrt(2), 0.06, 0.5));
+
+			//add horizontal damping springs
+			if (i < pVector.size() - (2 * length))
 			{
-				//add vertical springs
-				forces.push_back(new SpringForce(pVector[i], pVector[i + length], dist, 0.1, 0.05));
+				forces.push_back(new SpringForce(pVector[i], pVector[i + 2 * length], 2*dist, 0.02, 0.1));
 
-				//add diagonal springs
-				if (!((i + 1) % length == 0))
-					forces.push_back(new SpringForce(pVector[i + length], pVector[i + 1], dist * sqrt(2), 0.16, 0.1));
-				if (!((i) % length == 0))
-					forces.push_back(new SpringForce(pVector[i + length], pVector[i - 1], dist * sqrt(2), 0.16, 0.1));
-
-				//add horizontal damping springs
-				if (i < pVector.size() - (2 * length))
-				{
-					forces.push_back(new SpringForce(pVector[i], pVector[i + 2 * length], 2*dist, 0.05, 0.02));
-
-					//if (pVector[i + 2]->m_isFixed == false)
-					//	forces.push_back(new AngularForce(pVector[i], pVector[i + 1], pVector[i + 2], 180, 0.005, 0.05));
-				}
-			}
-			//add vertical damping springs
-			if (!((i + 2) % length == 0) && !((i + 1) % length == 0))
-			{
-				forces.push_back(new SpringForce(pVector[i], pVector[i + 2], 2 * dist, 0.05, 0.02));
 				//if (pVector[i + 2]->m_isFixed == false)
 				//	forces.push_back(new AngularForce(pVector[i], pVector[i + 1], pVector[i + 2], 180, 0.005, 0.05));
 			}
 		}
+		//add vertical damping springs
+		if (!((i + 2) % length == 0) && !((i + 1) % length == 0))
+		{
+			forces.push_back(new SpringForce(pVector[i], pVector[i + 2], 2 * dist, 0.02, 0.1));
+			//if (pVector[i + 2]->m_isFixed == false)
+			//	forces.push_back(new AngularForce(pVector[i], pVector[i + 1], pVector[i + 2], 180, 0.005, 0.05));
+		}
+		
 	}
 
 	//Add mouse force
@@ -237,18 +210,20 @@ static void createClothGrid()
 		forces.push_back(mouseForce);
 	}
 
-	if (enableConstraints)
+	//Contstraints
+	//test : 
+	//constraints.push_back(new CircularWireConstraint(pVector[length*length - 1], pVector[length*length - 1]->m_ConstructPos + offseth, dist));
+	//constraints.push_back(new CircularWireConstraint(pVector[length*length - length], pVector[length*length - length]->m_ConstructPos + offseth, dist));
+	// TODO : LineWireConstraint
+
+	// Add Wall forces
+	for (int i = 0; i < pVector.size(); i++)
 	{
-		//Contstraints
-		//test : 
-		//constraints.push_back(new CircularWireConstraint(pVector[length*length - 1], pVector[length*length - 1]->m_ConstructPos + offseth, dist));
-		//constraints.push_back(new CircularWireConstraint(pVector[length*length - length], pVector[length*length - length]->m_ConstructPos + offseth, dist));
+		forces.push_back(new WallForce(pVector[i]));
 	}
 
-	if (enableAngularSprings)
-	{
-		//Angular springs
-	}
+	//Angular springs
+	//{ }
 }
 
 static void createHairDisplay()
@@ -270,28 +245,21 @@ static void createHairDisplay()
 				pVector.push_back(new Particle(center + ((float)i * offseth), mass));
 	}
 
-	//Add gravity and Drag force
-	if (enableGravity)
+	for (int i = 0; i < pVector.size(); i++)
 	{
-		for (int i = 0; i < pVector.size(); i++)
-		{
-			// Add gravity
-			forces.push_back(new GravityForce(pVector[i]));
+		// Add gravity
+		forces.push_back(new GravityForce(pVector[i]));
 
-			// Add drag
-			forces.push_back(new DragForce(pVector[i]));
-		}
+		// Add drag
+		forces.push_back(new DragForce(pVector[i]));
 	}
 
 	//Add spring force
-	if (enableSprings)
+	for (int i = 0; i < pVector.size() - 1; i++)
 	{
-		for (int i = 0; i < pVector.size() - 1; i++)
-		{
-			//add horizontal springs
-			if (!((i + 1) % length == 0))
-				forces.push_back(new SpringForce(pVector[i], pVector[i + 1], dist, 0.1, 0.5));
-		}
+		//add horizontal springs
+		if (!((i + 1) % length == 0))
+			forces.push_back(new SpringForce(pVector[i], pVector[i + 1], dist, 0.1, 0.5));
 	}
 
 	//Add mouse force
@@ -301,19 +269,14 @@ static void createHairDisplay()
 		forces.push_back(mouseForce);
 	}
 
-	if (enableConstraints)
-	{
-		//Contstraints
-	}
+	//Contstraints
+	//{}
 
-	if (enableAngularSprings)
+	//Add angular springs
+	for (int i = 0; i < pVector.size() - 2; i++)
 	{
-		//Angular springs
-		for (int i = 0; i < pVector.size() - 2; i++)
-		{
-			if (pVector[i + 2]->m_isFixed == false)
-			forces.push_back(new AngularForce(pVector[i], pVector[i + 1], pVector[i + 2], 180, 0.005, 0.05));
-		}
+		if (pVector[i + 2]->m_isFixed == false)
+		forces.push_back(new AngularForce(pVector[i], pVector[i + 1], pVector[i + 2], 180, 0.005, 0.05));
 	}
 }
 

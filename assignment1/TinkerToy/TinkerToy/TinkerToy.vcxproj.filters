@@ -63,6 +63,9 @@
     <ClCompile Include="PointConstraint.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="WallForce.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CircularWireConstraint.h">
@@ -110,13 +113,13 @@
     <ClInclude Include="AngularForce.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WallConstraint.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="PointConstraint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WireConstraint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WallForce.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -143,6 +143,7 @@
     <ClCompile Include="Solver.cpp" />
     <ClCompile Include="SpringForce.cpp" />
     <ClCompile Include="TinkerToy.cpp" />
+    <ClCompile Include="WallForce.cpp" />
     <ClCompile Include="WireConstraint.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -162,7 +163,7 @@
     <ClInclude Include="PointConstraint.h" />
     <ClInclude Include="RodConstraint.h" />
     <ClInclude Include="SpringForce.h" />
-    <ClInclude Include="WallConstraint.h" />
+    <ClInclude Include="WallForce.h" />
     <ClInclude Include="WireConstraint.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -40,6 +40,14 @@ void MouseForce::apply()
 		float scalar = (m_ks * (distance - m_dist) + m_kd * (dotProduct / distance));
 		Vec2f result = scalar * (positionDiff / distance);
 
+		if (result[0] > 0.5)
+			result[0] = 0.5;
+		if (result[1] > 0.5)
+  			result[1] = 0.5;
+		if (result[0] < -0.5)
+			result[0] = -0.5;
+		if (result[1] < -0.5)
+			result[1] = -0.5;
 		// apply force to both particles
 		m_p->m_Force -= result;
 	}
