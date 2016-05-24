@@ -130,7 +130,7 @@
   <ItemGroup>
     <ClCompile Include="AngularForce.cpp" />
     <ClCompile Include="CircularWireConstraint.cpp" />
-    <ClCompile Include="ConstraintSolver2.cpp" />
+    <ClCompile Include="ConstraintSolver.cpp" />
     <ClCompile Include="DragForce.cpp" />
     <ClCompile Include="GravityForce.cpp" />
     <ClCompile Include="imageio.cpp" />
