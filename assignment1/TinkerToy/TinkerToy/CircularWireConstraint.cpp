@@ -17,7 +17,9 @@ static void draw_circle(const Vec2f & vect, float radius)
 }
 
 CircularWireConstraint::CircularWireConstraint(Particle *p, const Vec2f & center, const double radius) :
-	m_p(p), m_center(center), m_radius(radius) {}
+	m_p(p), m_center(center), m_radius(radius) 
+{
+}
 
 void CircularWireConstraint::draw()
 {
@@ -39,7 +41,7 @@ float CircularWireConstraint::getC()
 
 float CircularWireConstraint::getCd()
 {
-	// C(x, y, x_c, y_c) = 2 * (x - x_c) * 2 * (y - y_c)
+	// Cd(x, y, x_c, y_c) = 2 * (x - x_c) + 2 * (y - y_c)
 	Vec2f positionDiff = (m_p->m_Position - m_center) * 2.0f;
 	Vec2f velocityDiff = (m_p->m_Velocity) * 2.0f;
 
