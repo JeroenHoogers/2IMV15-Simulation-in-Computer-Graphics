@@ -1,5 +1,5 @@
 #include "Particle.h"
-#include "IForce.h";
+#include "IForce.h"
 #include "IConstraint.h"
 #include "ConstraintSolver.h"
 
@@ -15,11 +15,21 @@ void solveRungeKutta(std::vector<Particle*> pVector, std::vector<IForce*> forces
 
 void applyForces(std::vector<Particle*> pVector, std::vector<IForce*> forces, std::vector<IConstraint*> constraints);
 
-void simulation_step(std::vector<Particle*> pVector, std::vector<IForce*> forces, std::vector<IConstraint*> constraints, float dt)
+void simulation_step(std::vector<Particle*> pVector, std::vector<IForce*> forces, std::vector<IConstraint*> constraints, float dt, int method)
 {
-	solveMidpoint(pVector, forces, constraints, dt);
-	//solveEuler(pVector, forces, constraints, dt);
-	//solveRungeKutta(pVector, forces, constraints, dt);
+	switch (method)
+	{
+		case 0:
+		default:
+			solveEuler(pVector, forces, constraints, dt);
+			break;
+		case 1:
+			solveMidpoint(pVector, forces, constraints, dt);
+			break;
+		case 2:
+			solveRungeKutta(pVector, forces, constraints, dt);
+			break;
+	}
 }
 
 //--------------------------------------------------------------
@@ -43,7 +53,7 @@ void applyForces(std::vector<Particle*> pVector, std::vector<IForce*> forces, st
 	}
 
 	// TODO: solve constraints
-	ConstraintSolver::Solve(pVector, constraints, 30, 1);
+	ConstraintSolver::Solve(pVector, constraints, 30, 3);
 
 
 }
@@ -94,7 +104,7 @@ void solveMidpoint(std::vector<Particle*> pVector, std::vector<IForce*> forces, 
 		if (!pVector[i]->m_isFixed)
 		{
 			// Update velocity
-			pVector[i]->m_Velocity += pVector[i]->m_Force * dt;
+			pVector[i]->m_Velocity += (pVector[i]->m_Force / pVector[i]->m_Mass) * dt;
 
 			// Position particles halfway of the next timestep
 			pVector[i]->m_Position += pVector[i]->m_Velocity * (dt / 2);
@@ -158,8 +168,8 @@ void solveRungeKutta(std::vector<Particle*> pVector, std::vector<IForce*> forces
 			vel1[i] = pVector[i]->m_Velocity;
 
 			// Position particles on the beginning of the next timestep
-			pVector[i]->m_Velocity = startVelocities[i] + vel1[i] * (dt / 2);
-			pVector[i]->m_Position = startPositions[i] + k1[i] * (dt / 2);
+			pVector[i]->m_Velocity += k1[i] * (dt / 2);
+			pVector[i]->m_Position += vel1[i] * (dt / 2);
 		}
 	}
 
@@ -175,8 +185,8 @@ void solveRungeKutta(std::vector<Particle*> pVector, std::vector<IForce*> forces
 			vel2[i] = pVector[i]->m_Velocity;
 
 			// Position particles on the midpoint of the next timestep
-			pVector[i]->m_Velocity = startVelocities[i] + vel2[i] * (dt / 2);
-			pVector[i]->m_Position = startPositions[i] + k2[i] * (dt / 2);
+			pVector[i]->m_Velocity += k2[i] * (dt / 2);
+			pVector[i]->m_Position += vel2[i] * (dt / 2);
 		}
 	}
 
@@ -191,8 +201,8 @@ void solveRungeKutta(std::vector<Particle*> pVector, std::vector<IForce*> forces
 			vel3[i] = pVector[i]->m_Velocity;
 
 			// Position particles on the midpoint of the next timestep
-			pVector[i]->m_Velocity = startVelocities[i] + vel3[i] * dt;
-			pVector[i]->m_Position = startPositions[i] + k3[i] * dt;
+			pVector[i]->m_Velocity += k3[i] * dt;
+			pVector[i]->m_Position += vel3[i] * dt;
 		}
 	}
 
@@ -203,8 +213,8 @@ void solveRungeKutta(std::vector<Particle*> pVector, std::vector<IForce*> forces
 	{
 		if (!pVector[i]->m_isFixed)
 		{
-			k2[i] = pVector[i]->m_Force / pVector[i]->m_Mass;
-			vel2[i] = pVector[i]->m_Velocity;
+			k4[i] = pVector[i]->m_Force / pVector[i]->m_Mass;
+			vel4[i] = pVector[i]->m_Velocity;
 
 			// Position particles on the end of the next timestep
 			pVector[i]->m_Velocity = startVelocities[i] + dt / 6.0f * (k1[i] + 2.0f * k2[i] + 2.0f * k3[i] + k4[i]);
