@@ -138,8 +138,8 @@ static void init_system(void)
 	//Add Constraints
 	if (enableConstraints)
 	{
-		constraints.push_back(new RodConstraint(pVector[1], pVector[0], dist));
-		constraints.push_back(new CircularWireConstraint(pVector[0], center, dist));
+		//constraints.push_back(new RodConstraint(pVector[1], pVector[0], dist));
+		//constraints.push_back(new CircularWireConstraint(pVector[0], center, dist));
 	}
 
 	// Add mouse force
