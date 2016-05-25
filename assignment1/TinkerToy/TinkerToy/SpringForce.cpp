@@ -39,7 +39,6 @@ void SpringForce::apply()
 	float dotProduct = positionDiff[0] * velocityDiff[0] + positionDiff[1] * velocityDiff[1]; //velocityDiff * positionDiff;
 	
 	// calculate result force
-	//Vec2f result = (stiffness + m_kd * dotdiv);
 	float scalar = (m_ks * (distance - m_dist) + m_kd * (dotProduct / distance));
 	Vec2f result = scalar * (positionDiff / distance);
 
