@@ -10,7 +10,7 @@ MouseForce::MouseForce(Particle * p, Vec2f mousePos, double dist, double ks, dou
 
 void MouseForce::draw()
 {
-	Vec2f direction = m_p->m_Position;
+	/*Vec2f direction = m_p->m_Position;
 	direction = m_mousePos;
 	direction = (direction / norm(direction)) * 0.2f;
 	glBegin(GL_LINES);
@@ -18,7 +18,7 @@ void MouseForce::draw()
 	glVertex2f(m_p->m_Position[0], m_p->m_Position[1]);
 	glColor3f(0.2, 0.4, 0.4);
 	glVertex2f(m_p->m_Position[0] + direction[0], m_p->m_Position[1] + direction[1]);
-	glEnd();
+	glEnd();*/
 }
 
 void MouseForce::apply()

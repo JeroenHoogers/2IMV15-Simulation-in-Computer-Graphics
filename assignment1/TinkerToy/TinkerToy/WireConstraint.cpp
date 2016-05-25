@@ -1,27 +1,41 @@
 #include "WireConstraint.h"
 
 
-WireConstraint::WireConstraint(Particle* p, const Vec2f & pos, const int axis) : 
-	m_p(p), m_pos(pos), m_axis(axis)
+WireConstraint::WireConstraint(Particle* p, const Vec2f & pos, const int axis, bool drawLine) : 
+	m_p(p), m_pos(pos), m_axis(axis), m_drawLine(drawLine)
 {
 
 }
 
 void WireConstraint::draw()
 {
-	glBegin(GL_LINES);
-	glColor3f(0.8, 0.7, 0.6);
-	if (m_axis == 1)
+	if (m_drawLine)
 	{
-		glVertex2f(-1, m_pos[1]);
-		glVertex2f(1, m_pos[1]);
+		glBegin(GL_LINES);
+		glColor3f(0.8, 0.7, 0.6);
+		if (m_axis == 1)
+		{
+			glVertex2f(-1, m_pos[1]);
+			glVertex2f(1, m_pos[1]);
+		}
+		else
+		{
+			glVertex2f(m_pos[0], -1);
+			glVertex2f(m_pos[0], 1);
+		}
+		glEnd();
 	}
 	else
 	{
-		glVertex2f(m_pos[0], -1);
-		glVertex2f(m_pos[0], 1);
+		const double h = 0.03;
+		glBegin(GL_QUADS);
+		glColor3f(0.8, 0.7, 0.6);
+		glVertex2f(m_pos[0] - h / 2.0, m_pos[1] - h / 2.0);
+		glVertex2f(m_pos[0] + h / 2.0, m_pos[1] - h / 2.0);
+		glVertex2f(m_pos[0] + h / 2.0, m_pos[1] + h / 2.0);
+		glVertex2f(m_pos[0] - h / 2.0, m_pos[1] + h / 2.0);
+		glEnd();
 	}
-	glEnd();
 
 }
 

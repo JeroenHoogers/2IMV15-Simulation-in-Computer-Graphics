@@ -5,7 +5,7 @@
 
 class SpringForce : public IForce{
  public:
-  SpringForce(Particle *p1, Particle * p2, double dist, double ks, double kd);
+  SpringForce(Particle *p1, Particle * p2, double dist, double ks, double kd, bool draw = true);
 
   void draw() override;
   void apply() override;
@@ -16,4 +16,5 @@ class SpringForce : public IForce{
   Particle * const m_p2;   // particle 2 
   double const m_dist;     // rest length
   double const m_ks, m_kd; // spring strength constants
+  bool m_drawEnabled; // enable drawing
 };

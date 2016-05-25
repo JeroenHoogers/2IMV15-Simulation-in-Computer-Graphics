@@ -52,6 +52,7 @@ static vector<IConstraint*> constraints = vector<IConstraint*>();
 static MouseForce* mouseForce = NULL;
 
 static int method = 0;
+static bool enableConstraints = true;
 static bool enableMouse = true;
 static bool enableStandard = true;
 static bool enableCloth = false;
@@ -122,15 +123,15 @@ static void init_system(void)
 	}
 
 	//Add wall forces
-	//forces.push_back(new WallForce(pVector[0]));
-	//forces.push_back(new WallForce(pVector[1]));
-	//forces.push_back(new WallForce(pVector[2]));
+	forces.push_back(new WallForce(pVector[0]));
+	forces.push_back(new WallForce(pVector[1]));
+	forces.push_back(new WallForce(pVector[2]));
 }	
 
 static void createClothGrid()
 {
 	const double dist = 0.1;
-	const int length = 12;
+	const int length = 8; // Should be an even number
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 	const Vec2f offseth(0.0, dist);
@@ -143,7 +144,7 @@ static void createClothGrid()
 		{
 			//add a higher mass to outer particles
 			if (i == -(length / 2) || i == (length / 2) - 1 || j == -(length / 2) || j == (length / 2) - 1)
-				mass = 1.5;
+				mass = 2.0;
 			else
 				mass = 0.5;
 			
@@ -154,7 +155,7 @@ static void createClothGrid()
 			//else
 			pVector.push_back(new Particle(center + ((float)i * offseth) + ((float)j * offset), mass));
 
-			if ((j == -(length / 2) || j == (length / 2 - 1) || j == 1) && i == (length / 2 - 1))
+			if ((j == -(length / 2) || j == (length / 2 - 1) || j == -1) && i == (length / 2 - 1))
 			{
 				//constraints.push_back(new WireConstraint(pVector[pVector.size() - 1], pVector[pVector.size() - 1]->m_ConstructPos, 0));
 				constraints.push_back(new WireConstraint(pVector[pVector.size() - 1], pVector[pVector.size() - 1]->m_ConstructPos, 1));
@@ -192,7 +193,7 @@ static void createClothGrid()
 			//add horizontal damping springs
 			if (i < pVector.size() - (2 * length))
 			{
-				forces.push_back(new SpringForce(pVector[i], pVector[i + 2 * length], 2*dist, 0.02, 0.1));
+				forces.push_back(new SpringForce(pVector[i], pVector[i + 2 * length], 2*dist, 0.02, 0.1, false));
 
 				//if (pVector[i + 2]->m_isFixed == false)
 				//	forces.push_back(new AngularForce(pVector[i], pVector[i + 1], pVector[i + 2], 180, 0.005, 0.05));
@@ -201,7 +202,7 @@ static void createClothGrid()
 		//add vertical damping springs
 		if (!((i + 2) % length == 0) && !((i + 1) % length == 0))
 		{
-			forces.push_back(new SpringForce(pVector[i], pVector[i + 2], 2 * dist, 0.02, 0.1));
+			forces.push_back(new SpringForce(pVector[i], pVector[i + 2], 2 * dist, 0.02, 0.1, false));
 			//if (pVector[i + 2]->m_isFixed == false)
 			//	forces.push_back(new AngularForce(pVector[i], pVector[i + 1], pVector[i + 2], 180, 0.005, 0.05));
 		}
@@ -242,12 +243,12 @@ static void createHairDisplay()
 	//Initialise grid
 	for (int i = -(length / 2); i < (length / 2); i++)
 	{
-			//set 2 fixed points for the cloth
-			if (i == (length / 2 - 1))
-				pVector.push_back(new Particle(center + ((float)i * offseth), mass, true));
+			//set a fixed points for the hair
+		//if (i == (length / 2 - 1))
+		//	pVector.push_back(new Particle(center + ((float)i * offseth), mass));//, true));
 			//add remaining points
-			else
-				pVector.push_back(new Particle(center + ((float)i * offseth), mass));
+		//else
+		pVector.push_back(new Particle(center + ((float)i * offseth), mass));
 	}
 
 	for (int i = 0; i < pVector.size(); i++)
@@ -274,14 +275,21 @@ static void createHairDisplay()
 		forces.push_back(mouseForce);
 	}
 
-	//Contstraints
-	//{}
+	//Add Contstraints
+	constraints.push_back(new WireConstraint(pVector[pVector.size() - 1], pVector[pVector.size() - 1]->m_ConstructPos, 0, false));
+	constraints.push_back(new WireConstraint(pVector[pVector.size() - 1], pVector[pVector.size() - 1]->m_ConstructPos, 1, false));
 
 	//Add angular springs
 	for (int i = 0; i < pVector.size() - 2; i++)
 	{
-		if (pVector[i + 2]->m_isFixed == false)
+		//if (pVector[i + 2]->m_isFixed == false)
 		forces.push_back(new AngularForce(pVector[i], pVector[i + 1], pVector[i + 2], 180, 0.005, 0.05));
+	}
+
+	// Add Wall forces
+	for (int i = 0; i < pVector.size(); i++)
+	{
+		forces.push_back(new WallForce(pVector[i]));	
 	}
 }
 
@@ -486,6 +494,12 @@ static void key_func ( unsigned char key, int x, int y )
 		method = 2;
 		break;
 	case '4':
+		enableConstraints = !enableConstraints;
+		if (enableConstraints)
+		{
+			free_data();
+			load_Scene();
+		}
 		break;
 	case '5':
 		enableMouse = !enableMouse;
@@ -554,8 +568,18 @@ static void reshape_func ( int width, int height )
 
 static void idle_func ( void )
 {
-	if ( dsim ) 
+	if (dsim)
+	{
+		if (enableConstraints)
+		{
 		simulation_step(pVector, forces, constraints, dt, method);
+
+		}
+		else
+		{
+			simulation_step(pVector, forces, vector<IConstraint*>(), dt, method);
+		}
+	}
 	else        
 	{
 		remap_GUI();
@@ -571,7 +595,11 @@ static void display_func ( void )
 	pre_display ();
 
 	draw_forces();
-	draw_constraints();
+
+	if (enableConstraints)
+	{
+		draw_constraints();
+	}
 
 	if (enableDrawParticles)
 	{
@@ -644,6 +672,7 @@ int main ( int argc, char ** argv )
 	printf("\t 1 : Eulers method \n");
 	printf("\t 2 : Midpoint \n");
 	printf("\t 3 : RungKutta \n");
+	printf("\t 4 : Disable constraints \n");
 	printf("\t 5 : Mouse interaction \n");
 	printf("\t 6 : Standard display \n");
 	printf("\t 7 : Cloth display \n");

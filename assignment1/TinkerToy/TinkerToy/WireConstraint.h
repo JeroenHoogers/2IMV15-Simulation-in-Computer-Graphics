@@ -10,7 +10,7 @@ private:
 	int const m_axis;
 
 public:
-	WireConstraint(Particle* p, const Vec2f & pos, const int axis);
+	WireConstraint(Particle* p, const Vec2f & pos, const int axis, bool drawLine = true);
 
 	void draw() override;
 	float getC() override;
@@ -19,6 +19,7 @@ public:
 	vector<Vec2f> getJd() override;
 
 	vector<Particle*> getParticles() override;
+	bool m_drawLine; // enable drawing
 
 };
 

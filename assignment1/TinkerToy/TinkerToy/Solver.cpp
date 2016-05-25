@@ -52,8 +52,8 @@ void applyForces(std::vector<Particle*> pVector, std::vector<IForce*> forces, st
 		forces[i]->apply();
 	}
 
-	// TODO: solve constraints
-	ConstraintSolver::Solve(pVector, constraints, 60, 2);
+	// Solve constraints
+	ConstraintSolver::Solve(pVector, constraints, 50, 3);
 
 
 }
