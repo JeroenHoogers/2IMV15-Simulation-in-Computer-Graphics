@@ -13,6 +13,8 @@ void solveRungeKutta(std::vector<Particle*> pVector, std::vector<IForce*> forces
 
 void applyForces(std::vector<Particle*> pVector, std::vector<IForce*> forces);
 
+void calculateFluidDynamics(std::vector<Particle*>);
+
 void simulation_step(std::vector<Particle*> pVector, std::vector<IForce*> forces, float dt, int method)
 {
 	switch (method)
@@ -51,6 +53,28 @@ void applyForces(std::vector<Particle*> pVector, std::vector<IForce*> forces)
 	}
 
 
+}
+
+
+//--------------------------------------------------------------
+// Calculate fluid values
+//--------------------------------------------------------------
+void calculateFluidDynamics(std::vector<Particle*> pVector)
+{
+	// Calculate parameters
+	for (int i = 0; i < pVector.size(); i++)
+	{
+		// reset force
+		pVector[i]->m_Force = Vec2f(0, 0);
+
+		// Assume A_j to be 1;
+		pVector[i]->m_Density = 0;		// Rho_j
+		pVector[i]->m_Quantity = 1;		// A_j
+		for (int j = 0; j < pVector.size(); j++)
+		{
+			pVector[i]->m_Density += pVector[j]->getDensityAt(pVector[i]->m_Position);
+		}
+	}
 }
 
 //--------------------------------------------------------------

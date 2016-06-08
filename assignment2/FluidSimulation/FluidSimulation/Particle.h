@@ -8,17 +8,27 @@ class Particle
 {
 public:
 
-	Particle(const Vec2f & ConstructPos, float mass = 1.0f, bool isFixed = false);
+	Particle(const Vec2f & ConstructPos, float mass = 1.0f, float radius = 0.3f, bool isFixed = false);
 	virtual ~Particle(void);
 
 	void reset();
 	void draw();
+
+	float getDensityAt(Vec2f p);
+	float distTo(Vec2f p);
+	float getW(float r);
 
 	int m_index;
 
 	Vec2f m_ConstructPos;
 	Vec2f m_Position;
 	Vec2f m_Velocity;
+
+	float m_Density;
+	float m_Quantity;
+
+	// h
+	float m_Radius;
 
 	float m_Mass;
 	Vec2f m_Force;
