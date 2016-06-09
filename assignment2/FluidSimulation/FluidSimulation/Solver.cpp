@@ -13,7 +13,7 @@ void solveRungeKutta(std::vector<Particle*> pVector, std::vector<IForce*> forces
 
 void applyForces(std::vector<Particle*> pVector, std::vector<IForce*> forces);
 
-void calculateFluidDynamics(std::vector<Particle*>);
+void calculateFluidDynamics(std::vector<Particle*> pVector, float kd);
 
 void simulation_step(std::vector<Particle*> pVector, std::vector<IForce*> forces, float dt, int method)
 {
@@ -52,6 +52,7 @@ void applyForces(std::vector<Particle*> pVector, std::vector<IForce*> forces)
 		forces[i]->apply();
 	}
 
+	calculateFluidDynamics(pVector, 10);
 
 }
 
@@ -59,22 +60,64 @@ void applyForces(std::vector<Particle*> pVector, std::vector<IForce*> forces)
 //--------------------------------------------------------------
 // Calculate fluid values
 //--------------------------------------------------------------
-void calculateFluidDynamics(std::vector<Particle*> pVector)
+void calculateFluidDynamics(std::vector<Particle*> pVector, float kd)
 {
-	// Calculate parameters
+	float dist = 0;
+	// Calculate particle densities, pressures and quantities
 	for (int i = 0; i < pVector.size(); i++)
 	{
 		// reset force
-		pVector[i]->m_Force = Vec2f(0, 0);
+		//pVector[i]->m_Force = Vec2f(0, 0);
 
 		// Assume A_j to be 1;
 		pVector[i]->m_Density = 0;		// Rho_j
 		pVector[i]->m_Quantity = 1;		// A_j
+		pVector[i]->m_Pressure = 0;
 		for (int j = 0; j < pVector.size(); j++)
 		{
-			pVector[i]->m_Density += pVector[j]->getDensityAt(pVector[i]->m_Position);
+			// m * W(|r-r_j|,h)
+			dist = pVector[j]->distTo(pVector[i]->m_Position);
+
+			pVector[i]->m_Density += pVector[j]->m_Mass * pVector[j]->getW(dist);
 		}
+
+		pVector[i]->m_Pressure = pVector[i]->m_Density * kd;
 	}
+
+
+	float pressureForce = 0;
+	Vec2f viscocityForce = 0;
+	float scalar = 0;
+	float mu = 0.0005;
+	dist = 0;
+	// Calculate pressure force
+	for (int i = 0; i < pVector.size(); i++)
+	{
+		pressureForce = 0;
+		viscocityForce = 0;
+
+		for (int j = 0; j < pVector.size(); j++)
+		{
+			// m_j * (p_i + p_j / 2 * rho_j) * WGrad(|r-r_j|,h)
+			dist = pVector[j]->distTo(pVector[i]->m_Position);
+			scalar = 0; 
+
+			// calculate pressure force
+			float scalar = (pVector[i]->m_Pressure + pVector[j]->m_Pressure) / (2 * pVector[j]->m_Density);
+			pressureForce += -pVector[j]->m_Mass * scalar * pVector[j]->getWGrad(dist);
+
+			// calculate viscocity force
+			Vec2f vscalar = (pVector[j]->m_Velocity - pVector[i]->m_Velocity) / (pVector[j]->m_Density);
+			viscocityForce += mu *  pVector[j]->m_Mass * vscalar *  pVector[j]->getWLaplacian(dist);
+		}
+
+		// Add forces to the accumulator
+		pVector[i]->m_Force += pressureForce;
+
+		pVector[i]->m_Force += viscocityForce;
+
+	}
+
 }
 
 //--------------------------------------------------------------

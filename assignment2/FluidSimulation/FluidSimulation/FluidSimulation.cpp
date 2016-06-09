@@ -74,19 +74,30 @@ static void clear_data ( void )
 
 static void init_system(void)
 {
-	const double dist = 0.2;
+	const double dist = 0.25;
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 
 	// Create three particles
-	pVector.push_back(new Particle(center + offset, 1));
-	pVector.push_back(new Particle(center + offset + offset, 1));
-	pVector.push_back(new Particle(center + offset + offset + offset, 1));
+	for (int i = 0; i < 2 / dist; i++)
+	{
+		for (int j = 0; j < 1 / dist; j++)
+		{
+			pVector.push_back(new Particle(Vec2f(-1 + dist * i, 0 - dist * j),1.0, dist / 2));
+			//forces.push_back(new GravityForce(pVector[pVector.size() - 1]));
+		}
+	}
+
+	std::cout << "particles: " << pVector.size();
+	
+	//pVector.push_back(new Particle(center + offset + offset, 1));
+	//pVector.push_back(new Particle(center + offset + offset + offset, 1));
+
 
 	// Add gravity
-	forces.push_back(new GravityForce(pVector[0]));
-	forces.push_back(new GravityForce(pVector[1]));
-	forces.push_back(new GravityForce(pVector[2]));
+	//forces.push_back(new GravityForce(pVector[0]));
+	//forces.push_back(new GravityForce(pVector[1]));
+	//forces.push_back(new GravityForce(pVector[2]));
 
 	// Add drag
 	forces.push_back(new DragForce(pVector[0]));
@@ -112,6 +123,7 @@ static void init_system(void)
 	//forces.push_back(new WallForce(pVector[0]));
 	//forces.push_back(new WallForce(pVector[1]));
 	//forces.push_back(new WallForce(pVector[2]));
+
 }	
 
 /*
