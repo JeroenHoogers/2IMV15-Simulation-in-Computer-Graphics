@@ -35,6 +35,34 @@ float Particle::getW(float r)
 		return 0;
 }
 
+float Particle::getWPoly6(float r)
+{
+	// Default kernel function
+	// (h^2 - r^2)^3 iff 0 <= r <= h
+	// otherwise 0
+
+	// Note: r might be r^2 
+	r = r * r;
+	if (0 <= r && r <= m_Radius)
+		return 4.0 / (M_PI * pow(m_Radius, 8)) * pow(m_Radius * m_Radius - r, 3);
+	else
+		return 0;
+}
+
+Vec2f Particle::getWSpikyGrad(Vec2f r)
+{
+	// Default kernel function
+	// (h^2 - r^2)^3 iff 0 <= r <= h
+	// otherwise 0
+	// Calculate length 
+	float l = norm2(r);
+	if (0 <= l && l <= m_Radius)
+		return -30.0 / (M_PI * pow(m_Radius, 5)) * (m_Radius - l) * (m_Radius - l) * norm2(r);
+	else
+		return 0;
+}
+
+
 float Particle::getWGrad(float r)
 {
 	// Gradient of the kernel function
@@ -80,7 +108,8 @@ void Particle::reset()
 void Particle::draw()
 {
 	const double h = 0.02;
-	glColor3f(1.f, 1.f, 1.f); 
+	
+	glColor3f(m_Pressure, 1 - m_Pressure, 1 - m_Pressure);
 	glBegin(GL_QUADS);
 	glVertex2f(m_Position[0]-h/2.0, m_Position[1]-h/2.0);
 	glVertex2f(m_Position[0]+h/2.0, m_Position[1]-h/2.0);

@@ -20,6 +20,8 @@ public:
 	float getWGrad(float r);
 	float getWLaplacian(float r);
 	float getWVisLaplacian(float r);
+	float getWPoly6(float r);
+	Vec2f getWSpikyGrad(Vec2f r);
 
 	int m_index;
 

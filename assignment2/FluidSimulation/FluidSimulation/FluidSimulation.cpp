@@ -74,7 +74,7 @@ static void clear_data ( void )
 
 static void init_system(void)
 {
-	const double dist = 0.25;
+	const double dist = 0.2;
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 
@@ -429,7 +429,7 @@ int main ( int argc, char ** argv )
 
 	if ( argc == 1 ) {
 		N = 64;
-		dt = 0.1f;
+		dt = 0.01f;
 		d = 5.f;
 		fprintf ( stderr, "Using defaults : N=%d dt=%g d=%g\n",
 			N, dt, d );

@@ -52,7 +52,7 @@ void applyForces(std::vector<Particle*> pVector, std::vector<IForce*> forces)
 		forces[i]->apply();
 	}
 
-	calculateFluidDynamics(pVector, 10);
+	calculateFluidDynamics(pVector, 2);
 
 }
 
@@ -78,14 +78,14 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, float kd)
 			// m * W(|r-r_j|,h)
 			dist = pVector[j]->distTo(pVector[i]->m_Position);
 
-			pVector[i]->m_Density += pVector[j]->m_Mass * pVector[j]->getW(dist);
+			pVector[i]->m_Density += pVector[j]->m_Mass * pVector[j]->getWPoly6(dist);
 		}
 
 		pVector[i]->m_Pressure = pVector[i]->m_Density * kd;
 	}
 
 
-	float pressureForce = 0;
+	Vec2f pressureForce = 0;
 	Vec2f viscocityForce = 0;
 	float scalar = 0;
 	float mu = 0.0005;
