@@ -35,16 +35,15 @@ float Particle::getW(float r)
 		return 0;
 }
 
-float Particle::getWPoly6(float r)
+double Particle::getWPoly6(double r)
 {
 	// Default kernel function
 	// (h^2 - r^2)^3 iff 0 <= r <= h
 	// otherwise 0
 
-	// Note: r might be r^2 
-	r = r * r;
-	if (0 <= r && r <= m_Radius)
-		return 4.0 / (M_PI * pow(m_Radius, 8)) * pow(m_Radius * m_Radius - r, 3);
+	double r2 = r * r;
+	if (r <= m_Radius * m_Radius)
+		return 4.0 / (M_PI * pow(m_Radius, 8)) * pow(m_Radius * m_Radius - r2, 3);
 	else
 		return 0;
 }
@@ -52,14 +51,17 @@ float Particle::getWPoly6(float r)
 Vec2f Particle::getWSpikyGrad(Vec2f r)
 {
 	// Default kernel function
-	// (h^2 - r^2)^3 iff 0 <= r <= h
+	// -30 / (PI * h^5) * (h-l)^2 * (r/|r|)
 	// otherwise 0
 	// Calculate length 
-	float l = norm2(r);
+	float l = sqrt(r[0] * r[0] + r[1] * r[1]);
+	if(l > 0)
+		r = r / l;
+
 	if (0 <= l && l <= m_Radius)
-		return -30.0 / (M_PI * pow(m_Radius, 5)) * (m_Radius - l) * (m_Radius - l) * norm2(r);
+		return -30.0f / ((float)M_PI * pow(m_Radius, 5)) * (m_Radius - l) * (m_Radius - l) * r;
 	else
-		return 0;
+		return Vec2f(0, 0);
 }
 
 

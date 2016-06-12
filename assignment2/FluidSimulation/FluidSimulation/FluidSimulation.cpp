@@ -6,6 +6,7 @@
 #include "MouseForce.h"
 #include "DragForce.h"
 #include "GravityForce.h"
+#include "FluidContainer.h"
 
 #include <vector>
 #include <stdlib.h>
@@ -19,7 +20,7 @@ using namespace std;
 
 
 /* external definitions (from solver) */
-extern void simulation_step(vector<Particle*> pVector, vector<IForce*> forces, float dt, int method );
+extern void simulation_step(vector<Particle*> pVector, FluidContainer* fluidContainer, vector<IForce*> forces, float dt, int method );
 
 /* global variables */
 static int N;
@@ -30,6 +31,7 @@ static int frame_number;
 
 // static Particle *pList;
 static vector<Particle*> pVector;
+static FluidContainer* fluidContainer;
 
 static int win_id;
 static int win_x, win_y;
@@ -74,19 +76,20 @@ static void clear_data ( void )
 
 static void init_system(void)
 {
-	const double dist = 0.2;
+	const double dist = 0.1;
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 
-	// Create three particles
 	for (int i = 0; i < 2 / dist; i++)
 	{
 		for (int j = 0; j < 1 / dist; j++)
 		{
-			pVector.push_back(new Particle(Vec2f(-1 + dist * i, 0 - dist * j),1.0, dist / 2));
+			pVector.push_back(new Particle(Vec2f(-1 + dist * i, 0 - dist * j), 1.0, dist / 2));
 			//forces.push_back(new GravityForce(pVector[pVector.size() - 1]));
 		}
 	}
+
+	fluidContainer = new FluidContainer(dist / 2, 2.0f, 2.0f);
 
 	std::cout << "particles: " << pVector.size();
 	
@@ -357,7 +360,7 @@ static void reshape_func ( int width, int height )
 static void idle_func ( void )
 {
 	if ( dsim ) 
-		simulation_step(pVector, forces, dt, method);
+		simulation_step(pVector, fluidContainer, forces, dt, method);
 	else        
 	{
 		remap_GUI();
@@ -429,7 +432,7 @@ int main ( int argc, char ** argv )
 
 	if ( argc == 1 ) {
 		N = 64;
-		dt = 0.01f;
+		dt = 0.02f;
 		d = 5.f;
 		fprintf ( stderr, "Using defaults : N=%d dt=%g d=%g\n",
 			N, dt, d );

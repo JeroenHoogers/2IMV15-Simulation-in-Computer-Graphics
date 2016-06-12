@@ -115,6 +115,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DragForce.cpp" />
+    <ClCompile Include="FluidContainer.cpp" />
     <ClCompile Include="FluidSimulation.cpp" />
     <ClCompile Include="GravityForce.cpp" />
     <ClCompile Include="linearSolver.cpp" />
@@ -125,6 +126,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DragForce.h" />
+    <ClInclude Include="FluidContainer.h" />
     <ClInclude Include="GLUtil.h" />
     <ClInclude Include="GravityForce.h" />
     <ClInclude Include="IForce.h" />
