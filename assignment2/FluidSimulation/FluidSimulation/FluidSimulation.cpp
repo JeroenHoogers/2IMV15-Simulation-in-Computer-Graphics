@@ -7,6 +7,7 @@
 #include "DragForce.h"
 #include "GravityForce.h"
 #include "FluidContainer.h"
+#include "WallForce.h"
 
 #include <vector>
 #include <stdlib.h>
@@ -76,7 +77,7 @@ static void clear_data ( void )
 
 static void init_system(void)
 {
-	const double dist = 0.1;
+	const float dist = 0.15;
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 
@@ -84,8 +85,9 @@ static void init_system(void)
 	{
 		for (int j = 0; j < 1 / dist; j++)
 		{
-			pVector.push_back(new Particle(Vec2f(-1 + dist * i, 0 - dist * j), 1.0, dist / 2));
-			//forces.push_back(new GravityForce(pVector[pVector.size() - 1]));
+			pVector.push_back(new Particle(Vec2f(-1 + dist * i, 0 - dist * j), 0.2f, dist / 2));
+			forces.push_back(new GravityForce(pVector[pVector.size() - 1]));
+			forces.push_back(new WallForce(pVector[pVector.size() - 1]));
 		}
 	}
 
@@ -103,9 +105,9 @@ static void init_system(void)
 	//forces.push_back(new GravityForce(pVector[2]));
 
 	// Add drag
-	forces.push_back(new DragForce(pVector[0]));
-	forces.push_back(new DragForce(pVector[1]));
-	forces.push_back(new DragForce(pVector[2]));
+	//forces.push_back(new DragForce(pVector[0]));
+	//forces.push_back(new DragForce(pVector[1]));
+	//forces.push_back(new DragForce(pVector[2]));
 
 	//Add spring forces
 	//forces.push_back(new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0));
@@ -141,7 +143,7 @@ static void pre_display ( void )
 	glMatrixMode ( GL_PROJECTION );
 	glLoadIdentity ();
 	gluOrtho2D ( -1.0, 1.0, -1.0, 1.0 );
-	glClearColor ( 0.0f, 0.0f, 0.0f, 1.0f );
+	glClearColor ( 0.2f, 0.2f, 0.2f, 1.0f );
 	glClear ( GL_COLOR_BUFFER_BIT );
 }
 
@@ -158,8 +160,22 @@ static void draw_particles ( void )
 
 	for(int ii=0; ii< size; ii++)
 	{
+
 		pVector[ii]->draw();
 	}
+
+	//glEnableClientState(GL_VERTEX_ARRAY);
+	//glEnableClientState(GL_COLOR_ARRAY);
+
+	//glPointSize(2.5f*kParticleRadius*kScreenWidth / kViewWidth);
+
+	//glColorPointer(4, GL_FLOAT, sizeof(Rgba), shadedParticleColours);
+	//glVertexPointer(2, GL_FLOAT, sizeof(Particle), particles);
+	//glDrawArrays(GL_POINTS, 0, particleCount);
+
+	//glDisableClientState(GL_COLOR_ARRAY);
+	//glDisableClientState(GL_VERTEX_ARRAY);
+
 }
 
 static void draw_forces ( void )
@@ -400,7 +416,7 @@ static void open_glut_window ( void )
 	glutInitWindowSize ( win_x, win_y );
 	win_id = glutCreateWindow ( "Fluid Simulator" );
 
-	glClearColor ( 0.0f, 0.0f, 0.0f, 1.0f );
+	glClearColor ( 0.2f, 0.2f, 0.2f, 1.0f );
 	glClear ( GL_COLOR_BUFFER_BIT );
 	glutSwapBuffers ();
 	glClear ( GL_COLOR_BUFFER_BIT );
@@ -408,6 +424,11 @@ static void open_glut_window ( void )
 
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_POLYGON_SMOOTH);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glEnable(GL_BLEND);
+	glEnable(GL_POINT_SMOOTH);
+	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
 
 	pre_display ();
 
@@ -432,7 +453,7 @@ int main ( int argc, char ** argv )
 
 	if ( argc == 1 ) {
 		N = 64;
-		dt = 0.02f;
+		dt = 0.05f;
 		d = 5.f;
 		fprintf ( stderr, "Using defaults : N=%d dt=%g d=%g\n",
 			N, dt, d );

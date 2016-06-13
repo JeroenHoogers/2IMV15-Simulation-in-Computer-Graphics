@@ -111,20 +111,26 @@ void Particle::draw()
 {
 	const double h = 0.02;
 	
-	glColor3f(m_Pressure, 1 - m_Pressure, 1 - m_Pressure);
-	glBegin(GL_QUADS);
-	glVertex2f(m_Position[0]-h/2.0, m_Position[1]-h/2.0);
-	glVertex2f(m_Position[0]+h/2.0, m_Position[1]-h/2.0);
-	glVertex2f(m_Position[0]+h/2.0, m_Position[1]+h/2.0);
-	glVertex2f(m_Position[0]-h/2.0, m_Position[1]+h/2.0);
-	glEnd();
+	//glColor3f(m_Pressure, 1 - m_Pressure, 1 - m_Pressure);
+	//glBegin(GL_QUADS);
+	//glVertex2f(m_Position[0]-h/2.0, m_Position[1]-h/2.0);
+	//glVertex2f(m_Position[0]+h/2.0, m_Position[1]-h/2.0);
+	//glVertex2f(m_Position[0]+h/2.0, m_Position[1]+h/2.0);
+	//glVertex2f(m_Position[0]-h/2.0, m_Position[1]+h/2.0);
+	//glEnd();
 
 	glBegin(GL_LINE_LOOP);
-	glColor3f(0.0, 1.0, 0.0);
+	glColor3f(1.0, 1.0, 1.0);
 	for (int i = 0; i<360; i = i + 18)
 	{
 		float degInRad = i*M_PI / 180;
 		glVertex2f(m_Position[0] + cos(degInRad)*m_Radius, m_Position[1] + sin(degInRad)*m_Radius);
 	}
+	glEnd();
+
+	glColor3f((m_Density - 1.0f) * 0.001 +  0.4f, 0.4f, 1.0f - (m_Density - 1.0f) * 0.001);
+	glPointSize(7.0f);
+	glBegin(GL_POINTS);
+	glVertex2f(m_Position[0], m_Position[1]);
 	glEnd();
 }

@@ -123,6 +123,7 @@
     <ClCompile Include="MouseForce.cpp" />
     <ClCompile Include="Particle.cpp" />
     <ClCompile Include="Solver.cpp" />
+    <ClCompile Include="WallForce.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DragForce.h" />
@@ -130,10 +131,12 @@
     <ClInclude Include="GLUtil.h" />
     <ClInclude Include="GravityForce.h" />
     <ClInclude Include="IForce.h" />
+    <ClInclude Include="KernelFunctions.h" />
     <ClInclude Include="linearSolver.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="MouseForce.h" />
     <ClInclude Include="Particle.h" />
+    <ClInclude Include="WallForce.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

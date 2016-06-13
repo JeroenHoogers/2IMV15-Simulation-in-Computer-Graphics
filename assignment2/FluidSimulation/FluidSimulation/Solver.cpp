@@ -1,6 +1,7 @@
 #include "Particle.h"
 #include "IForce.h"
 #include "FluidContainer.h"
+#include "KernelFunctions.h"
 
 #include <vector>
 
@@ -45,6 +46,9 @@ void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer,
 		pVector[i]->m_Force = Vec2f(0, 0);
 	}
 
+
+	calculateFluidDynamics(pVector, fluidContainer, 1000.0f);
+
 	// Apply forces
 	//int size = forces.size();
 	for (int i = 0; i < forces.size(); i++)
@@ -53,7 +57,6 @@ void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer,
 		forces[i]->apply();
 	}
 
-	calculateFluidDynamics(pVector, fluidContainer, 2);
 }
 
 
@@ -83,6 +86,8 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 
 		int j = 0;
 
+		//for (int j = 0; j < pVector.size(); j++)
+		//{
 		for (int k = 0; k < neighbours.size(); k++)
 		{
 			j = neighbours[k];
@@ -90,17 +95,21 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 			// m * W(|r-r_j|,h)
 			dist = pVector[j]->distTo(pVector[i]->m_Position);
 
-			pVector[i]->m_Density += pVector[j]->m_Mass * pVector[j]->getWPoly6(dist);
+			//pVector[i]->m_Density += pVector[j]->m_Mass * pVector[j]->getW(dist);
+			pVector[i]->m_Density += pVector[j]->m_Mass * Kernels::getWPoly6(dist, pVector[j]->m_Radius);
 		}
-
-		pVector[i]->m_Pressure = pVector[i]->m_Density * kd;
+		
+		// P_i = k(rho_i - restDensity_i)
+		pVector[i]->m_Pressure = kd * (pVector[i]->m_Density - 1);
 	}
 
 
 	Vec2f pressureForce = 0;
 	Vec2f viscocityForce = 0;
 	float scalar = 0;
-	float mu = 0.1;
+
+	// Viscosity Coefficient
+	float mu = 0.0001;
 	dist = 0;
 	// Calculate pressure force
 	for (int i = 0; i < pVector.size(); i++)
@@ -112,6 +121,8 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 
 		int j = 0;
 
+		//for (int j = 0; j < pVector.size(); j++)
+		//{
 		for (int k = 0; k < neighbours.size(); k++)
 		{
 			j = neighbours[k];
@@ -121,17 +132,20 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 
 			// calculate pressure force
 			float scalar = (pVector[i]->m_Pressure + pVector[j]->m_Pressure) / (2 * pVector[j]->m_Density);
-			pressureForce += -pVector[j]->m_Mass * scalar * pVector[j]->getWSpikyGrad(pVector[i]->m_Position - pVector[j]->m_Position);
+			//pressureForce += pVector[j]->m_Mass * scalar * Kernels::getWSpikyGrad(pVector[i]->m_Position - pVector[j]->m_Position, pVector[j]->m_Radius);
+			pressureForce += pVector[j]->m_Mass * scalar * pVector[j]->getWGrad(dist);
 
 			// calculate viscocity force
 			Vec2f vscalar = (pVector[j]->m_Velocity - pVector[i]->m_Velocity) / (pVector[j]->m_Density);
-			viscocityForce += mu *  pVector[j]->m_Mass * vscalar *  pVector[j]->getWLaplacian(dist);
+			
+			//viscocityForce += pVector[j]->m_Mass * vscalar *  pVector[j]->getWLaplacian(dist);
+			viscocityForce += pVector[j]->m_Mass * vscalar * Kernels::getWViscosityLaplace(dist, pVector[j]->m_Radius);
 		}
 
 		// Add forces to the accumulator
-		pVector[i]->m_Force += pressureForce;
+		pVector[i]->m_Force += -pressureForce;
 
-		pVector[i]->m_Force += viscocityForce;
+		pVector[i]->m_Force += mu * viscocityForce;
 	}
 }
 
