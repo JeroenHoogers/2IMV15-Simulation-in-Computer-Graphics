@@ -65,15 +65,19 @@ Vec2f Particle::getWSpikyGrad(Vec2f r)
 }
 
 
-float Particle::getWGrad(float r)
+Vec2f Particle::getWGrad(Vec2f r)
 {
 	// Gradient of the kernel function
 	// -6(h^2 - r^2)^2 iff 0 <= r <= h
 	// otherwise 0
-	if (0 <= r && r <= m_Radius)
-		return -6 * r * pow((m_Radius*m_Radius) - (r*r), 2);
+	float l = sqrt(r[0] * r[0] + r[1] * r[1]);
+	if (l > 0)
+		r = r / l; // normalize r
+
+	if (l <= m_Radius)
+		return -6.0f * r * pow((m_Radius*m_Radius) - (r*r), 2);
 	else
-		return 0;
+		return Vec2f(0, 0);
 }
 
 float Particle::getWLaplacian(float r)

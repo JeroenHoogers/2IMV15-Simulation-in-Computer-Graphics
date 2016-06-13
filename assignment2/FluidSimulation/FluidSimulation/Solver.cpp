@@ -47,7 +47,7 @@ void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer,
 	}
 
 
-	calculateFluidDynamics(pVector, fluidContainer, 1000.0f);
+	calculateFluidDynamics(pVector, fluidContainer, 1.0f);
 
 	// Apply forces
 	//int size = forces.size();
@@ -66,6 +66,9 @@ void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer,
 void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* fluidContainer, float kd)
 {
 	float dist = 0;
+	 kd = 10.0f;		// Stiffness (higher = less compressable)	
+	float mu = 8; // Viscosity Coefficient (lower = thicker fluids)
+	float restDensity = 5.0f;
 
 	// Updat the spatial hashing grid 
 	fluidContainer->UpdateGrid(pVector);
@@ -100,7 +103,7 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 		}
 		
 		// P_i = k(rho_i - restDensity_i)
-		pVector[i]->m_Pressure = kd * (pVector[i]->m_Density - 1);
+		pVector[i]->m_Pressure = kd * (pVector[i]->m_Density - restDensity);
 	}
 
 
@@ -108,8 +111,7 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 	Vec2f viscocityForce = 0;
 	float scalar = 0;
 
-	// Viscosity Coefficient
-	float mu = 0.0001;
+
 	dist = 0;
 	// Calculate pressure force
 	for (int i = 0; i < pVector.size(); i++)
@@ -132,8 +134,8 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 
 			// calculate pressure force
 			float scalar = (pVector[i]->m_Pressure + pVector[j]->m_Pressure) / (2 * pVector[j]->m_Density);
-			//pressureForce += pVector[j]->m_Mass * scalar * Kernels::getWSpikyGrad(pVector[i]->m_Position - pVector[j]->m_Position, pVector[j]->m_Radius);
-			pressureForce += pVector[j]->m_Mass * scalar * pVector[j]->getWGrad(dist);
+			pressureForce += pVector[j]->m_Mass * scalar * Kernels::getWGradSpiky(pVector[i]->m_Position - pVector[j]->m_Position, pVector[j]->m_Radius);
+			//pressureForce += pVector[j]->m_Mass * scalar * pVector[j]->getWGrad(pVector[i]->m_Position - pVector[j]->m_Position);
 
 			// calculate viscocity force
 			Vec2f vscalar = (pVector[j]->m_Velocity - pVector[i]->m_Velocity) / (pVector[j]->m_Density);
@@ -143,7 +145,7 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 		}
 
 		// Add forces to the accumulator
-		pVector[i]->m_Force += -pressureForce;
+		pVector[i]->m_Force += -pressureForce * 0.001f;
 
 		pVector[i]->m_Force += mu * viscocityForce;
 	}

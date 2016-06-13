@@ -17,7 +17,7 @@ public:
 	//float getDensityAt(Vec2f p);
 	float distTo(Vec2f p);
 	float getW(float r);
-	float getWGrad(float r);
+	Vec2f getWGrad(Vec2f r);
 	float getWLaplacian(float r);
 	float getWVisLaplacian(float r);
 	double getWPoly6(double r);
