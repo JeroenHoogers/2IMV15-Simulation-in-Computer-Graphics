@@ -85,8 +85,9 @@ static void init_system(void)
 	{
 		for (int j = 0; j < 1 / dist; j++)
 		{
-			pVector.push_back(new Particle(Vec2f(-1 + dist * i, 0 - dist * j), 0.2f, dist / 2));
+			pVector.push_back(new Particle(Vec2f(-1 + ((j % 2) * 0.01) + dist * i, 0 - dist * j), 0.2f, dist / 2));
 			forces.push_back(new GravityForce(pVector[pVector.size() - 1]));
+		//	forces.push_back(new DragForce(pVector[pVector.size() - 1]));
 			forces.push_back(new WallForce(pVector[pVector.size() - 1]));
 		}
 	}
@@ -453,7 +454,7 @@ int main ( int argc, char ** argv )
 
 	if ( argc == 1 ) {
 		N = 64;
-		dt = 0.05f;
+		dt = 0.005f;
 		d = 5.f;
 		fprintf ( stderr, "Using defaults : N=%d dt=%g d=%g\n",
 			N, dt, d );

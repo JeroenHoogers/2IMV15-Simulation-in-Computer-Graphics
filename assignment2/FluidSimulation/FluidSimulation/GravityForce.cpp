@@ -24,5 +24,6 @@ void GravityForce::draw()
 void GravityForce::apply()
 {
 	// Apply gravitational force
-	m_p->m_Force += m_Gravity * m_p->m_Mass;
+	m_p->m_Force += m_Gravity * m_p->m_Density;
+	//m_p->m_Force += m_Gravity * m_p->m_Mass;
 }

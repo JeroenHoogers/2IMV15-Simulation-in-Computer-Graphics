@@ -2,6 +2,7 @@
 #include "IForce.h"
 #include "FluidContainer.h"
 #include "KernelFunctions.h"
+#include "RigidBody.h"
 
 #include <vector>
 
@@ -59,6 +60,14 @@ void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer,
 
 }
 
+//--------------------------------------------------------------
+// Calculate rigid body values
+//--------------------------------------------------------------
+void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IForce*> forces)
+{
+
+}
+
 
 //--------------------------------------------------------------
 // Calculate fluid values
@@ -66,11 +75,11 @@ void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer,
 void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* fluidContainer, float kd)
 {
 	float dist = 0;
-	 kd = 10.0f;		// Stiffness (higher = less compressable)	
-	float mu = 8; // Viscosity Coefficient (lower = thicker fluids)
-	float restDensity = 5.0f;
+	kd = 0.005f;		// Stiffness (higher = less compressable)	
+	float mu = 30000;	// Viscosity Coefficient (lower = thicker fluids)
+	float restDensity = 40.0f;
 
-	// Updat the spatial hashing grid 
+	// Update the spatial hashing grid 
 	fluidContainer->UpdateGrid(pVector);
 
 	// Calculate particle densities, pressures and quantities
@@ -103,14 +112,14 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 		}
 		
 		// P_i = k(rho_i - restDensity_i)
+		//pVector[i]->m_Pressure = kd * (pow(pVector[i]->m_Density / restDensity, 7) -1.0f);
+
 		pVector[i]->m_Pressure = kd * (pVector[i]->m_Density - restDensity);
 	}
-
 
 	Vec2f pressureForce = 0;
 	Vec2f viscocityForce = 0;
 	float scalar = 0;
-
 
 	dist = 0;
 	// Calculate pressure force
@@ -141,12 +150,11 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 			Vec2f vscalar = (pVector[j]->m_Velocity - pVector[i]->m_Velocity) / (pVector[j]->m_Density);
 			
 			//viscocityForce += pVector[j]->m_Mass * vscalar *  pVector[j]->getWLaplacian(dist);
-			viscocityForce += pVector[j]->m_Mass * vscalar * Kernels::getWViscosityLaplace(dist, pVector[j]->m_Radius);
+			viscocityForce += pVector[j]->m_Mass * vscalar * Kernels::getWViscosityLaplace(pVector[i]->m_Position - pVector[j]->m_Position, pVector[j]->m_Radius);
 		}
 
 		// Add forces to the accumulator
-		pVector[i]->m_Force += -pressureForce * 0.001f;
-
+		pVector[i]->m_Force += -pressureForce;
 		pVector[i]->m_Force += mu * viscocityForce;
 	}
 }
@@ -164,8 +172,13 @@ void solveEuler(std::vector<Particle*> pVector, FluidContainer* fluidContainer, 
 		// Set new position
 		if (!pVector[i]->m_isFixed)
 		{
-			pVector[i]->m_Position += dt * pVector[i]->m_Velocity;
+			// Symplectic Euler
 			pVector[i]->m_Velocity += dt * (pVector[i]->m_Force / pVector[i]->m_Mass);
+			pVector[i]->m_Position += dt * pVector[i]->m_Velocity;
+
+			// Explicit euler
+			//pVector[i]->m_Position += dt * pVector[i]->m_Velocity;
+			//pVector[i]->m_Velocity += dt * (pVector[i]->m_Force / pVector[i]->m_Mass);
 		}
 		
 		// +Vec2f(RAND, RAND) * 0.005f;

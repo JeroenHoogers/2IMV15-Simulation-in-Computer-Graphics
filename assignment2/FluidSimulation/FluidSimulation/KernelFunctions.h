@@ -11,9 +11,9 @@ public:
 		// (h^2 - r^2)^3 iff 0 <= r <= h
 		// otherwise 0
 
-		double r2 = r * r;
-		if (r2 <= h * h)
-			return 4.0 / (M_PI * pow(h, 8)) * pow(h * h - r2, 3);
+		//double r2 = r * r;
+		if (r * r <= h * h)
+			return 4.0 / (M_PI * pow(h, 8)) * pow(h * h - r * r, 3);
 		else
 			return 0;
 	}
@@ -34,13 +34,16 @@ public:
 			return Vec2f(0, 0);
 	}
 
-	static float getWViscosityLaplace(float r, float h)
+	static float getWViscosityLaplace(Vec2f r, float h)
 	{
 		// Gradient of the kernel function
-		// -48(h^4 - 4*h^2*r^2 + 3*r^4 / pi * h^8) iff 0 <= r <= h
+		// 45 / (pi * h^6) * (h-r) iff 0 <= r <= h
 		// otherwise 0
-		if (0 <= r && r <= h)
-			return -48 * (pow(h, 4) - 4 * h*h * r*r + 3 * pow(r, 4)) / M_PI * pow(h, 8);
+
+		float l = sqrt(r[0] * r[0] + r[1] * r[1]);
+
+		if (0 <= l && l <= h)
+			return -48 * (pow(h, 4) - 4 * h*h * l*l + 3 * pow(l, 4)) / M_PI * pow(h, 8);
 		else
 			return 0;
 
