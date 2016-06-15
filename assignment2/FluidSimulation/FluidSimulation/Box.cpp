@@ -2,7 +2,7 @@
 
 
 
-Box::Box(const Vec2f constructPos, float density, float height, float width) : RigidBody(constructPos)
+Box::Box(const Vec2f constructPos, float density, float width, float height) : RigidBody(constructPos)
 {
 	m_Width = width;
 	m_Height = height;

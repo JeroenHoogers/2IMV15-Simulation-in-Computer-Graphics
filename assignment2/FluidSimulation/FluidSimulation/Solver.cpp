@@ -74,9 +74,9 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 {
 	float radius = 0.065f;
 	float dist = 0.0f;
-	kd = 0.041f;						// Stiffness (higher = less compressable)	
-	float mu = 0.4f;				// Viscosity Coefficient (lower = thicker fluids)
-	float restDensity = 141.5f;
+	kd = 0.041f;					// Stiffness (higher = less compressable)	
+	float mu = 0.42f;				// Viscosity Coefficient (lower = thicker fluids)
+	float restDensity = 120.5f;
 
 	// Update the spatial hashing grid 
 	fluidContainer->UpdateGrid(pVector);

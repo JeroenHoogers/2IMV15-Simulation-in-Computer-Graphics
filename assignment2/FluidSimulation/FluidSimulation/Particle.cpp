@@ -44,7 +44,7 @@ void Particle::draw()
 	//glEnd();
 
 	glBegin(GL_LINE_LOOP);
-	glColor4f(1.0, 1.0, 1.0, 0.2);
+	glColor4f(1.0, 1.0, 1.0, 0.1);
 	for (int i = 0; i<360; i = i + 18)
 	{
 		float degInRad = i*M_PI / 180;
@@ -52,8 +52,8 @@ void Particle::draw()
 	}
 	glEnd();
 
-	glColor3f((m_Pressure ) * 3 +  0.4f, 0.4f, 1.0f - (m_Pressure ) * 3);
-	glPointSize(7.0f);
+	glColor3f((m_Pressure ) * 0.5 +  0.4f, 0.3f, 1.0f - (m_Pressure ) * 0.5);
+	glPointSize(8.0f);
 
 	glBegin(GL_POINTS);
 		glVertex2f(m_Position[0], m_Position[1]);

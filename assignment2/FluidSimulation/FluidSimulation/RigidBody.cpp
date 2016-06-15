@@ -1,5 +1,6 @@
 #include "RigidBody.h"
 #include "GLUtil.h"
+#include "Utility.h"
 
 
 RigidBody::RigidBody(const Vec2f & ConstructPos) :

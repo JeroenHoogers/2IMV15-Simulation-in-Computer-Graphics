@@ -10,7 +10,7 @@ public:
 	float m_Width;
 	float m_Height;
 
-	Box(const Vec2f ConstPosition, float mass, float height, float width);
+	Box(const Vec2f ConstPosition, float density, float width, float height);
 	void calculateInertia() override;
 	~Box();
 };

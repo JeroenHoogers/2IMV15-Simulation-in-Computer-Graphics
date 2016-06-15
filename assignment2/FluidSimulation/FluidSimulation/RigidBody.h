@@ -21,12 +21,12 @@ public:
 	Vec2f m_ConstructPos;
 	Vec2f m_Position;
 	Vec2f m_Velocity;
-	float m_Acceleration;
+	float m_Acceleration; //??
 	matrix* m_Rotation;
 
 	
 	float m_Orientation;	// angle in radians
-	float m_AngularVelocity;
+	float m_AngularVelocity; // 
 	float m_Torque;
 
 
