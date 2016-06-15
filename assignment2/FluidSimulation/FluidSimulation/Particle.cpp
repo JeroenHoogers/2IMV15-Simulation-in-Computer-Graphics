@@ -51,7 +51,7 @@ void Particle::draw()
 		glVertex2f(m_Position[0] + cos(degInRad)*m_Radius, m_Position[1] + sin(degInRad)*m_Radius);
 	}
 	glEnd();
-
+	
 	glColor3f((m_Pressure ) * 0.5 +  0.4f, 0.3f, 1.0f - (m_Pressure ) * 0.5);
 	glPointSize(8.0f);
 

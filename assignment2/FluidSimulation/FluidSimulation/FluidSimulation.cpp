@@ -77,7 +77,7 @@ static void clear_data ( void )
 
 static void init_system(void)
 {
-	const float dist = 0.12;
+	const float dist = 0.09;
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 
@@ -85,7 +85,7 @@ static void init_system(void)
 	{
 		for (int j = 0; j < 1.25 / dist; j++)
 		{
-			pVector.push_back(new Particle(Vec2f(-0.95 + ((j % 2) * 0.02) + dist * i, 0.25 - dist * j), 0.4f, dist / 2));
+			pVector.push_back(new Particle(Vec2f(-0.95 + ((j % 2) * 0.02) + dist * i, 0.25 - dist * j), 0.1f, dist));
 		//	forces.push_back(new GravityForce(pVector[pVector.size() - 1]));
 		//	forces.push_back(new DragForce(pVector[pVector.size() - 1]));
 			forces.push_back(new WallForce(pVector[pVector.size() - 1]));
@@ -177,6 +177,11 @@ static void draw_particles ( void )
 	//glDisableClientState(GL_COLOR_ARRAY);
 	//glDisableClientState(GL_VERTEX_ARRAY);
 
+}
+
+static void draw_fluid()
+{
+	fluidContainer->draw();
 }
 
 static void draw_forces ( void )
@@ -393,11 +398,14 @@ static void display_func ( void )
 	pre_display ();
 
 	draw_forces();
+	
+	draw_fluid();
 
 	if (enableDrawParticles)
 	{
 		draw_particles();
 	}
+
 
 	post_display ();
 }

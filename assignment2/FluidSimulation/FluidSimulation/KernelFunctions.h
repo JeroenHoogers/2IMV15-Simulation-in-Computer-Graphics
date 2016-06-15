@@ -5,18 +5,51 @@ class Kernels
 {
 public:
 
-	static double getWPoly6(float r, float h)
+	static float getWPoly6(Vec2f r, float h)
 	{
 		// Default kernel function
-		// (h^2 - r^2)^3 iff 0 <= r <= h
-		// otherwise 0
+		//  4 / (pi * h^8) * (h^2 - r^2)^3 
 
-		//double r2 = r * r;
-		if (r * r <= h * h)
-			return 4.0 / (M_PI * pow(h, 8)) * pow(h * h - r * r, 3);
+		float l = sqrt(r[0] * r[0] + r[1] * r[1]);
+
+		if (l * l <= h * h)
+			return (4.0f / (M_PI * pow(h, 8))) * pow(h * h - l * l, 3);
 		else
 			return 0;
 	}
+
+	static Vec2f getWGradPoly6(Vec2f r, float h)
+	{
+		// Poly6 kernel Gradient
+		//  -24 * r / (pi * h^8) * (h^2 - ||r||^2)^2 
+
+		float l = sqrt(r[0] * r[0] + r[1] * r[1]);
+
+		if (l > 0)
+			r = r / l;	// Normalize r
+
+		if (l * l <= h * h)
+			return ((-24.0f) / ((float)M_PI * pow(h, 8))) * pow(h * h - l * l, 2) * r;
+		else
+			return 0;
+	}
+
+	static float getWLaplacePoly6(Vec2f r, float h)
+	{
+		// Poly6 kernel Laplacian
+		//  -48 / (pi * h^8) * (h^4 - 4*h^2*r^2 + 3*r^4) 
+
+		float l = sqrt(r[0] * r[0] + r[1] * r[1]);
+
+		if (l > 0)
+			r = r / l;	// Normalize r
+
+		if (l * l <= h * h)
+			return (-48.0f / ((float)M_PI * pow(h, 8))) * (pow(h, 4) - 4 * h*h * l*l + 3 * pow(l, 4));
+		else
+			return 0;
+	}
+
 
 	static Vec2f getWGradSpiky(Vec2f r, float h)
 	{
@@ -57,4 +90,5 @@ public:
 	{
 		return 1.0f - (r / h);
 	}
+
 };
