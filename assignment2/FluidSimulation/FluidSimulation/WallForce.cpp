@@ -12,7 +12,7 @@ void WallForce::draw()
 
 void WallForce::apply()
 {
-	float bounceFactor = 0.5f;
+	float bounceFactor = 0.4f;
 	//right wall
 	if (m_p->m_Position[0] > 1.0f) {
 		//reverse the velocity

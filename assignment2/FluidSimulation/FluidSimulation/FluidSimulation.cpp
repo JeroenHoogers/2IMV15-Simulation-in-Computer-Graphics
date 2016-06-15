@@ -77,16 +77,16 @@ static void clear_data ( void )
 
 static void init_system(void)
 {
-	const float dist = 0.15;
+	const float dist = 0.12;
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 
-	for (int i = 0; i < 2 / dist; i++)
+	for (int i = 0; i < 1.9 / dist; i++)
 	{
-		for (int j = 0; j < 1 / dist; j++)
+		for (int j = 0; j < 1.25 / dist; j++)
 		{
-			pVector.push_back(new Particle(Vec2f(-1 + ((j % 2) * 0.01) + dist * i, 0 - dist * j), 0.2f, dist / 2));
-			forces.push_back(new GravityForce(pVector[pVector.size() - 1]));
+			pVector.push_back(new Particle(Vec2f(-0.95 + ((j % 2) * 0.02) + dist * i, 0.25 - dist * j), 0.4f, dist / 2));
+		//	forces.push_back(new GravityForce(pVector[pVector.size() - 1]));
 		//	forces.push_back(new DragForce(pVector[pVector.size() - 1]));
 			forces.push_back(new WallForce(pVector[pVector.size() - 1]));
 		}
@@ -454,7 +454,7 @@ int main ( int argc, char ** argv )
 
 	if ( argc == 1 ) {
 		N = 64;
-		dt = 0.005f;
+		dt = 0.01f;
 		d = 5.f;
 		fprintf ( stderr, "Using defaults : N=%d dt=%g d=%g\n",
 			N, dt, d );

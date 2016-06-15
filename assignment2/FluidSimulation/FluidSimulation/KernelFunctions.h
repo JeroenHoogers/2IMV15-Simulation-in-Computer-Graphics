@@ -42,12 +42,15 @@ public:
 
 		float l = sqrt(r[0] * r[0] + r[1] * r[1]);
 
+		//if (0 <= l && l <= h)
+		//	return -48 * (pow(h, 4) - 4 * h*h * l*l + 3 * pow(l, 4)) / M_PI * pow(h, 8);
+		//else
+		//	return 0;
+
 		if (0 <= l && l <= h)
-			return -48 * (pow(h, 4) - 4 * h*h * l*l + 3 * pow(l, 4)) / M_PI * pow(h, 8);
+			return (45.0f / (M_PI * pow(h, 4))) * (h - l);
 		else
 			return 0;
-
-		//return (45.0f / (M_PI * pow(h, 6))) * (h - r);
 	}
 
 	static float getWColor(float r, float h)
