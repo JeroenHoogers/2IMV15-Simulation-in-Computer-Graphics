@@ -12,7 +12,8 @@ void WallForce::draw()
 
 void WallForce::apply()
 {
-	float bounceFactor = 0.0f;
+	float bounceFactor = 0.7f;
+
 	Vec2f n = Vec2f(0, 0);
 	Vec2f Vn = Vec2f(0, 0);
 	Vec2f Vt = Vec2f(0, 0);
@@ -23,6 +24,8 @@ void WallForce::apply()
 		n = Vec2f(-1, 0);
 		//reverse the velocity
 		m_p->m_Position[0] = 1.0f;
+
+		//m_p->m_Velocity[0] *= -bounceFactor;
 		collision = true;
 
 		//m_p->m_Velocity[0] = -abs(m_p->m_Velocity[0]) * bounceFactor;
@@ -47,6 +50,7 @@ void WallForce::apply()
 		n = Vec2f(0, 1);
 		//reverse the velocity
 		m_p->m_Position[1] = -1.0f;
+		//m_p->m_Velocity[1] *= -bounceFactor;
 		collision = true;
 
 	//	m_p->m_Velocity[1] *= -bounceFactor;
@@ -61,6 +65,7 @@ void WallForce::apply()
 
 		//reverse the velocity
 		m_p->m_Position[1] = 1.0f;
+		//m_p->m_Velocity[1] *= -bounceFactor;
 		collision = true;
 
 		//m_p->m_Velocity[1] *= -bounceFactor;

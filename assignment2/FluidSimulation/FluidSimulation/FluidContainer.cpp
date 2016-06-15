@@ -173,40 +173,45 @@ void FluidContainer::ClearGrid()
 
 void FluidContainer::draw()
 {
-	glColor4f(1, 1, 1, 0.1);
+	//glColor4f(1, 1, 1, 0.1);
 
-	//glLineWidth(5.0);
-	glPointSize(2.0);
-	glBegin(GL_POINTS);
+	////glLineWidth(5.0);
+	//glPointSize(6.0);
 
-	//glTranslatef(-1, -1, 0);
-	for (int i = 0; i < m_GridRows; i++)
-	{
-		//glVertex2f(-1, i * _cellSize - 1);
-		//glVertex2f(_sceneWidth - 1, i * _cellSize - 1);
 
-		for (int j = 0; j < m_GridCols; j++)
-		{
-			//if(_gridCounters[i][j] > 0)
-			//{ 
-				
-				//glColor4f(1, 0.4, 0.4, _gridColors[i][j] / 3.0f);
-				
-				glVertex2f(m_CenterPoints[i][j][0], m_CenterPoints[i][j][1]);
-				//glVertex2f(i * _cellSize - 1, (j + 1) * _cellSize - 1);
-				//glVertex2f((i + 1) * _cellSize - 1, j * _cellSize - 1);
-				//glVertex2f((i + 1) * _cellSize - 1, (j + 1) * _cellSize - 1);
-				//glVertex2f(i * _cellSize - 1, j * _cellSize - 1);
-			//}
-		}
-	}
-	glColor4f(1, 1, 1, 0.1);
-	for (int j = 0; j < m_GridCols; j++)
-	{
-		//glVertex2f(j * _cellSize - 1, -1);
-		//glVertex2f(j * _cellSize - 1, _sceneHeight);
-	}
+	////glTranslatef(-1, -1, 0);
+	//for (int i = 0; i < m_GridRows; i++)
+	//{
+	//	glBegin(GL_LINES);
+	//	glVertex2f(-1, i * _cellSize - 1);
+	//	glVertex2f(_sceneWidth - 1, i * _cellSize - 1);
+	//	glEnd();
 
-	//glTranslatef(2, 2, 0);
-	glEnd();
+	//	glBegin(GL_POINTS);
+	//	for (int j = 0; j < m_GridCols; j++)
+	//	{
+	//		if(_gridCounters[i][j] > 0)
+	//		{ 
+	//			
+	//			glColor4f(0.4, 0.4, 1, _gridCounters[i][j] / 3.0f);
+	//			
+	//			glVertex2f(m_CenterPoints[i][j][0], m_CenterPoints[i][j][1]);
+	//			//glVertex2f(i * _cellSize - 1, (j + 1) * _cellSize - 1);
+	//			//glVertex2f((i + 1) * _cellSize - 1, j * _cellSize - 1);
+	//			//glVertex2f((i + 1) * _cellSize - 1, (j + 1) * _cellSize - 1);
+	//			//glVertex2f(i * _cellSize - 1, j * _cellSize - 1);
+	//		}
+	//	}
+	//	glEnd();
+	//}
+	//glBegin(GL_LINES);
+	//glColor4f(1, 1, 1, 0.1);
+	//for (int j = 0; j < m_GridCols; j++)
+	//{
+	//	glVertex2f(j * _cellSize - 1, -1);
+	//	glVertex2f(j * _cellSize - 1, _sceneHeight);
+	//}
+
+	////glTranslatef(2, 2, 0);
+	//glEnd();
 }

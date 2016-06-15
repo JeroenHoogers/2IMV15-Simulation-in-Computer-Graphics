@@ -77,22 +77,23 @@ static void clear_data ( void )
 
 static void init_system(void)
 {
-	const float dist = 0.09;
+	const float dist = 0.05;
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 
-	for (int i = 0; i < 1.9 / dist; i++)
+	const float radius = dist;
+	for (int i = 0; i < 1 / dist; i++)
 	{
 		for (int j = 0; j < 1.25 / dist; j++)
 		{
-			pVector.push_back(new Particle(Vec2f(-0.95 + ((j % 2) * 0.02) + dist * i, 0.25 - dist * j), 0.1f, dist));
+			pVector.push_back(new Particle(Vec2f(-0.95 + ((j % 2) * 0.02) + dist * i, 0.25 - dist * j), 0.4f, radius));
 		//	forces.push_back(new GravityForce(pVector[pVector.size() - 1]));
 		//	forces.push_back(new DragForce(pVector[pVector.size() - 1]));
 			forces.push_back(new WallForce(pVector[pVector.size() - 1]));
 		}
 	}
 
-	fluidContainer = new FluidContainer(dist / 2, 2.0f, 2.0f);
+	fluidContainer = new FluidContainer(dist, 2.0f, 2.0f);
 
 	std::cout << "particles: " << pVector.size();
 	
@@ -144,7 +145,7 @@ static void pre_display ( void )
 	glMatrixMode ( GL_PROJECTION );
 	glLoadIdentity ();
 	gluOrtho2D ( -1.0, 1.0, -1.0, 1.0 );
-	glClearColor ( 0.2f, 0.2f, 0.2f, 1.0f );
+	glClearColor ( 0.15f, 0.15f, 0.15f, 1.0f );
 	glClear ( GL_COLOR_BUFFER_BIT );
 }
 
@@ -436,8 +437,8 @@ static void open_glut_window ( void )
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glEnable(GL_BLEND);
-	glEnable(GL_POINT_SMOOTH);
-	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+	//glEnable(GL_POINT_SMOOTH);
+	//glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
 
 	pre_display ();
 
@@ -462,7 +463,7 @@ int main ( int argc, char ** argv )
 
 	if ( argc == 1 ) {
 		N = 64;
-		dt = 0.01f;
+		dt = 0.01;
 		d = 5.f;
 		fprintf ( stderr, "Using defaults : N=%d dt=%g d=%g\n",
 			N, dt, d );

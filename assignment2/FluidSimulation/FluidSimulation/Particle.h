@@ -29,6 +29,8 @@ public:
 	// h
 	float m_Radius;
 
+	float m_Color;
+
 	float m_Mass;
 	Vec2f m_Force;
 

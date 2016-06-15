@@ -75,16 +75,32 @@ public:
 
 		float l = sqrt(r[0] * r[0] + r[1] * r[1]);
 
-		//if (0 <= l && l <= h)
-		//	return -48 * (pow(h, 4) - 4 * h*h * l*l + 3 * pow(l, 4)) / M_PI * pow(h, 8);
-		//else
-		//	return 0;
 
-		if (0 <= l && l <= h)
-			return (45.0f / (M_PI * pow(h, 4))) * (h - l);
+		if (l * l <= h * h)
+			return (6.0f /  pow(h, 3)) * (h - l);
 		else
 			return 0;
+
 	}
+
+	//static float getWViscosityLaplace(Vec2f r, float h)
+	//{
+	//	// Gradient of the kernel function
+	//	// 45 / (pi * h^6) * (h-r) iff 0 <= r <= h
+	//	// otherwise 0
+
+	//	float l = sqrt(r[0] * r[0] + r[1] * r[1]);
+
+
+	//	if (0 <= l && l <= h)
+	//		return (45.0f / (M_PI * pow(h, 4))) * (h - l);
+	//	else
+	//		return 0;
+
+	//}
+
+
+
 
 	static float getWColor(float r, float h)
 	{
