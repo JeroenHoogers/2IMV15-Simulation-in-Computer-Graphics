@@ -109,10 +109,14 @@ Vec2f RigidBody::BroadPhase(RigidBody* other)
 
 void RigidBody::updateRotation(float angle)
 {
-	m_Rotation->setValue(0, 0, sin(angle));
+	/*m_Rotation->setValue(0, 0, sin(angle));
 	m_Rotation->setValue(0, 1, cos(angle));
 	m_Rotation->setValue(1, 0, cos(angle));
-	m_Rotation->setValue(1, 1, -sin(angle));
+	m_Rotation->setValue(1, 1, -sin(angle));*/
+	m_Rotation->setValue(0, 0, cos(angle));
+	m_Rotation->setValue(0, 1, -sin(angle));
+	m_Rotation->setValue(1, 0, sin(angle));
+	m_Rotation->setValue(1, 1, cos(angle));
 }
 
 Vec2f RigidBody::getRadiusVec(Vec2f pos)
