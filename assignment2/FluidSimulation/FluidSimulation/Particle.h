@@ -35,4 +35,6 @@ public:
 	Vec2f m_Force;
 
 	bool m_isFixed;
+
+	int m_GridId;
 };

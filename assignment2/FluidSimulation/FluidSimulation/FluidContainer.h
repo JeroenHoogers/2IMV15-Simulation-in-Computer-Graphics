@@ -10,24 +10,27 @@ private:
 	float _sceneHeight;
 
 	float _cellSize;
-	int** _gridCounters;
+	int* _gridCounters;
 
-	vector<int>** _gridCells;
-	
+	vector<int>* _gridCells;
+
 public:
+
+	vector<int>* m_Neighbours;
 
 	FluidContainer(float radius, float sceneWidth, float sceneHeight);
 	~FluidContainer();
 
 	void UpdateGrid(vector<Particle*> particles);
-	vector<int> FindNeighbours(Vec2f position);
-	vector<int> FindInCell(Vec2f position);
+	vector<int> FindNeighbours(int id);
+
+	int CalcHash(Vec2f position);
 
 	int m_GridRows;
 	int m_GridCols;
 
-	float** m_GridColors;
-	Vec2f** m_CenterPoints;
+	//float** m_GridColors;
+	//Vec2f** m_CenterPoints;
 
 	void setColor(Vec2f point, float color);
 

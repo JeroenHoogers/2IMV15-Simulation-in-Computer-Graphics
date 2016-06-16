@@ -22,4 +22,9 @@ public:
 	{
 		return Vec2f(-s * a[1], s * a[0]);
 	}
+
+	static void insertionSort()
+	{
+
+	}
 };

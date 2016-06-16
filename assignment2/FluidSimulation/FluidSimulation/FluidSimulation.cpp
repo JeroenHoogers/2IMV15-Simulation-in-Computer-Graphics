@@ -77,11 +77,11 @@ static void clear_data ( void )
 
 static void init_system(void)
 {
-	const float dist = 0.05;
+	const float dist = 0.065;
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 
-	const float radius = dist;
+	const float radius = dist * 1.2f;
 	for (int i = 0; i < 1 / dist; i++)
 	{
 		for (int j = 0; j < 1.25 / dist; j++)
@@ -437,8 +437,8 @@ static void open_glut_window ( void )
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glEnable(GL_BLEND);
-	//glEnable(GL_POINT_SMOOTH);
-	//glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+	glEnable(GL_POINT_SMOOTH);
+	glHint(GL_POINT_SMOOTH_HINT, GL_FASTEST);
 
 	pre_display ();
 
@@ -463,7 +463,7 @@ int main ( int argc, char ** argv )
 
 	if ( argc == 1 ) {
 		N = 64;
-		dt = 0.01;
+		dt = 0.02;
 		d = 5.f;
 		fprintf ( stderr, "Using defaults : N=%d dt=%g d=%g\n",
 			N, dt, d );

@@ -3,7 +3,7 @@
 #include "GLUtil.h"
 
 Particle::Particle(const Vec2f & ConstructPos, float mass, float radius, bool isFixed) :
-	m_ConstructPos(ConstructPos), m_Position(Vec2f(0.0, 0.0)), m_Velocity(Vec2f(0.0, 0.0)), m_index(-1), m_Mass(mass), m_Radius(radius), m_isFixed(isFixed)
+	m_ConstructPos(ConstructPos), m_Position(Vec2f(0.0, 0.0)), m_Velocity(Vec2f(0.0, 0.0)), m_index(-1), m_Mass(mass), m_Radius(radius), m_isFixed(isFixed), m_GridId(-1)
 {
 }
 
@@ -55,7 +55,7 @@ void Particle::draw()
 		}
 		glEnd();
 
-		glColor3f((m_Pressure * 0.7)+0.4f, 0.3f, 1.0f - (m_Pressure * 0.7));
+		glColor3f((m_Pressure * 0.5)+0.4f, 0.3f, 1.0f - (m_Pressure * 0.5));
 		
 		glPointSize(8.0f);
 
@@ -65,7 +65,6 @@ void Particle::draw()
 	}
 	else
 	{
-
 		glBegin(GL_TRIANGLE_FAN);
 		glColor4f(0.45, 0.45, 1.0, 0.4);
 		glVertex2f(m_Position[0], m_Position[1]);

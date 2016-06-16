@@ -12,71 +12,49 @@ void WallForce::draw()
 
 void WallForce::apply()
 {
-	float bounceFactor = 0.7f;
+	float bounceFactor = 0.65f;
 
-	Vec2f n = Vec2f(0, 0);
-	Vec2f Vn = Vec2f(0, 0);
-	Vec2f Vt = Vec2f(0, 0);
 	bool collision = false;
-	
+	Vec2f n = Vec2f(0, 0);
 	//right wall
 	if (m_p->m_Position[0] > 1.0f) {
 		n = Vec2f(-1, 0);
 		//reverse the velocity
 		m_p->m_Position[0] = 1.0f;
 
-		//m_p->m_Velocity[0] *= -bounceFactor;
 		collision = true;
-
-		//m_p->m_Velocity[0] = -abs(m_p->m_Velocity[0]) * bounceFactor;
-		//m_p->m_Force[0] = -abs(m_p->m_Force[0]) * bounceFactor;
 	}
 
 	//left wall
 	if (m_p->m_Position[0] < -1.0f) {
-		//reverse the velocity
 		n = Vec2f(1, 0);
 		m_p->m_Position[0] = -1.0f;
 		collision = true;
-
-		//m_p->m_Velocity[0] *= -bounceFactor;
-		//m_p->m_Velocity[0] = abs(m_p->m_Velocity[0]) * bounceFactor;
-		//m_p->m_Force[0] = abs(m_p->m_Force[0]) * bounceFactor;
 	}
 
 	//lower wall
 	if (m_p->m_Position[1] < -1.0f) 
 	{
 		n = Vec2f(0, 1);
-		//reverse the velocity
-		m_p->m_Position[1] = -1.0f;
-		//m_p->m_Velocity[1] *= -bounceFactor;
-		collision = true;
 
-	//	m_p->m_Velocity[1] *= -bounceFactor;
-		//m_p->m_Velocity[1] = abs(m_p->m_Velocity[1]) * bounceFactor;
-		//m_p->m_Force[1] = abs(m_p->m_Force[1]) * bounceFactor;
+		// clamp position
+		m_p->m_Position[1] = -1.0f;
+		collision = true;
 	}
 
 	//upper wall
 	if (m_p->m_Position[1] > 1.0f) 
 	{
 		n = Vec2f(0, -1);
-
-		//reverse the velocity
 		m_p->m_Position[1] = 1.0f;
-		//m_p->m_Velocity[1] *= -bounceFactor;
-		collision = true;
 
-		//m_p->m_Velocity[1] *= -bounceFactor;
-		//m_p->m_Velocity[1] = -abs(m_p->m_Velocity[1]) * bounceFactor;
-		//m_p->m_Force[1] = -abs(m_p->m_Force[1]) * bounceFactor;
+		collision = true;
 	}
 
 	if (collision)
 	{
-		Vn = (n * m_p->m_Velocity) * n;
-		Vt = m_p->m_Velocity - Vn;
+		Vec2f Vn = (n * m_p->m_Velocity) * n;
+		Vec2f Vt = m_p->m_Velocity - Vn;
 		m_p->m_Velocity = Vt - bounceFactor * Vn;
 	}
 
