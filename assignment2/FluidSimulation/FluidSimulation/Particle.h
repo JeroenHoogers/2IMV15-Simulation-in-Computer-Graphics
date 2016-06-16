@@ -1,15 +1,23 @@
 #pragma once
 
 #include <gfx/vec2.h>
+#include "IPhysicsObject.h"
 
 using namespace std;
 
-class Particle
+class Particle : public IPhysicsObject
 {
 public:
 
 	Particle(const Vec2f & ConstructPos, float mass = 1.0f, float radius = 0.05f, bool isFixed = false);
 	virtual ~Particle(void);
+
+	float getMass() override;
+	Vec2f getVelocity() override;
+	void setVelocity(Vec2f) override;
+	Vec2f getPosition() override;
+	void setPosition(Vec2f) override;
+	void addForce(Vec2f) override;
 
 	void reset();
 	void draw();

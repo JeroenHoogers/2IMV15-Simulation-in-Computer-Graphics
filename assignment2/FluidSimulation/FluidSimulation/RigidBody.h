@@ -3,10 +3,11 @@
 #include <vector>
 #include "Particle.h"
 #include "matrix.h"
+#include "IPhysicsObject.h"
 
 using namespace std;
 
-class RigidBody
+class RigidBody : public IPhysicsObject
 {
 private:
 
@@ -29,16 +30,28 @@ public:
 	float m_AngularVelocity; // 
 	float m_Torque;
 
+	bool m_isFixed;
 
 
 	vector<Particle*> m_Vertices;
 
-	RigidBody(const Vec2f & ConstructPos);
+	RigidBody(const Vec2f & ConstructPos, bool isFixed = false);
 	
 	~RigidBody();
 
+	Vec2f getRadiusVec(Vec2f pos);
+	float getMass() override;
+	Vec2f getVelocity() override;
+	void setVelocity(Vec2f) override;
+	Vec2f getPosition() override;
+	void setPosition(Vec2f) override;
+	void addForce(Vec2f) override;
+
 	void draw();
 	void reset();
+	Vec2f BroadPhase(RigidBody* other);
+	virtual Vec2f NarrowPhase(RigidBody* other) = 0;
+	virtual vector<float> getExtremes();
 
 	void updateRotation(float angle);
 

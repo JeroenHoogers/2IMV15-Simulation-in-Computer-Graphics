@@ -1,7 +1,9 @@
-// TinkerToy.cpp : Defines the entry point for the console application.
+// FluidSimulation.cpp : Defines the entry point for the console application.
 //
 
 #include "Particle.h"
+#include "RigidBody.h"
+#include "Box.h"
 #include "IForce.h"
 #include "MouseForce.h"
 #include "DragForce.h"
@@ -21,7 +23,7 @@ using namespace std;
 
 
 /* external definitions (from solver) */
-extern void simulation_step(vector<Particle*> pVector, FluidContainer* fluidContainer, vector<IForce*> forces, float dt, int method );
+extern void simulation_step(vector<Particle*> pVector, FluidContainer* fluidContainer, std::vector<RigidBody*> rigidBodies, vector<IForce*> forces, float dt, int method);
 
 /* global variables */
 static int N;
@@ -32,6 +34,7 @@ static int frame_number;
 
 // static Particle *pList;
 static vector<Particle*> pVector;
+static vector<RigidBody*> rigidBodies;
 static FluidContainer* fluidContainer;
 
 static int win_id;
@@ -48,7 +51,7 @@ static MouseForce* mouseForce = NULL;
 static int method = 0;
 static bool enableMouse = true;
 static bool enableStandard = true;
-static bool enableCloth = false;
+static bool enableBodies = false;
 static bool enableHair = false;
 static bool enableDrawParticles = true;
 
@@ -58,19 +61,20 @@ free/clear/allocate simulation data
 ----------------------------------------------------------------------
 */
 
-static void free_data ( void )
+static void free_data(void)
 {
 	pVector.clear();
 	forces.clear();
+	rigidBodies.clear();
 	if (mouseForce != NULL)
 		mouseForce->newMousePosition(Vec2f(0, 0));
 }
 
-static void clear_data ( void )
+static void clear_data(void)
 {
 	int ii, size = pVector.size();
 
-	for(ii=0; ii<size; ii++){
+	for (ii = 0; ii<size; ii++) {
 		pVector[ii]->reset();
 	}
 }
@@ -87,8 +91,8 @@ static void init_system(void)
 		for (int j = 0; j < 1.25 / dist; j++)
 		{
 			pVector.push_back(new Particle(Vec2f(-0.95 + ((j % 2) * 0.02) + dist * i, 0.25 - dist * j), 0.4f, radius));
-		//	forces.push_back(new GravityForce(pVector[pVector.size() - 1]));
-		//	forces.push_back(new DragForce(pVector[pVector.size() - 1]));
+			//	forces.push_back(new GravityForce(pVector[pVector.size() - 1]));
+			//	forces.push_back(new DragForce(pVector[pVector.size() - 1]));
 			forces.push_back(new WallForce(pVector[pVector.size() - 1]));
 		}
 	}
@@ -96,7 +100,7 @@ static void init_system(void)
 	fluidContainer = new FluidContainer(dist, 2.0f, 2.0f);
 
 	std::cout << "particles: " << pVector.size();
-	
+
 	//pVector.push_back(new Particle(center + offset + offset, 1));
 	//pVector.push_back(new Particle(center + offset + offset + offset, 1));
 
@@ -114,11 +118,11 @@ static void init_system(void)
 	//Add spring forces
 	//forces.push_back(new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0));
 	//forces.push_back(new SpringForce(pVector[0], pVector[2], dist, 1.0, 0.5));
-	
+
 	//Add Constraints
 	//constraints.push_back(new WireConstraint(pVector[0], pVector[0]->m_ConstructPos, 0));
 	//constraints.push_back(new WireConstraint(pVector[0], pVector[0]->m_ConstructPos, 1));
-	
+
 	// Add mouse force
 	if (enableMouse)
 	{
@@ -131,7 +135,30 @@ static void init_system(void)
 	//forces.push_back(new WallForce(pVector[1]));
 	//forces.push_back(new WallForce(pVector[2]));
 
-}	
+}
+
+static void rigid_bodies(void)
+{
+	const float dist = 0.12;
+	const Vec2f center(0.0, 0.0);
+	const Vec2f offset(dist, 0.0);
+
+	rigidBodies.push_back(new Box(center, 1, 0.5, 0.5));
+	rigidBodies.push_back(new Box(Vec2f(0.35, -0.4), 1, 0.25, 0.25));
+	rigidBodies.push_back(new Box(Vec2f(0.0, -1), 1, 2, 0.2, true));
+	fluidContainer = new FluidContainer(dist / 2, 2.0f, 2.0f);
+
+	forces.push_back(new GravityForce(rigidBodies[0]));
+
+
+	std::cout << "particles: " << pVector.size();
+	if (enableMouse)
+	{
+		//mouseForce = new MouseForce(pVector[0], Vec2f(0, 0), dist, 1.0, 1.0);
+		//forces.push_back(mouseForce);
+	}
+
+}
 
 /*
 ----------------------------------------------------------------------
@@ -139,28 +166,28 @@ OpenGL specific drawing routines
 ----------------------------------------------------------------------
 */
 
-static void pre_display ( void )
+static void pre_display(void)
 {
-	glViewport ( 0, 0, win_x, win_y );
-	glMatrixMode ( GL_PROJECTION );
-	glLoadIdentity ();
-	gluOrtho2D ( -1.0, 1.0, -1.0, 1.0 );
-	glClearColor ( 0.15f, 0.15f, 0.15f, 1.0f );
-	glClear ( GL_COLOR_BUFFER_BIT );
+	glViewport(0, 0, win_x, win_y);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
+	glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-static void post_display ( void )
+static void post_display(void)
 {
 	frame_number++;
-	
-	glutSwapBuffers ();
+
+	glutSwapBuffers();
 }
 
-static void draw_particles ( void )
+static void draw_particles(void)
 {
 	int size = pVector.size();
 
-	for(int ii=0; ii< size; ii++)
+	for (int ii = 0; ii< size; ii++)
 	{
 
 		pVector[ii]->draw();
@@ -180,12 +207,31 @@ static void draw_particles ( void )
 
 }
 
-static void draw_fluid()
+
+static void draw_rigidBodies(void)
 {
-	fluidContainer->draw();
+	int size = rigidBodies.size();
+
+	for (int ii = 0; ii < size; ii++)
+	{
+		rigidBodies[ii]->draw();
+	}
+
+	//glEnableClientState(GL_VERTEX_ARRAY);
+	//glEnableClientState(GL_COLOR_ARRAY);
+
+	//glPointSize(2.5f*kParticleRadius*kScreenWidth / kViewWidth);
+
+	//glColorPointer(4, GL_FLOAT, sizeof(Rgba), shadedParticleColours);
+	//glVertexPointer(2, GL_FLOAT, sizeof(Particle), particles);
+	//glDrawArrays(GL_POINTS, 0, particleCount);
+
+	//glDisableClientState(GL_COLOR_ARRAY);
+	//glDisableClientState(GL_VERTEX_ARRAY);
+
 }
 
-static void draw_forces ( void )
+static void draw_forces(void)
 {
 
 	//if (delete_this_dummy_spring)
@@ -204,27 +250,27 @@ relates mouse movements to tinker toy construction
 ----------------------------------------------------------------------
 */
 
-static void get_from_UI ()
+static void get_from_UI()
 {
 	float i, j;
 	// int size, flag;
 	int hi, hj;
 	// float x, y;
-	if ( !mouse_down[0] && !mouse_down[2] && !mouse_release[0] 
-	&& !mouse_shiftclick[0] && !mouse_shiftclick[2] ) return;
+	if (!mouse_down[0] && !mouse_down[2] && !mouse_release[0]
+		&& !mouse_shiftclick[0] && !mouse_shiftclick[2]) return;
 
-	i = (float)(1 - ((win_x-mx)/((float)win_x / 2.0)));
-	j = (float)(1 - ((		my)/((float)win_y / 2.0)));
+	i = (float)(1 - ((win_x - mx) / ((float)win_x / 2.0)));
+	j = (float)(1 - ((my) / ((float)win_y / 2.0)));
 
 	//if ( i<1 || i>N || j<1 || j>N ) return;
 
-	if ( mouse_down[0] && enableMouse) {
+	if (mouse_down[0] && enableMouse) {
 		if (!mouseForce->selected)
 		{
 			vector<Particle*> closeParticles = vector<Particle*>();
 			float maxDist = 0.2;
 			float dist = 0;
-			
+
 			Vec2f mouseDistance = Vec2f(0, 0);
 			Vec2f mousePosition = Vec2f(i, j);
 			for (int ii = 0; ii < pVector.size(); ii++)
@@ -232,7 +278,7 @@ static void get_from_UI ()
 				mouseDistance = pVector[ii]->m_Position - mousePosition;
 				dist = sqrt(mouseDistance[0] * mouseDistance[0] + mouseDistance[1] * mouseDistance[1]);
 
-				if(dist <= maxDist)
+				if (dist <= maxDist)
 					closeParticles.push_back(pVector[ii]);
 			}
 			mouseForce->selectParticles(closeParticles);
@@ -243,13 +289,13 @@ static void get_from_UI ()
 		mouseForce->clearParticle();
 	}
 
-	if ( mouse_down[2] ) {
+	if (mouse_down[2]) {
 	}
 
-	hi = (int)((       hmx /(float)win_x)*N);
-	hj = (int)(((win_y-hmy)/(float)win_y)*N);
+	hi = (int)((hmx / (float)win_x)*N);
+	hj = (int)(((win_y - hmy) / (float)win_y)*N);
 
-	if( mouse_release[0] ) {
+	if (mouse_release[0]) {
 	}
 
 	omx = mx;
@@ -259,12 +305,20 @@ static void get_from_UI ()
 static void remap_GUI()
 {
 	int ii, size = pVector.size();
-	for(ii=0; ii<size; ii++)
+	for (ii = 0; ii<size; ii++)
 	{
 		pVector[ii]->reset();
 		//pVector[ii]->m_Position[0] = pVector[ii]->m_ConstructPos[0];
 		//pVector[ii]->m_Position[1] = pVector[ii]->m_ConstructPos[1];
 	}
+	size = rigidBodies.size();
+	for (ii = 0; ii<size; ii++)
+	{
+		rigidBodies[ii]->reset();
+		//pVector[ii]->m_Position[0] = pVector[ii]->m_ConstructPos[0];
+		//pVector[ii]->m_Position[1] = pVector[ii]->m_ConstructPos[1];
+	}
+
 }
 
 static void load_Scene(void)
@@ -275,6 +329,8 @@ static void load_Scene(void)
 
 	if (enableStandard)
 		init_system();
+	else if (enableBodies)
+		rigid_bodies();
 }
 
 /*
@@ -283,13 +339,13 @@ GLUT callback routines
 ----------------------------------------------------------------------
 */
 
-static void key_func ( unsigned char key, int x, int y )
+static void key_func(unsigned char key, int x, int y)
 {
-	switch ( key )
+	switch (key)
 	{
 	case 'c':
 	case 'C':
-		clear_data ();
+		clear_data();
 		break;
 
 	case 'd':
@@ -299,8 +355,8 @@ static void key_func ( unsigned char key, int x, int y )
 
 	case 'q':
 	case 'Q':
-		free_data ();
-		exit ( 0 );
+		free_data();
+		exit(0);
 		break;
 
 	case ' ':
@@ -323,30 +379,18 @@ static void key_func ( unsigned char key, int x, int y )
 		break;
 	case '6':
 		enableStandard = !enableStandard;
-		if (enableStandard) 
+		if (enableStandard)
 		{
-			enableCloth = false;
-			enableHair = false;
+			enableBodies = false;
 		}
 		free_data();
 		load_Scene();
 		break;
 	case '7':
-		enableCloth = !enableCloth;
-		if (enableCloth)
+		enableBodies = !enableBodies;
+		if (enableBodies)
 		{
 			enableStandard = false;
-			enableHair = false;
-		}
-		free_data();
-		load_Scene();
-		break;
-	case '8':
-		enableHair = !enableHair;
-		if (enableHair)
-		{
-			enableStandard = false;
-			enableCloth = false;
 		}
 		free_data();
 		load_Scene();
@@ -357,61 +401,59 @@ static void key_func ( unsigned char key, int x, int y )
 	}
 }
 
-static void mouse_func ( int button, int state, int x, int y )
+static void mouse_func(int button, int state, int x, int y)
 {
 	omx = mx = x;
 	omx = my = y;
 
-	if(!mouse_down[0]){hmx=x; hmy=y;}
-	if(mouse_down[button]) mouse_release[button] = state == GLUT_UP;
-	if(mouse_down[button]) mouse_shiftclick[button] = glutGetModifiers()==GLUT_ACTIVE_SHIFT;
+	if (!mouse_down[0]) { hmx = x; hmy = y; }
+	if (mouse_down[button]) mouse_release[button] = state == GLUT_UP;
+	if (mouse_down[button]) mouse_shiftclick[button] = glutGetModifiers() == GLUT_ACTIVE_SHIFT;
 	mouse_down[button] = state == GLUT_DOWN;
 }
 
-static void motion_func ( int x, int y )
+static void motion_func(int x, int y)
 {
 	mx = x;
 	my = y;
 }
 
-static void reshape_func ( int width, int height )
+static void reshape_func(int width, int height)
 {
-	glutSetWindow ( win_id );
-	glutReshapeWindow ( width, height );
+	glutSetWindow(win_id);
+	glutReshapeWindow(width, height);
 
 	win_x = width;
 	win_y = height;
 }
 
-static void idle_func ( void )
+static void idle_func(void)
 {
-	if ( dsim ) 
-		simulation_step(pVector, fluidContainer, forces, dt, method);
-	else        
+	if (dsim)
+		simulation_step(pVector, fluidContainer, rigidBodies, forces, dt, method);
+	else
 	{
 		remap_GUI();
 	}
 
 	get_from_UI();
-	glutSetWindow ( win_id );
-	glutPostRedisplay ();
+	glutSetWindow(win_id);
+	glutPostRedisplay();
 }
 
-static void display_func ( void )
+static void display_func(void)
 {
-	pre_display ();
+	pre_display();
 
 	draw_forces();
-	
-	draw_fluid();
 
 	if (enableDrawParticles)
 	{
 		draw_particles();
+		draw_rigidBodies();
 	}
 
-
-	post_display ();
+	post_display();
 }
 
 
@@ -421,19 +463,19 @@ open_glut_window --- open a glut compatible window and set callbacks
 ----------------------------------------------------------------------
 */
 
-static void open_glut_window ( void )
+static void open_glut_window(void)
 {
-	glutInitDisplayMode ( GLUT_RGBA | GLUT_DOUBLE );
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 
-	glutInitWindowPosition ( 0, 0 );
-	glutInitWindowSize ( win_x, win_y );
-	win_id = glutCreateWindow ( "Fluid Simulator" );
+	glutInitWindowPosition(0, 0);
+	glutInitWindowSize(win_x, win_y);
+	win_id = glutCreateWindow("Fluid Simulator");
 
-	glClearColor ( 0.2f, 0.2f, 0.2f, 1.0f );
-	glClear ( GL_COLOR_BUFFER_BIT );
-	glutSwapBuffers ();
-	glClear ( GL_COLOR_BUFFER_BIT );
-	glutSwapBuffers ();
+	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glutSwapBuffers();
+	glClear(GL_COLOR_BUFFER_BIT);
+	glutSwapBuffers();
 
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_POLYGON_SMOOTH);
@@ -443,14 +485,14 @@ static void open_glut_window ( void )
 	glEnable(GL_POINT_SMOOTH);
 	glHint(GL_POINT_SMOOTH_HINT, GL_FASTEST);
 
-	pre_display ();
+	pre_display();
 
-	glutKeyboardFunc ( key_func );
-	glutMouseFunc ( mouse_func );
-	glutMotionFunc ( motion_func );
-	glutReshapeFunc ( reshape_func );
-	glutIdleFunc ( idle_func );
-	glutDisplayFunc ( display_func );
+	glutKeyboardFunc(key_func);
+	glutMouseFunc(mouse_func);
+	glutMotionFunc(motion_func);
+	glutReshapeFunc(reshape_func);
+	glutIdleFunc(idle_func);
+	glutDisplayFunc(display_func);
 }
 
 
@@ -460,44 +502,43 @@ main --- main routine
 ----------------------------------------------------------------------
 */
 
-int main ( int argc, char ** argv )
+int main(int argc, char ** argv)
 {
-	glutInit ( &argc, argv );
+	glutInit(&argc, argv);
 
-	if ( argc == 1 ) {
+	if (argc == 1) {
 		N = 64;
 		dt = 0.02;
 		d = 5.f;
-		fprintf ( stderr, "Using defaults : N=%d dt=%g d=%g\n",
-			N, dt, d );
-	} else {
+		fprintf(stderr, "Using defaults : N=%d dt=%g d=%g\n",
+			N, dt, d);
+	}
+	else {
 		N = atoi(argv[1]);
 		dt = atof(argv[2]);
 		d = atof(argv[3]);
 	}
 
-	printf ( "\n\nHow to use this application:\n\n" );
-	printf ( "\t Toggle construction/simulation display with the spacebar key\n" );
+	printf("\n\nHow to use this application:\n\n");
+	printf("\t Toggle construction/simulation display with the spacebar key\n");
 	printf("\t Use the '1-9' keys to enable/disable the following functions : \n");
 	printf("\t 1 : Eulers method \n");
 	printf("\t 2 : Midpoint \n");
 	printf("\t 3 : RungKutta \n");
 	printf("\t 5 : Mouse interaction \n");
 	printf("\t 6 : Standard display \n");
-	printf("\t 7 : Cloth display \n");
-	printf("\t 8 : Hair display \n");
+	printf("\t 7 : Rigid Body display \n");
 	printf("\t 9 : Draw particles \n");
-	printf ( "\t Dump frames by pressing the 'd' key\n" );
-	printf ( "\t Quit by pressing the 'q' key\n" );
-	
+	printf("\t Dump frames by pressing the 'd' key\n");
+	printf("\t Quit by pressing the 'q' key\n");
+
 	load_Scene();
 
 	win_x = 512;
 	win_y = 512;
-	open_glut_window ();
+	open_glut_window();
 
-	glutMainLoop ();
+	glutMainLoop();
 
-	exit ( 0 );
+	exit(0);
 }
-

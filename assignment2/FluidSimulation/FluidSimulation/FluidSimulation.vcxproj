@@ -119,6 +119,7 @@
     <ClCompile Include="FluidContainer.cpp" />
     <ClCompile Include="FluidSimulation.cpp" />
     <ClCompile Include="GravityForce.cpp" />
+    <ClCompile Include="IPhysicsObject.cpp" />
     <ClCompile Include="linearSolver.cpp" />
     <ClCompile Include="matrix.cpp" />
     <ClCompile Include="MouseForce.cpp" />
@@ -134,6 +135,7 @@
     <ClInclude Include="GLUtil.h" />
     <ClInclude Include="GravityForce.h" />
     <ClInclude Include="IForce.h" />
+    <ClInclude Include="IPhysicsObject.h" />
     <ClInclude Include="KernelFunctions.h" />
     <ClInclude Include="linearSolver.h" />
     <ClInclude Include="matrix.h" />

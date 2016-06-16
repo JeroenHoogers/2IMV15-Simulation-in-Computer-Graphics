@@ -27,4 +27,11 @@ public:
 	{
 
 	}
+
+	static Vec2f normalise(const Vec2f a)
+	{
+		if (a[0] == 0 && a[1] == 0)
+			return a;
+		return (a / sqrt(pow(a[0], 2) + pow(a[1], 2)));
+	}
 };

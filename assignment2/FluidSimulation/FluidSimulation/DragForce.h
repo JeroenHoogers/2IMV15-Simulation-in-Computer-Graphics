@@ -5,13 +5,13 @@
 class DragForce : public IForce
 {
 public:
-	DragForce(Particle* p);
+	DragForce(IPhysicsObject* p);
 
 	void draw() override;
 	void apply() override;
 
 private:
-	Particle* const m_p;		// particle
+	IPhysicsObject* const m_p;		// Physical object
 	float const m_Drag;			// drag coefficient
 };
 

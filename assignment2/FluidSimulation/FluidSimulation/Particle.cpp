@@ -93,3 +93,31 @@ void Particle::draw()
 		//glEnd();
 	}
 }
+float Particle::getMass()
+{
+	return m_Mass;
+}
+
+Vec2f Particle::getVelocity()
+{
+	return m_Velocity;
+}
+void Particle::setVelocity(Vec2f v)
+{
+	m_Velocity = v;
+}
+
+Vec2f Particle::getPosition()
+{
+	return m_Position;
+}
+
+void Particle::setPosition(Vec2f p)
+{
+	m_Position = p;
+}
+
+void Particle::addForce(Vec2f force)
+{
+	m_Force += force;
+}
