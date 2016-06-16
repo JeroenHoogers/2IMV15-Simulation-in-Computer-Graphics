@@ -122,7 +122,7 @@ static void init_system(void)
 	// Add mouse force
 	if (enableMouse)
 	{
-		mouseForce = new MouseForce(pVector[0], Vec2f(0, 0), dist, 1.0, 1.0);
+		mouseForce = new MouseForce(vector<Particle*>(), Vec2f(0, 0), dist, 1.0, 1.0);
 		forces.push_back(mouseForce);
 	}
 
@@ -221,18 +221,21 @@ static void get_from_UI ()
 	if ( mouse_down[0] && enableMouse) {
 		if (!mouseForce->selected)
 		{
-			Vec2f currentdis = Vec2f(2, 2);
-			Vec2f newdis = Vec2f(2, 2);
+			vector<Particle*> closeParticles = vector<Particle*>();
+			float maxDist = 0.2;
+			float dist = 0;
+			
+			Vec2f mouseDistance = Vec2f(0, 0);
+			Vec2f mousePosition = Vec2f(i, j);
 			for (int ii = 0; ii < pVector.size(); ii++)
 			{
-				
-				newdis = pVector[ii]->m_Position - Vec2f(i, j);
-				if (abs(newdis[0]) + abs(newdis[1]) < abs(currentdis[0]) + abs(currentdis[1]))
-				{
-					currentdis = newdis;
-					mouseForce->selectParticle(pVector[ii]);
-				}
+				mouseDistance = pVector[ii]->m_Position - mousePosition;
+				dist = sqrt(mouseDistance[0] * mouseDistance[0] + mouseDistance[1] * mouseDistance[1]);
+
+				if(dist <= maxDist)
+					closeParticles.push_back(pVector[ii]);
 			}
+			mouseForce->selectParticles(closeParticles);
 		}
 		mouseForce->newMousePosition(Vec2f(i, j));
 	}

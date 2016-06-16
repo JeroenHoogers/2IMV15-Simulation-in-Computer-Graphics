@@ -5,18 +5,18 @@
 class MouseForce : public IForce
 {
 public:
-	MouseForce(Particle* p, Vec2f mousePos, double dist, double ks, double kd);
+	MouseForce(vector<Particle*> p, Vec2f mousePos, double dist, double ks, double kd);
 
 	void draw() override;
 	void apply() override;
 	void newMousePosition(Vec2f mousePos);
-	void selectParticle(Particle * p);
+	void selectParticles(vector<Particle*> particles);
 	void clearParticle();
 
 	bool selected;
 
 private:
-	Particle* m_p;		// particles
+	vector<Particle*> m_particles;		// particles
 	Vec2f m_mousePos;		// mouse position
 	double const m_dist;     // rest length
 	double const m_ks, m_kd; // spring strength constants

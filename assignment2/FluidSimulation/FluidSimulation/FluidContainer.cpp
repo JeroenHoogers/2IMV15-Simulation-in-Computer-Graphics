@@ -75,7 +75,7 @@ FluidContainer::~FluidContainer()
 void FluidContainer::UpdateGrid(vector<Particle*> particles)
 {
 	//ClearGrid();
-	time_t begin_time = clock();
+	//time_t begin_time = clock();
 	for (int i = 0; i < particles.size(); i++)
 	{
 		int id = CalcHash(particles[i]->m_Position);
@@ -108,7 +108,7 @@ void FluidContainer::UpdateGrid(vector<Particle*> particles)
 		}
 	}
 	
-	time_t begin_time2 = clock();
+	//time_t begin_time2 = clock();
 	// Find neighbours for every cell w/ particle count > 0
 	for (int i = 0; i < m_GridRows * m_GridCols; i++)
 	{
@@ -117,7 +117,7 @@ void FluidContainer::UpdateGrid(vector<Particle*> particles)
 			m_Neighbours[i] = FindNeighbours(i);
 		}
 	}
-	std::cout << float( begin_time2 - begin_time) / CLOCKS_PER_SEC  << " _ " << float(clock() - begin_time2) / CLOCKS_PER_SEC << std::endl;
+	//std::cout << float( begin_time2 - begin_time) / CLOCKS_PER_SEC  << " _ " << float(clock() - begin_time2) / CLOCKS_PER_SEC << std::endl;
 }
 
 
