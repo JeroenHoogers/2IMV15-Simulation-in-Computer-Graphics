@@ -1,5 +1,5 @@
 #include "Box.h"
-
+#include "Utility.h"
 
 
 Box::Box(const Vec2f constructPos, float density, float width, float height, bool isFixed) : RigidBody(constructPos)
@@ -86,7 +86,7 @@ Vec2f Box::NarrowPhase(RigidBody* other)
 		//}
 		//updateRotation(m_Orientation);
 		//return Vec2f(0, 0);
-	float lowestDist = 0.01f;
+	float lowestDist = 1.00f;
 	Vec2f collisionPoint = Vec2f(0, 0);
 	for (int i = 0; i < m_Vertices.size(); i++)
 	{
@@ -94,14 +94,14 @@ Vec2f Box::NarrowPhase(RigidBody* other)
 		{
 			Vec2f currentV = m_Vertices[i %  m_Vertices.size()]->m_Position + m_Position;
 			Vec2f nextV = m_Vertices[(i + 1) % m_Vertices.size()]->m_Position + m_Position;
-			//Vec2f currentNorm = Vec2f(-(nextV[1] - currentV[1]), (nextV[0] - currentV[0]));
-
+			Vec2f currentNorm = Vec2f((nextV[1] - currentV[1]), -(nextV[0] - currentV[0]));
+			currentNorm = Util::normalise(currentNorm);
 			float dist = abs(((nextV[1] - currentV[1])* (other->m_Vertices[j]->m_Position[0] + other->m_Position[0])) - ((nextV[0] - currentV[0])*(other->m_Vertices[j]->m_Position[1] + other->m_Position[1])) + nextV[0] * currentV[1] - nextV[1] * currentV[0]);
 			dist = dist / sqrt(pow(nextV[1] - currentV[1], 2) + pow(nextV[0] - currentV[0], 2));
 			if (dist < lowestDist)
 			{
 				lowestDist = dist;
-				collisionPoint = other->m_Vertices[j]->m_Position;
+				collisionPoint = other->m_Vertices[j]->m_Position + other->m_Position + currentNorm * dist;
 				//normal = currentNorm;
 			}
 		}
