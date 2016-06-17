@@ -166,8 +166,8 @@ static void rigid_bodies(void)
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 
-	rigidBodies.push_back(new Box(center, 0.9, 0.5, 0.5));
-	rigidBodies.push_back(new Box(Vec2f(0.35, -0.4), 0.9, 0.25, 0.25));
+	rigidBodies.push_back(new Box(center, 50, 0.5, 0.5));
+	rigidBodies.push_back(new Box(Vec2f(0.35, -0.4), 50, 0.25, 0.25));
 	/*rigidBodies.push_back(new Box(Vec2f(0.35, -0.54), 1, 0.25, 0.25));
 	rigidBodies.push_back(new Box(Vec2f(-0.38, -0.34), 1, 0.25, 0.25));
 	rigidBodies.push_back(new Box(Vec2f(0.33, 0.44), 1, 0.25, 0.25));

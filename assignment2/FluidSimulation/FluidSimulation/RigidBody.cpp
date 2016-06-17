@@ -173,7 +173,8 @@ void RigidBody::updateRotation(float angle)
 
 Vec2f RigidBody::getRadiusVec(Vec2f pos)
 {
-	return (abs(pos[0] - m_Position[0]), abs(pos[1] - m_Position[1]));
+	//return (abs(pos[0] - m_Position[0]), abs(pos[1] - m_Position[1]));
+	return m_Position - pos;
 }
 
 float RigidBody::getMass()
