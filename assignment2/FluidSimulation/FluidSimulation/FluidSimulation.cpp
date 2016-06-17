@@ -87,7 +87,7 @@ static void init_system(void)
 	const Vec2f offset(dist, 0.0);
 
 	const float radius = dist * 1.25f;
-	
+
 	// Initialise fluid
 	for (int i = 0; i < 1 / dist; i++)
 	{
@@ -96,7 +96,7 @@ static void init_system(void)
 			//if(j == 5)
 			//	pVector.push_back(new Particle(Vec2f(-0.95 + ((j % 2) * 0.02) + dist * i, 0.25 - dist * j), 0.4f, radius, true));
 			//else
-				pVector.push_back(new Particle(Vec2f(-0.95 + ((j % 2) * 0.02) + dist * i, 0.25 - dist * j), 0.4f, radius));
+			pVector.push_back(new Particle(Vec2f(-0.95 + ((j % 2) * 0.02) + dist * i, 0.25 - dist * j), 0.4f, radius));
 			//	forces.push_back(new GravityForce(pVector[pVector.size() - 1]));
 			//	forces.push_back(new DragForce(pVector[pVector.size() - 1]));
 			forces.push_back(new WallForce(pVector[pVector.size() - 1]));
@@ -166,12 +166,31 @@ static void rigid_bodies(void)
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 
-	rigidBodies.push_back(new Box(center, 1, 0.5, 0.5));
-	rigidBodies.push_back(new Box(Vec2f(0.35, -0.4), 1, 0.25, 0.25));
-	rigidBodies.push_back(new Box(Vec2f(0.0, -1), 1, 2, 0.2, true));
+	rigidBodies.push_back(new Box(center, 0.9, 0.5, 0.5));
+	rigidBodies.push_back(new Box(Vec2f(0.35, -0.4), 0.9, 0.25, 0.25));
+	/*rigidBodies.push_back(new Box(Vec2f(0.35, -0.54), 1, 0.25, 0.25));
+	rigidBodies.push_back(new Box(Vec2f(-0.38, -0.34), 1, 0.25, 0.25));
+	rigidBodies.push_back(new Box(Vec2f(0.33, 0.44), 1, 0.25, 0.25));
+	rigidBodies.push_back(new Box(Vec2f(-0.36, 0.63), 1, 0.25, 0.25));
+	rigidBodies.push_back(new Box(Vec2f(-0.31, 0.25), 1, 0.25, 0.25));
+	rigidBodies.push_back(new Box(Vec2f(-0.37, -0.81), 1, 0.25, 0.25));
+	rigidBodies.push_back(new Box(Vec2f(-0.8, -0.78), 1, 0.25, 0.25));*/
+
+	rigidBodies.push_back(new Box(Vec2f(0.0, -1.5), 1, 3, 1, true));
+	rigidBodies.push_back(new Box(Vec2f(0.0, 1.5), 1, 3, 1, true));
+	rigidBodies.push_back(new Box(Vec2f(1.5, 0.0), 1, 1, 3, true));
+	rigidBodies.push_back(new Box(Vec2f(-1.5, 0.0), 1, 1, 3, true));
 	fluidContainer = new FluidContainer(dist / 2, 2.0f, 2.0f);
 
+	forces.push_back(new DragForce(rigidBodies[0]));
+	forces.push_back(new DragForce(rigidBodies[1]));
 	forces.push_back(new GravityForce(rigidBodies[0]));
+	forces.push_back(new GravityForce(rigidBodies[1]));
+	/*forces.push_back(new GravityForce(rigidBodies[2]));
+	forces.push_back(new GravityForce(rigidBodies[3]));
+	forces.push_back(new GravityForce(rigidBodies[4]));
+	forces.push_back(new GravityForce(rigidBodies[5]));
+	forces.push_back(new GravityForce(rigidBodies[6]));*/
 
 
 	std::cout << "particles: " << pVector.size();
@@ -287,7 +306,7 @@ static void get_from_UI()
 
 	//if ( i<1 || i>N || j<1 || j>N ) return;
 
-	if (mouse_down[0] && enableMouse) 
+	if (mouse_down[0] && enableMouse)
 	{
 		if (!mouseForce->leftMouseDown)
 		{
@@ -336,7 +355,7 @@ static void get_from_UI()
 		}
 		mouseForce->newMousePosition(Vec2f(i, j));
 	}
-	else if (enableMouse) 
+	else if (enableMouse)
 	{
 		mouseForce->clearRigidbodies();
 	}
@@ -578,7 +597,6 @@ int main(int argc, char ** argv)
 	printf("\t 1 : Eulers method \n");
 	printf("\t 2 : Midpoint \n");
 	printf("\t 3 : RungKutta \n");
-	printf("\t 4 : Toggle fluid render mode \n");
 	printf("\t 5 : Mouse interaction \n");
 	printf("\t 6 : Standard display \n");
 	printf("\t 7 : Rigid Body display \n");

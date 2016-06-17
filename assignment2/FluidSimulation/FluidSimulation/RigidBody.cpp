@@ -53,10 +53,10 @@ vector<float> RigidBody::getExtremes()
 {
 	//Extremes in world coordinates
 	vector<float> extremes = vector<float>();
-	extremes.push_back(-1.0f);
-	extremes.push_back(-1.0f);
-	extremes.push_back(1.0f);
-	extremes.push_back(1.0f);
+	extremes.push_back(-2.0f);
+	extremes.push_back(-2.0f);
+	extremes.push_back(2.0f);
+	extremes.push_back(2.0f);
 	for (int i = 0; i < m_Vertices.size(); i++)
 	{
 		//matrix currentVertex = matrix(2, 1);
@@ -93,10 +93,10 @@ Vec2f RigidBody::BroadPhase(RigidBody* other)
 		matrix result = *m_Rotation * currentVertex;
 		float resultx = result.getValue(0, 0);
 		float resulty = result.getValue(1, 0);*/
-		if (	extremes[0] > other->m_Vertices[i]->m_Position[0] + other->m_Position[0]//(result.getValue(0, 0))
-			&&	extremes[1] > other->m_Vertices[i]->m_Position[1] + other->m_Position[1]//(result.getValue(1, 0))
-			&&	extremes[2] < other->m_Vertices[i]->m_Position[0] + other->m_Position[0]//(result.getValue(0, 0))
-			&&	extremes[3] < other->m_Vertices[i]->m_Position[1] + other->m_Position[1])//(result.getValue(1, 0)))
+		if (extremes[0] > other->m_Vertices[i]->m_Position[0] + other->m_Position[0]//(result.getValue(0, 0))
+			&& extremes[1] > other->m_Vertices[i]->m_Position[1] + other->m_Position[1]//(result.getValue(1, 0))
+			&& extremes[2] < other->m_Vertices[i]->m_Position[0] + other->m_Position[0]//(result.getValue(0, 0))
+			&& extremes[3] < other->m_Vertices[i]->m_Position[1] + other->m_Position[1])//(result.getValue(1, 0)))
 		{
 			return other->m_Vertices[i]->m_Position + other->m_Position;
 		}
@@ -104,13 +104,13 @@ Vec2f RigidBody::BroadPhase(RigidBody* other)
 		//result.release();
 	}
 	//updateRotation(m_Orientation);
-	return Vec2f(0,0);
+	return Vec2f(0, 0);
 }
 
 
 void RigidBody::generateGhostParticles()
 {
-	float density = 0.02 ;
+	float density = 0.02;
 
 	// Generate ghost particles on the edges of our object.
 	for (int i = 0; i < m_Vertices.size(); i++)
@@ -138,9 +138,9 @@ void RigidBody::generateGhostParticles()
 		{
 			// Generate ghost particle
 			m_GhostParticles.push_back(
-					new Particle(
-						v1 * 0.8f + m_Position + dir * (j * density),
-						0.4f, 0.05, true));
+				new Particle(
+					v1 * 0.8f + m_Position + dir * (j * density),
+					0.4f, 0.05, true));
 
 			m_GhostParticles[m_GhostParticles.size() - 1]->m_LocalPosition = v1 + dir * (j * density);
 		}
@@ -173,7 +173,7 @@ void RigidBody::updateRotation(float angle)
 
 Vec2f RigidBody::getRadiusVec(Vec2f pos)
 {
-	return pos - m_Position;
+	return (abs(pos[0] - m_Position[0]), abs(pos[1] - m_Position[1]));
 }
 
 float RigidBody::getMass()

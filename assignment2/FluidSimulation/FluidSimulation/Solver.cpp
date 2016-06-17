@@ -67,6 +67,7 @@ void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer,
 	for (int i = 0; i < rigidBodies.size(); i++)
 	{
 		rigidBodies[i]->m_Force = Vec2f(0, 0);
+		rigidBodies[i]->m_Torque = 0;
 	}
 
 	calculateFluidDynamics(pVector, fluidContainer, 1.0f);
@@ -96,7 +97,7 @@ bool SortPairs(Pair* lhs, Pair* rhs)
 // Calculate rigid body values
 //--------------------------------------------------------------
 void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IForce*> forces)
-{		
+{
 	//Broad phase collision finding
 	vector<Pair*> pairs = vector<Pair*>();
 	vector<Pair*> uniquePairs = vector<Pair*>();
@@ -109,7 +110,7 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 			RigidBody *B = rigidBodies[j];
 
 			// Continue on self check
-			if (A == B)
+			if (A == B || (A->m_isFixed && B->m_isFixed))
 				continue;
 
 			Vec2f contact = A->BroadPhase(B);
@@ -155,7 +156,7 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 		if (A == B)
 			continue;
 
-		float lowestDist = 1.00f;
+		float lowestDist = 2.00f;
 		Vec2f collisionPoint = Vec2f(0, 0);
 		for (int i = 0; i < A->m_Vertices.size(); i++)
 		{
@@ -167,11 +168,11 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 				currentNorm = Util::normalise(currentNorm);
 				float dist = abs(((nextV[1] - currentV[1])* (B->m_Vertices[j]->m_Position[0] + B->m_Position[0])) - ((nextV[0] - currentV[0])*(B->m_Vertices[j]->m_Position[1] + B->m_Position[1])) + nextV[0] * currentV[1] - nextV[1] * currentV[0]);
 				dist = dist / sqrt(pow(nextV[1] - currentV[1], 2) + pow(nextV[0] - currentV[0], 2));
-				if (dist < lowestDist)
+				if (dist < lowestDist && ((nextV[0] - currentV[0])*((B->m_Vertices[j]->m_Position[1] + B->m_Position[1]) - currentV[1]) - (nextV[1] - currentV[1])*((B->m_Vertices[j]->m_Position[0] + B->m_Position[0]) - currentV[0])) > 0)
 				{
 					lowestDist = dist;
-					collisionPoint = B->m_Vertices[j]->m_Position + B->m_Position + currentNorm * dist;
-					//normal = currentNorm;
+					Vec2f alterdist = (currentNorm * dist);
+					collisionPoint = B->m_Vertices[j]->m_Position + B->m_Position + alterdist;
 				}
 			}
 		}
@@ -184,46 +185,75 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 			p->distance = lowestDist;
 			pairs.push_back(p);
 		}
-		/* contact = B->NarrowPhase(A);
-		if (contact[0] != 0 && contact[1] != 0)
-		{
-		Pair* p = new Pair();
-		p->B = A;
-		p->A = B;
-		p->contactP = contact;
-		pairs.push_back(p);
-		}*/
-
 	}
 	sort(pairs.begin(), pairs.end(), SortPairs);
 
 	//for all Collisions
 	for (int i = 0; i < pairs.size(); i++)
 	{
+
+		//Collision with wall object
 		if (pairs[i]->B->m_isFixed)
 		{
+			if (pairs[i]->A->m_isFixed)
+				continue;
+
 			float bounceFactor = 0.65f;
 
-			Vec2f n = Vec2f(0, 1);
+			Vec2f n = Vec2f(0, 0);
+			int size = pairs[i]->B->m_Vertices.size();
+			float lowestDist = 1.0f;
+			for (int j = 0; j < size; j++)
+			{
+				Vec2f currentV = pairs[i]->B->m_Vertices[j % size]->m_Position + pairs[i]->B->m_Position;
+				Vec2f nextV = pairs[i]->B->m_Vertices[(j + 1) % size]->m_Position + pairs[i]->B->m_Position;
+				Vec2f currentNorm = Vec2f((nextV[1] - currentV[1]), -(nextV[0] - currentV[0]));
+
+				float dist = abs(((nextV[1] - currentV[1])*pairs[i]->contactP[0]) - ((nextV[0] - currentV[0]) * pairs[i]->contactP[1]) + nextV[0] * currentV[1] - nextV[1] * currentV[0]);
+				dist = dist / sqrt(pow(nextV[1] - currentV[1], 2) + pow(nextV[0] - currentV[0], 2));
+				if (dist < lowestDist)
+				{
+					lowestDist = dist;
+					n = currentNorm;
+				}
+			}
+			n = Util::normalise(n);
 			Vec2f Vn = (n * pairs[i]->A->m_Velocity) * n;
 			Vec2f Vt = pairs[i]->A->m_Velocity - Vn;
 			pairs[i]->A->m_Velocity = Vt - bounceFactor * Vn;
-			pairs[i]->A->m_Position += n * pairs[i]->distance;//pairs[i]->contactP[1] + pairs[i]->A->m_Vertices[2]->m_Position[1];
+			pairs[i]->A->m_Position += n * pairs[i]->distance;
 			continue;
 		}
 		else if (pairs[i]->A->m_isFixed)
 		{
 			float bounceFactor = 0.65f;
 
-			Vec2f n = Vec2f(0, 1);
+			Vec2f n = Vec2f(0, 0);
+			int size = pairs[i]->A->m_Vertices.size();
+			float lowestDist = 1.0f;
+			for (int j = 0; j < size; j++)
+			{
+				Vec2f currentV = pairs[i]->A->m_Vertices[j % size]->m_Position + pairs[i]->A->m_Position;
+				Vec2f nextV = pairs[i]->A->m_Vertices[(j + 1) % size]->m_Position + pairs[i]->A->m_Position;
+				Vec2f currentNorm = Vec2f((nextV[1] - currentV[1]), -(nextV[0] - currentV[0]));
+
+				float dist = abs(((nextV[1] - currentV[1])*pairs[i]->contactP[0]) - ((nextV[0] - currentV[0]) * pairs[i]->contactP[1]) + nextV[0] * currentV[1] - nextV[1] * currentV[0]);
+				dist = dist / sqrt(pow(nextV[1] - currentV[1], 2) + pow(nextV[0] - currentV[0], 2));
+				if (dist < lowestDist)
+				{
+					lowestDist = dist;
+					n = currentNorm;
+				}
+			}
+			n = Util::normalise(n);
 			Vec2f Vn = (n * pairs[i]->B->m_Velocity) * n;
 			Vec2f Vt = pairs[i]->B->m_Velocity - Vn;
 			pairs[i]->B->m_Velocity = Vt - bounceFactor * Vn;
-			pairs[i]->B->m_Position += n * pairs[i]->distance;//pairs[i]->contactP[1] + pairs[i]->B->m_Vertices[2]->m_Position[1];
-
+			pairs[i]->B->m_Position += n * pairs[i]->distance;
 			continue;
 		}
-		//Resolve Velocity
+
+		//Resolve Collision
 
 		Vec2f relativeVelo = pairs[i]->B->m_Velocity - pairs[i]->A->m_Velocity;
 
@@ -234,7 +264,7 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 		{
 			Vec2f currentV = pairs[i]->A->m_Vertices[j % size]->m_Position + pairs[i]->A->m_Position;
 			Vec2f nextV = pairs[i]->A->m_Vertices[(j + 1) % size]->m_Position + pairs[i]->A->m_Position;
-			Vec2f currentNorm = Vec2f(-(nextV[1] - currentV[1]), (nextV[0] - currentV[0]));
+			Vec2f currentNorm = Vec2f((nextV[1] - currentV[1]), -(nextV[0] - currentV[0]));
 
 			float dist = abs(((nextV[1] - currentV[1])*pairs[i]->contactP[0]) - ((nextV[0] - currentV[0]) * pairs[i]->contactP[1]) + nextV[0] * currentV[1] - nextV[1] * currentV[0]);
 			dist = dist / sqrt(pow(nextV[1] - currentV[1], 2) + pow(nextV[0] - currentV[0], 2));
@@ -258,28 +288,28 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 		float e = 1;
 
 		// Calculate impulse scalar
-		float j = -(1 + e) * velAlongNormal;//(relativeVelo * t);
+		float j = -(1 + e) * velAlongNormal;
+		j /= 1 / pairs[i]->A->m_Mass
+			+ 1 / pairs[i]->B->m_Mass;
+		// Apply impulse
+		Vec2f impulse = j * normal;
+		pairs[i]->A->m_Force -= 1 / pairs[i]->A->m_Mass * impulse;
+		pairs[i]->B->m_Force += 1 / pairs[i]->B->m_Mass * impulse;
+		pairs[i]->A->m_Position -= normal * pairs[i]->distance;
+		pairs[i]->A->m_Position += normal * pairs[i]->distance;
+
+		j = -(1 + e) * (relativeVelo * t);
 		j /= 1 / pairs[i]->A->m_Mass
 			+ 1 / pairs[i]->B->m_Mass
 			+ (pow(Util::crossProduct(pairs[i]->A->getRadiusVec(pairs[i]->contactP), t), 2) / pairs[i]->A->m_Inertia)
 			+ (pow(Util::crossProduct(pairs[i]->B->getRadiusVec(pairs[i]->contactP), t), 2) / pairs[i]->B->m_Inertia);
 
-		// Apply impulse
-		Vec2f impulse = j * normal;
-		pairs[i]->A->m_Velocity -= 1 / pairs[i]->A->m_Mass * impulse;
-		pairs[i]->B->m_Velocity += 1 / pairs[i]->B->m_Mass * impulse;
-		pairs[i]->A->m_Position -= normal * pairs[i]->distance;
-		pairs[i]->A->m_Position += normal * pairs[i]->distance;
-		pairs[i]->A->m_AngularVelocity += 1 / pairs[i]->A->m_Inertia * Util::crossProduct(pairs[i]->contactP, impulse);
-		pairs[i]->B->m_AngularVelocity += 1 / pairs[i]->B->m_Inertia * Util::crossProduct(pairs[i]->contactP, impulse);
 
-		//Resolve rotation
-		/*Vec2f r = uniquePairs[i]->A->getRadiusVec(uniquePairs[i]->contactP - uniquePairs[i]->A->m_Position);
-		Vec2f omega = Util::crossProduct(r, uniquePairs[i]->A->m_AngularVelocity);
-		uniquePairs[i]->A->m_Torque = Util::crossProduct(r, omega);
-		r = uniquePairs[i]->B->getRadiusVec(uniquePairs[i]->contactP - uniquePairs[i]->B->m_Position);
-		omega = Util::crossProduct(r, uniquePairs[i]->B->m_AngularVelocity);
-		uniquePairs[i]->B->m_Torque = Util::crossProduct(r, omega);*/
+		pairs[i]->A->m_Force += 1 / pairs[i]->A->m_Mass * impulse;
+		pairs[i]->B->m_Force += 1 / pairs[i]->B->m_Mass * impulse;
+		pairs[i]->A->m_Torque += 1 / pairs[i]->A->m_Inertia * Util::crossProduct(pairs[i]->A->getRadiusVec(pairs[i]->contactP), impulse);
+		pairs[i]->B->m_Torque += 1 / pairs[i]->B->m_Inertia * Util::crossProduct(pairs[i]->B->getRadiusVec(pairs[i]->contactP), impulse);
+
 	}
 }
 
@@ -341,7 +371,7 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 				//if(pVector[j]->m_isFixed)	// Decrease influence radius for solid objects
 				//	pVector[i]->m_Density += pVector[j]->m_Mass * Kernels::getWPoly6(pVector[i]->m_Position - pVector[j]->m_Position, radius * 0.1);
 				//else
-					pVector[i]->m_Density += pVector[j]->m_Mass * Kernels::getWPoly6(pVector[i]->m_Position - pVector[j]->m_Position, radius);
+				pVector[i]->m_Density += pVector[j]->m_Mass * Kernels::getWPoly6(pVector[i]->m_Position - pVector[j]->m_Position, radius);
 			}
 		}
 		// P_i = k(rho_i - restDensity_i)
@@ -386,18 +416,18 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 				scalar = (pVector[i]->m_Pressure + pVector[j]->m_Pressure) / (2.0f * pVector[j]->m_Density);
 				pressureForce += pVector[j]->m_Mass * scalar * Kernels::getWGradSpiky(posDiff, radius);
 
-				
-				
+
+
 
 				// calculate viscocity force
-	
+
 
 				vscalar = (pVector[j]->m_Velocity - pVector[i]->m_Velocity) / (pVector[j]->m_Density);
-			/*	if (pVector[j]->m_isFixed)
-					vscalar *= 0;*/
-					
+				/*	if (pVector[j]->m_isFixed)
+				vscalar *= 0;*/
+
 				viscocityForce += pVector[j]->m_Mass * vscalar * Kernels::getWViscosityLaplace(posDiff, radius);
-				
+
 
 
 			}
@@ -528,20 +558,11 @@ void solveEuler(std::vector<Particle*> pVector, FluidContainer* fluidContainer, 
 
 		for (int j = 0; j < rigidBodies[i]->m_Vertices.size(); j++)
 		{
-			cout << endl;
-			rigidBodies[i]->m_Rotation->printMatrix();
-			cout << endl;
 			matrix currentVertex = matrix(2, 1);
-			currentVertex.setValue(0, 0, /*rigidBodies[i]->m_Position[0]*/ rigidBodies[i]->m_Vertices[j]->m_Position[0]);
-			currentVertex.setValue(1, 0, /*rigidBodies[i]->m_Position[1]*/ rigidBodies[i]->m_Vertices[j]->m_Position[1]);
-			currentVertex.printMatrix();
-			cout << endl;
+			currentVertex.setValue(0, 0, rigidBodies[i]->m_Vertices[j]->m_Position[0]);
+			currentVertex.setValue(1, 0, rigidBodies[i]->m_Vertices[j]->m_Position[1]);
 			matrix result = *rigidBodies[i]->m_Rotation * currentVertex;
-			result.printMatrix();
-			cout << endl;
-			//rigidBodies[i]->m_Vertices[j]->m_Velocity += dt * (rigidBodies[i]->m_Force / rigidBodies[i]->m_Mass);
-			rigidBodies[i]->m_Vertices[j]->m_Position = Vec2f(result.getValue(0, 0), result.getValue(1, 0));// +rigidBodies[i]->m_Position;
-																											//rigidBodies[i]->m_Vertices[j]->m_Position += dt * rigidBodies[i]->m_Velocity;
+			rigidBodies[i]->m_Vertices[j]->m_Position = Vec2f(result.getValue(0, 0), result.getValue(1, 0));
 		}
 		rigidBodies[i]->updateGhostParticles();
 	}

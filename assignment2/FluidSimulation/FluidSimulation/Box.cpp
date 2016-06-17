@@ -7,6 +7,7 @@ Box::Box(const Vec2f constructPos, float density, float width, float height, boo
 	m_Width = width;
 	m_Height = height;
 	m_isFixed = isFixed;
+	m_Torque = 0;
 	Vec2f p = constructPos;
 
 	// Add vertices
@@ -28,7 +29,7 @@ Box::Box(const Vec2f constructPos, float density, float width, float height, boo
 
 void Box::calculateInertia()
 {
-	m_Inertia = m_Mass * (pow(m_Width, 2) + pow(m_Width, 2));
+	m_Inertia = m_Mass * (pow(m_Width, 2) + pow(m_Height, 2));
 }
 
 vector<float> Box::getExtremes()
