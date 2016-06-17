@@ -64,6 +64,11 @@ void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer,
 		pVector[i]->m_Force = Vec2f(0, 0);
 	}
 
+	for (int i = 0; i < rigidBodies.size(); i++)
+	{
+		rigidBodies[i]->m_Force = Vec2f(0, 0);
+	}
+
 	calculateFluidDynamics(pVector, fluidContainer, 1.0f);
 	calculateRigidDynamics(rigidBodies, forces);
 	// Apply forces
@@ -95,6 +100,7 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 	//Broad phase collision finding
 	vector<Pair*> pairs = vector<Pair*>();
 	vector<Pair*> uniquePairs = vector<Pair*>();
+
 	for (int i = 0; i != rigidBodies.size(); i++)
 	{
 		for (int j = 0; j != rigidBodies.size(); j++)
@@ -297,7 +303,7 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 	//float restDensity = 203.0f;
 
 	// Update the spatial hashing grid 
-	const clock_t begin_time = clock();
+	//const clock_t begin_time = clock();
 	fluidContainer->UpdateGrid(pVector);
 	//std::cout << float(clock() - begin_time) / CLOCKS_PER_SEC << std::endl;
 
@@ -312,6 +318,8 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 		pVector[i]->m_Density = 0;		// Rho_j
 		pVector[i]->m_Quantity = 1;		// A_j
 		pVector[i]->m_Pressure = 0;
+
+		radius = pVector[i]->m_Radius;
 
 		//vector<int> neighbours = fluidContainer->FindNeighbours(pVector[i]->m_GridId);
 
@@ -329,13 +337,17 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 				dist = pVector[j]->distTo(pVector[i]->m_Position);
 
 				//pVector[i]->m_Density += pVector[j]->m_Mass * pVector[j]->getW(dist);
-				pVector[i]->m_Density += pVector[j]->m_Mass * Kernels::getWPoly6(pVector[i]->m_Position - pVector[j]->m_Position, radius);
+
+				//if(pVector[j]->m_isFixed)	// Decrease influence radius for solid objects
+				//	pVector[i]->m_Density += pVector[j]->m_Mass * Kernels::getWPoly6(pVector[i]->m_Position - pVector[j]->m_Position, radius * 0.1);
+				//else
+					pVector[i]->m_Density += pVector[j]->m_Mass * Kernels::getWPoly6(pVector[i]->m_Position - pVector[j]->m_Position, radius);
 			}
 		}
-
 		// P_i = k(rho_i - restDensity_i)
 		//pVector[i]->m_Pressure = kd * (pow(pVector[i]->m_Density / restDensity, 7) -1.0f);
 		pVector[i]->m_Pressure = kd * (pVector[i]->m_Density - restDensity);
+
 	}
 
 	Vec2f pressureForce = 0;
@@ -353,6 +365,8 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 		viscocityForce = 0;
 
 		pVector[i]->m_Color = 0;
+
+		radius = pVector[i]->m_Radius;
 
 		//vector<int> neighbours = fluidContainer->FindNeighbours(pVector[i]->m_GridId);
 		int j = 0;
@@ -372,9 +386,19 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 				scalar = (pVector[i]->m_Pressure + pVector[j]->m_Pressure) / (2.0f * pVector[j]->m_Density);
 				pressureForce += pVector[j]->m_Mass * scalar * Kernels::getWGradSpiky(posDiff, radius);
 
+				
+				
+
 				// calculate viscocity force
+	
+
 				vscalar = (pVector[j]->m_Velocity - pVector[i]->m_Velocity) / (pVector[j]->m_Density);
+			/*	if (pVector[j]->m_isFixed)
+					vscalar *= 0;*/
+					
 				viscocityForce += pVector[j]->m_Mass * vscalar * Kernels::getWViscosityLaplace(posDiff, radius);
+				
+
 
 			}
 		}
@@ -389,6 +413,7 @@ void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* flui
 
 																						// Calculate surface tension
 																						//calculateColorField(pVector, fluidContainer, radius);
+
 	}
 }
 
@@ -518,6 +543,7 @@ void solveEuler(std::vector<Particle*> pVector, FluidContainer* fluidContainer, 
 			rigidBodies[i]->m_Vertices[j]->m_Position = Vec2f(result.getValue(0, 0), result.getValue(1, 0));// +rigidBodies[i]->m_Position;
 																											//rigidBodies[i]->m_Vertices[j]->m_Position += dt * rigidBodies[i]->m_Velocity;
 		}
+		rigidBodies[i]->updateGhostParticles();
 	}
 }
 

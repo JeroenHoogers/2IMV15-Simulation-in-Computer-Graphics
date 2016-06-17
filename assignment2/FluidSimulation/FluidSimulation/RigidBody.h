@@ -30,6 +30,8 @@ public:
 	float m_AngularVelocity; // 
 	float m_Torque;
 
+	vector<Particle*> m_GhostParticles;
+
 	bool m_isFixed;
 
 
@@ -46,6 +48,9 @@ public:
 	Vec2f getPosition() override;
 	void setPosition(Vec2f) override;
 	void addForce(Vec2f) override;
+
+	void generateGhostParticles();
+	void updateGhostParticles();
 
 	void draw();
 	void reset();

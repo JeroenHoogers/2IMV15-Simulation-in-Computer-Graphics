@@ -31,7 +31,7 @@ void Particle::reset()
 	m_Force = Vec2f(0.0, 0.0);
 }
 
-void Particle::draw()
+void Particle::draw(bool renderFluid)
 {
 	const double h = 0.02;
 	
@@ -42,12 +42,14 @@ void Particle::draw()
 	//glVertex2f(m_Position[0]+h/2.0, m_Position[1]+h/2.0);
 	//glVertex2f(m_Position[0]-h/2.0, m_Position[1]+h/2.0);
 	//glEnd();
+	if (m_isFixed)
+		return;
 
-	bool debugRender = true;
-	if (debugRender)
+
+	if (!renderFluid)
 	{
 		glBegin(GL_LINE_LOOP);
-		glColor4f(1.0, 1.0, 1.0, 0.1);
+		glColor4f(1.0, 1.0, 1.0, 0.05);
 		for (int i = 0; i < 360; i = i + 18)
 		{
 			float degInRad = i * M_PI / 180;
@@ -55,7 +57,7 @@ void Particle::draw()
 		}
 		glEnd();
 
-		glColor3f((m_Pressure * 0.5)+0.4f, 0.3f, 1.0f - (m_Pressure * 0.5));
+		glColor3f((m_Pressure * 0.8)+0.4f, 0.3f, 1.0f - (m_Pressure * 0.8));
 		
 		glPointSize(8.0f);
 
@@ -66,31 +68,23 @@ void Particle::draw()
 	else
 	{
 		glBegin(GL_TRIANGLE_FAN);
-		glColor4f(0.45, 0.45, 1.0, 0.4);
+		glColor4f(0.5, 0.5, 1.0, 0.5);
 		glVertex2f(m_Position[0], m_Position[1]);
 
 		//glColor4f((m_Pressure)+0.4f, 0.4f, 1.0f - (m_Pressure), 0.4);
 
-		float size = 0.04f;
-		glColor4f(0.3, 0.3 , 0.9, 0.15);
+		float size = 0.045f;
+		glColor4f(0.4, 0.4 , 0.9, 0.2);
 		//glColor4f(0.4, 0.3, 1.0, 0.0);
 		for (int i = 0; i < 360; i = i + 18)
 		{
 			float degInRad = i * M_PI / 180;
 			glVertex2f(m_Position[0] + cos(degInRad) * size, m_Position[1] + sin(degInRad) *size);
 		}
+
 		glVertex2f(m_Position[0] + cos(0) * size, m_Position[1] + sin(0) * size);
 		glEnd();
 
-
-
-
-	//	glColor4f((m_Pressure)+0.4f, 0.4f, 1.0f - (m_Pressure), 0.3);
-		//glPointSize(15.0f);
-
-		//glBegin(GL_POINTS);
-		//glVertex2f(m_Position[0], m_Position[1]);
-		//glEnd();
 	}
 }
 float Particle::getMass()

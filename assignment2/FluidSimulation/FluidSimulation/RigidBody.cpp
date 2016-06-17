@@ -107,6 +107,58 @@ Vec2f RigidBody::BroadPhase(RigidBody* other)
 	return Vec2f(0,0);
 }
 
+
+void RigidBody::generateGhostParticles()
+{
+	float density = 0.02 ;
+
+	// Generate ghost particles on the edges of our object.
+	for (int i = 0; i < m_Vertices.size(); i++)
+	{
+		Vec2f v1;
+
+		if (i == 0)
+			v1 = m_Vertices[m_Vertices.size() - 1]->getPosition();
+		else
+			v1 = m_Vertices[i - 1]->getPosition();
+
+		Vec2f v2 = m_Vertices[i]->getPosition();
+
+		//v1 = v1 * 0.8f + m_Position;
+		//v2 = v2 * 0.8f + m_Position;
+
+		Vec2f dir = v2 - v1;
+
+		float dist = sqrt(dir[0] * dir[0] + dir[1] * dir[1]);
+
+		// Normalise direction
+		dir /= dist;
+
+		for (int j = 1; j < dist / density; j++)
+		{
+			// Generate ghost particle
+			m_GhostParticles.push_back(
+					new Particle(
+						v1 * 0.8f + m_Position + dir * (j * density),
+						0.4f, 0.05, true));
+
+			m_GhostParticles[m_GhostParticles.size() - 1]->m_LocalPosition = v1 + dir * (j * density);
+		}
+	}
+}
+
+void RigidBody::updateGhostParticles()
+{
+	// Update ghost particle positions
+	for (int i = 0; i < m_GhostParticles.size(); i++)
+	{
+		// TODO: apply rotation
+		// HACK: 0.8 is used to position the particles slightly inside the rigidbody such that the fluid doesn't leave a gap
+		m_GhostParticles[i]->m_Position = m_GhostParticles[i]->m_LocalPosition * 0.8f + m_Position;
+	}
+}
+
+
 void RigidBody::updateRotation(float angle)
 {
 	/*m_Rotation->setValue(0, 0, sin(angle));

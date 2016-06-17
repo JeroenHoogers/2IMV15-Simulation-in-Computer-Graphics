@@ -54,6 +54,7 @@ static bool enableStandard = true;
 static bool enableBodies = false;
 static bool enableHair = false;
 static bool enableDrawParticles = true;
+static bool enableRenderFluid = false;
 
 /*
 ----------------------------------------------------------------------
@@ -85,21 +86,43 @@ static void init_system(void)
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 
-	const float radius = dist * 1.2f;
+	const float radius = dist * 1.25f;
+	
+	// Initialise fluid
 	for (int i = 0; i < 1 / dist; i++)
 	{
 		for (int j = 0; j < 1.25 / dist; j++)
 		{
-			pVector.push_back(new Particle(Vec2f(-0.95 + ((j % 2) * 0.02) + dist * i, 0.25 - dist * j), 0.4f, radius));
+			//if(j == 5)
+			//	pVector.push_back(new Particle(Vec2f(-0.95 + ((j % 2) * 0.02) + dist * i, 0.25 - dist * j), 0.4f, radius, true));
+			//else
+				pVector.push_back(new Particle(Vec2f(-0.95 + ((j % 2) * 0.02) + dist * i, 0.25 - dist * j), 0.4f, radius));
 			//	forces.push_back(new GravityForce(pVector[pVector.size() - 1]));
 			//	forces.push_back(new DragForce(pVector[pVector.size() - 1]));
 			forces.push_back(new WallForce(pVector[pVector.size() - 1]));
 		}
 	}
 
-	fluidContainer = new FluidContainer(dist, 2.0f, 2.0f);
 
-	std::cout << "particles: " << pVector.size();
+	fluidContainer = new FluidContainer(radius, 2.0f, 2.0f);
+
+	//rigidBodies.push_back(new Box(Vec2f(0.4, -0.3), 1, 0.45, 0.15));
+
+	rigidBodies.push_back(new Box(Vec2f(0.2, -0.8), 1, 0.2, 0.2));
+
+	// Calculate rigid body ghost particles for coupling
+	for (int i = 0; i < rigidBodies.size(); i++)
+	{
+		rigidBodies[i]->generateGhostParticles();
+
+		// Add ghost particles to fluid simulation for rigidbody to fluid interaction
+		for (int j = 0; j < rigidBodies[i]->m_GhostParticles.size(); j++)
+		{
+			pVector.push_back(rigidBodies[i]->m_GhostParticles[j]);
+		}
+	}
+
+	std::cout << "particles: " << pVector.size() << std::endl;
 
 	//pVector.push_back(new Particle(center + offset + offset, 1));
 	//pVector.push_back(new Particle(center + offset + offset + offset, 1));
@@ -190,7 +213,7 @@ static void draw_particles(void)
 	for (int ii = 0; ii< size; ii++)
 	{
 
-		pVector[ii]->draw();
+		pVector[ii]->draw(enableRenderFluid);
 	}
 
 	//glEnableClientState(GL_VERTEX_ARRAY);
@@ -264,8 +287,9 @@ static void get_from_UI()
 
 	//if ( i<1 || i>N || j<1 || j>N ) return;
 
-	if (mouse_down[0] && enableMouse) {
-		if (!mouseForce->selected)
+	if (mouse_down[0] && enableMouse) 
+	{
+		if (!mouseForce->leftMouseDown)
 		{
 			vector<Particle*> closeParticles = vector<Particle*>();
 			float maxDist = 0.2;
@@ -286,7 +310,35 @@ static void get_from_UI()
 		mouseForce->newMousePosition(Vec2f(i, j));
 	}
 	else if (enableMouse) {
-		mouseForce->clearParticle();
+		mouseForce->clearParticles();
+	}
+
+
+	if (mouse_down[2] && enableMouse)
+	{
+		if (!mouseForce->rightMouseDown)
+		{
+			vector<RigidBody*> closeRigidbodies = vector<RigidBody*>();
+			float maxDist = 0.1;
+			float dist = 0;
+
+			Vec2f mouseDistance = Vec2f(0, 0);
+			Vec2f mousePosition = Vec2f(i, j);
+			for (int ii = 0; ii < rigidBodies.size(); ii++)
+			{
+				mouseDistance = rigidBodies[ii]->m_Position - mousePosition;
+				dist = sqrt(mouseDistance[0] * mouseDistance[0] + mouseDistance[1] * mouseDistance[1]);
+
+				if (dist <= maxDist)
+					closeRigidbodies.push_back(rigidBodies[ii]);
+			}
+			mouseForce->selectRigidbodies(closeRigidbodies);
+		}
+		mouseForce->newMousePosition(Vec2f(i, j));
+	}
+	else if (enableMouse) 
+	{
+		mouseForce->clearRigidbodies();
 	}
 
 	if (mouse_down[2]) {
@@ -373,6 +425,7 @@ static void key_func(unsigned char key, int x, int y)
 		method = 2;
 		break;
 	case '4':
+		enableRenderFluid = !enableRenderFluid;
 		break;
 	case '5':
 		enableMouse = !enableMouse;
@@ -525,6 +578,7 @@ int main(int argc, char ** argv)
 	printf("\t 1 : Eulers method \n");
 	printf("\t 2 : Midpoint \n");
 	printf("\t 3 : RungKutta \n");
+	printf("\t 4 : Toggle fluid render mode \n");
 	printf("\t 5 : Mouse interaction \n");
 	printf("\t 6 : Standard display \n");
 	printf("\t 7 : Rigid Body display \n");

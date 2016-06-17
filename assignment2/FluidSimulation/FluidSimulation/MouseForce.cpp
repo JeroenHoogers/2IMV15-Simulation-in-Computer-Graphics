@@ -5,22 +5,35 @@
 MouseForce::MouseForce(vector<Particle*> particles, Vec2f mousePos, double dist, double ks, double kd) :
 	m_particles(particles), m_dist(dist), m_mousePos(mousePos), m_ks(ks), m_kd(kd)
 {
-	selected = false;
+	leftMouseDown = false;
+	rightMouseDown = false;
 }
 
 
 void MouseForce::draw()
 {
-	for (int i = 0; i < m_particles.size(); i++)
+	if (leftMouseDown)
 	{
-		//Vec2f direction = m_particles[i]->m_Position;
-		//direction = m_mousePos;
-		//direction = (direction / norm(direction)) * 0.2f;
-		if (selected)
+		for (int i = 0; i < m_particles.size(); i++)
 		{
+			if (m_particles[i]->m_isFixed)
+				continue;
+
 			glBegin(GL_LINES);
 			glColor3f(0.2, 0.4, 0.4);
 			glVertex2f(m_particles[i]->m_Position[0], m_particles[i]->m_Position[1]);
+			glColor3f(0.2, 0.4, 0.4);
+			glVertex2f(m_mousePos[0], m_mousePos[1]);
+			glEnd();
+		}
+	}
+	else if (rightMouseDown)
+	{
+		for (int i = 0; i < m_rigidbodies.size(); i++)
+		{
+			glBegin(GL_LINES);
+			glColor3f(0.2, 0.4, 0.4);
+			glVertex2f(m_rigidbodies[i]->m_Position[0], m_rigidbodies[i]->m_Position[1]);
 			glColor3f(0.2, 0.4, 0.4);
 			glVertex2f(m_mousePos[0], m_mousePos[1]);
 			glEnd();
@@ -30,7 +43,7 @@ void MouseForce::draw()
 
 void MouseForce::apply()
 {
-	if (selected)
+	if (leftMouseDown)
 	{
 		for (int i = 0; i < m_particles.size(); i++)
 		{
@@ -51,9 +64,29 @@ void MouseForce::apply()
 		}
 
 																									// calculate result force
-																									//Vec2f result = (stiffness + m_kd * dotdiv);
+																							//Vec2f result = (stiffness + m_kd * dotdiv);
 		//// apply force to both particles
 		//m_p->m_Force -= result;
+	}
+	else if (rightMouseDown)
+	{
+		for (int i = 0; i < m_rigidbodies.size(); i++)
+		{
+			// calculate positional and velocity differences
+			Vec2f positionDiff = m_rigidbodies[i]->m_Position - m_mousePos;			//l
+			Vec2f velocityDiff = m_rigidbodies[i]->m_Velocity;						//i
+																					// calculate distance
+			float distance = sqrt(positionDiff[0] * positionDiff[0] + positionDiff[1] * positionDiff[1]);
+
+			// calculate dotproduct
+			float dotProduct = positionDiff * velocityDiff;
+
+			float scalar = (m_ks * (distance - m_dist) + m_kd * (dotProduct / distance));
+
+			Vec2f result = scalar * (positionDiff / distance);
+
+			m_rigidbodies[i]->m_Force -= result;
+		}
 	}
 }
 
@@ -65,9 +98,21 @@ void MouseForce::newMousePosition(Vec2f mousePos)
 void MouseForce::selectParticles(vector<Particle*> particles)
 {
 	m_particles = particles;
-	selected = true;
+	leftMouseDown = true;
 }
-void MouseForce::clearParticle()
+
+void MouseForce::clearParticles()
 {
-	selected = false;
+	leftMouseDown = false;
+}
+
+void MouseForce::selectRigidbodies(vector<RigidBody*> rigidbodies)
+{
+	m_rigidbodies = rigidbodies;
+	rightMouseDown = true;
+}
+
+void MouseForce::clearRigidbodies()
+{
+	rightMouseDown = false;
 }

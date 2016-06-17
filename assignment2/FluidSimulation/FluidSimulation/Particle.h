@@ -20,7 +20,7 @@ public:
 	void addForce(Vec2f) override;
 
 	void reset();
-	void draw();
+	void draw(bool renderFluid = false);
 
 	float distTo(Vec2f p);
 
@@ -29,6 +29,8 @@ public:
 	Vec2f m_ConstructPos;
 	Vec2f m_Position;
 	Vec2f m_Velocity;
+
+	Vec2f m_LocalPosition;
 
 	float m_Density;
 	float m_Quantity;

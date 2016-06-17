@@ -1,5 +1,6 @@
 #pragma once
 #include "IForce.h"
+#include "RigidBody.h"
 #include <vector>
 
 class MouseForce : public IForce
@@ -11,12 +12,17 @@ public:
 	void apply() override;
 	void newMousePosition(Vec2f mousePos);
 	void selectParticles(vector<Particle*> particles);
-	void clearParticle();
+	void clearParticles();
 
-	bool selected;
+	void selectRigidbodies(vector<RigidBody*> rigidbodies);
+	void clearRigidbodies();
+
+	bool leftMouseDown;
+	bool rightMouseDown;
 
 private:
 	vector<Particle*> m_particles;		// particles
+	vector<RigidBody*> m_rigidbodies;		// rigid bodies
 	Vec2f m_mousePos;		// mouse position
 	double const m_dist;     // rest length
 	double const m_ks, m_kd; // spring strength constants
