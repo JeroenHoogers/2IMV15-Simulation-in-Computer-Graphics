@@ -30,7 +30,7 @@ FluidContainer::FluidContainer(float radius, float sceneWidth, float sceneHeight
 		//m_CenterPoints[i] = new Vec2f[m_GridCols];
 		_gridCounters[i] = 0;
 		_gridCells[i] = vector<int>();
-		m_Neighbours[i] = vector<int>();
+		m_Neighbours[i] = vector<int>(90, -1);
 
 
 		//for (int j = 0; j < m_GridCols; j++)
@@ -114,7 +114,7 @@ void FluidContainer::UpdateGrid(vector<Particle*> particles)
 	{
 		if (_gridCounters[i] > 0)
 		{
-			m_Neighbours[i] = FindNeighbours(i);
+			FindNeighbours(i);
 		}
 	}
 	//std::cout << float( begin_time2 - begin_time) / CLOCKS_PER_SEC  << " _ " << float(clock() - begin_time2) / CLOCKS_PER_SEC << std::endl;
@@ -132,12 +132,9 @@ int FluidContainer::CalcHash(Vec2f position)
 	);
 }
 
-vector<int> FluidContainer::FindNeighbours(int id)
+void FluidContainer::FindNeighbours(int id)
 {
-	//m_Neighbours[id].clear();
-
-	vector<int> ids = vector<int>();
-
+	m_Neighbours[id].clear();
 	//int id = CalcHash(position);
 	//float width = _sceneWidth / _cellSize;
 
@@ -145,34 +142,35 @@ vector<int> FluidContainer::FindNeighbours(int id)
 	//int y = 0;
 
 	// move to left cell
-	id -= (m_GridCols + 1); 
+	int nid = id - (m_GridCols + 1);
 	for (int i = 0; i < 9; i++)
 	{
 		if (i != 0)
 		{
 			if (i % 3 == 0)
-				id += (m_GridCols - 2); // move y value and go back 2 places
+				nid += (m_GridCols - 2); // move y value and go back 2 places
 			else
-				id ++;
+				nid++;
 		}
 
 		// Check if this cell is within the grid
-		if (!(id < 0 || id >= m_GridRows * m_GridCols))
+		if (!(nid < 0 || nid >= m_GridRows * m_GridCols))
 		{
 			//// Check if this cell contains particles
-			if (_gridCounters[id] > 0)
+			if (_gridCounters[nid] > 0)
 			{
 				// Add particle ids
-				for (int j = 0; j < _gridCells[id].size(); j++)
+				for (int j = 0; j < _gridCells[nid].size(); j++)
 				{
-					//m_Neighbours[id].push_back(_gridCells[id].at(j));
-					ids.push_back(_gridCells[id].at(j));
+					m_Neighbours[id].push_back(_gridCells[nid].at(j));
+					//ids.push_back(_gridCells[id].at(j));
 				}
 			}
 			//ids.insert(ids.end(), _gridCells[x][y].begin(), _gridCells[x][y].end());
 		}
 	}
-	return ids;
+	//return m_Neighbours[id];
+	// return ids;
 }
 
 void FluidContainer::setColor(Vec2f position, float color)

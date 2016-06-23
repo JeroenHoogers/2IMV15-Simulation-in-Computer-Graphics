@@ -22,7 +22,7 @@ public:
 	~FluidContainer();
 
 	void UpdateGrid(vector<Particle*> particles);
-	vector<int> FindNeighbours(int id);
+	void FindNeighbours(int id);
 
 	int CalcHash(Vec2f position);
 

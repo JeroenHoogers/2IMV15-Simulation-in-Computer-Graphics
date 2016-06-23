@@ -82,7 +82,7 @@ static void clear_data(void)
 
 static void init_system(void)
 {
-	const float dist = 0.065;
+	const float dist = 0.05;
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 

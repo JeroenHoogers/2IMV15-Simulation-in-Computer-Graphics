@@ -68,13 +68,18 @@ void Particle::draw(bool renderFluid)
 	else
 	{
 		glBegin(GL_TRIANGLE_FAN);
-		glColor4f(0.5, 0.5, 1.0, 0.5);
+
+		float v = sqrt(m_Velocity * m_Velocity) * 0.3;
+		float p = (0.8 - m_Pressure) * 0.2;
+		glColor4f(0.2 + (v + p), 0.2 + (v + p), 1.0, 0.8);
+		//glColor4f(0.5, 0.5, 1.0, 0.5);
 		glVertex2f(m_Position[0], m_Position[1]);
 
 		//glColor4f((m_Pressure)+0.4f, 0.4f, 1.0f - (m_Pressure), 0.4);
 
-		float size = 0.045f;
-		glColor4f(0.4, 0.4 , 0.9, 0.2);
+
+		float size = 0.035f;
+
 		//glColor4f(0.4, 0.3, 1.0, 0.0);
 		for (int i = 0; i < 360; i = i + 18)
 		{
