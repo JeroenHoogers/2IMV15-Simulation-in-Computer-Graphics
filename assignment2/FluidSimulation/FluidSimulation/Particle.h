@@ -9,7 +9,7 @@ class Particle : public IPhysicsObject
 {
 public:
 
-	Particle(const Vec2f & ConstructPos, float mass = 1.0f, float radius = 0.05f, bool isFixed = false);
+	Particle(const Vec2f & ConstructPos, float mass = 1.0f, float radius = 0.05f, bool isFixed = false, bool isBoundary = false);
 	virtual ~Particle(void);
 
 	float getMass() override;
@@ -45,6 +45,7 @@ public:
 	Vec2f m_Force;
 
 	bool m_isFixed;
+	bool m_isBoundary;
 
 	int m_GridId;
 };

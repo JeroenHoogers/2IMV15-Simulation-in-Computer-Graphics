@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <unordered_map>
 #include "Particle.h"
 
 class FluidContainer
@@ -13,6 +14,9 @@ private:
 	int* _gridCounters;
 
 	vector<int>* _gridCells;
+
+	unordered_multimap<int, int> _gridMap;
+	
 
 public:
 

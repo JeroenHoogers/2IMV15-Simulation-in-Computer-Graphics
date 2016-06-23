@@ -2,8 +2,8 @@
 //#include <GL/glut.h>
 #include "GLUtil.h"
 
-Particle::Particle(const Vec2f & ConstructPos, float mass, float radius, bool isFixed) :
-	m_ConstructPos(ConstructPos), m_Position(Vec2f(0.0, 0.0)), m_Velocity(Vec2f(0.0, 0.0)), m_index(-1), m_Mass(mass), m_Radius(radius), m_isFixed(isFixed), m_GridId(-1)
+Particle::Particle(const Vec2f & ConstructPos, float mass, float radius, bool isFixed, bool isBoundary) :
+	m_ConstructPos(ConstructPos), m_Position(Vec2f(0.0, 0.0)), m_Velocity(Vec2f(0.0, 0.0)), m_index(-1), m_Mass(mass), m_Radius(radius), m_isFixed(isFixed), m_GridId(-1), m_isBoundary(isBoundary)
 {
 }
 
@@ -42,7 +42,9 @@ void Particle::draw(bool renderFluid)
 	//glVertex2f(m_Position[0]+h/2.0, m_Position[1]+h/2.0);
 	//glVertex2f(m_Position[0]-h/2.0, m_Position[1]+h/2.0);
 	//glEnd();
-	if (m_isFixed)
+
+	// Don't draw boundary particles
+	if (m_isBoundary)
 		return;
 
 
