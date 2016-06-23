@@ -166,8 +166,8 @@ static void rigid_bodies(void)
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 
-	rigidBodies.push_back(new Box(center, 50, 0.5, 0.5));
-	rigidBodies.push_back(new Box(Vec2f(0.35, -0.4), 50, 0.25, 0.25));
+	rigidBodies.push_back(new Box(center, 3, 0.5, 0.5));
+	rigidBodies.push_back(new Box(Vec2f(0.35, -0.4), 3, 0.25, 0.25));
 	/*rigidBodies.push_back(new Box(Vec2f(0.35, -0.54), 1, 0.25, 0.25));
 	rigidBodies.push_back(new Box(Vec2f(-0.38, -0.34), 1, 0.25, 0.25));
 	rigidBodies.push_back(new Box(Vec2f(0.33, 0.44), 1, 0.25, 0.25));
@@ -185,7 +185,7 @@ static void rigid_bodies(void)
 	forces.push_back(new DragForce(rigidBodies[0]));
 	forces.push_back(new DragForce(rigidBodies[1]));
 	forces.push_back(new GravityForce(rigidBodies[0]));
-	forces.push_back(new GravityForce(rigidBodies[1]));
+	//forces.push_back(new GravityForce(rigidBodies[1]));
 	/*forces.push_back(new GravityForce(rigidBodies[2]));
 	forces.push_back(new GravityForce(rigidBodies[3]));
 	forces.push_back(new GravityForce(rigidBodies[4]));
@@ -196,8 +196,8 @@ static void rigid_bodies(void)
 	std::cout << "particles: " << pVector.size();
 	if (enableMouse)
 	{
-		//mouseForce = new MouseForce(pVector[0], Vec2f(0, 0), dist, 1.0, 1.0);
-		//forces.push_back(mouseForce);
+		mouseForce = new MouseForce(vector<Particle*>(), Vec2f(0, 0), dist, 1.0, 1.0);
+		forces.push_back(mouseForce);
 	}
 
 }

@@ -24,8 +24,13 @@ public:
 	Vec2f m_Velocity;
 	float m_Acceleration; //??
 	matrix* m_Rotation;
+	vector<Vec2f> m_ImpactPoints;
+	vector<Vec2f> m_Normals;
+	vector<Vec2f> m_NormalPositions;
+	bool m_WillIntersect;
+	bool m_Intersect;
+	Vec2f m_MinTranslation;
 
-	
 	float m_Orientation;	// angle in radians
 	float m_AngularVelocity; // 
 	float m_Torque;
@@ -54,9 +59,13 @@ public:
 
 	void draw();
 	void reset();
+	void calculateNormals();
 	Vec2f BroadPhase(RigidBody* other);
 	virtual Vec2f NarrowPhase(RigidBody* other) = 0;
 	virtual vector<float> getExtremes();
+	float DistInterval(float minA, float maxA, float minB, float maxB);
+	vector<float> Project(Vec2f axis, float min, float max);
+	Vec2f CollisionCheck(RigidBody* polygonB, Vec2f velocity);
 
 	void updateRotation(float angle);
 

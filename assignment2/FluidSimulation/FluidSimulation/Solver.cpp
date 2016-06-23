@@ -30,7 +30,7 @@ struct Pair
 {
 	RigidBody *A;
 	RigidBody *B;
-	Vec2f contactP;
+	//Vec2f contactP;
 	float distance;
 };
 
@@ -68,6 +68,7 @@ void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer,
 	{
 		rigidBodies[i]->m_Force = Vec2f(0, 0);
 		rigidBodies[i]->m_Torque = 0;
+		rigidBodies[i]->m_ImpactPoints.clear();
 	}
 
 	calculateFluidDynamics(pVector, fluidContainer, 1.0f);
@@ -92,7 +93,6 @@ bool SortPairs(Pair* lhs, Pair* rhs)
 	return false;
 }
 
-
 //--------------------------------------------------------------
 // Calculate rigid body values
 //--------------------------------------------------------------
@@ -113,21 +113,21 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 			if (A == B || (A->m_isFixed && B->m_isFixed))
 				continue;
 
-			Vec2f contact = A->BroadPhase(B);
-			if (contact[0] != 0 && contact[1] != 0)
-			{
-				Pair* p = new Pair();
-				p->A = A;
-				p->B = B;
-				p->contactP = contact;
-				pairs.push_back(p);
-			}
+			//Vec2f contact = A->BroadPhase(B);
+			//if (contact[0] != 0 && contact[1] != 0)
+			//{
+			Pair* p = new Pair();
+			p->A = A;
+			p->B = B;
+			//p->contactP = contact;
+			pairs.push_back(p);
+			//}
 		}
 	}
 	sort(pairs.begin(), pairs.end(), SortPairs);
 
 	//Get unique pairs
-	{
+	/*{
 		int i = 0;
 		while (i < pairs.size())
 		{
@@ -144,120 +144,21 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 				++i;
 			}
 		}
-	}
-	pairs = vector<Pair*>();
+	}*/
+	//uniquePairs = pairs;
+	//pairs = vector<Pair*>();
 	//Narrow phase collisions
-	for (int i = 0; i < uniquePairs.size(); i++)
-	{
-		RigidBody *A = uniquePairs[i]->A;
-		RigidBody *B = uniquePairs[i]->B;
-
-		// Continue on self check
-		if (A == B)
-			continue;
-
-		float lowestDist = 2.00f;
-		Vec2f collisionPoint = Vec2f(0, 0);
-		for (int i = 0; i < A->m_Vertices.size(); i++)
-		{
-			for (int j = 0; j < B->m_Vertices.size(); j++)
-			{
-				Vec2f currentV = A->m_Vertices[i %  A->m_Vertices.size()]->m_Position + A->m_Position;
-				Vec2f nextV = A->m_Vertices[(i + 1) % A->m_Vertices.size()]->m_Position + A->m_Position;
-				Vec2f currentNorm = Vec2f((nextV[1] - currentV[1]), -(nextV[0] - currentV[0]));
-				currentNorm = Util::normalise(currentNorm);
-				float dist = abs(((nextV[1] - currentV[1])* (B->m_Vertices[j]->m_Position[0] + B->m_Position[0])) - ((nextV[0] - currentV[0])*(B->m_Vertices[j]->m_Position[1] + B->m_Position[1])) + nextV[0] * currentV[1] - nextV[1] * currentV[0]);
-				dist = dist / sqrt(pow(nextV[1] - currentV[1], 2) + pow(nextV[0] - currentV[0], 2));
-				if (dist < lowestDist && ((nextV[0] - currentV[0])*((B->m_Vertices[j]->m_Position[1] + B->m_Position[1]) - currentV[1]) - (nextV[1] - currentV[1])*((B->m_Vertices[j]->m_Position[0] + B->m_Position[0]) - currentV[0])) > 0)
-				{
-					lowestDist = dist;
-					Vec2f alterdist = (currentNorm * dist);
-					collisionPoint = B->m_Vertices[j]->m_Position + B->m_Position + alterdist;
-				}
-			}
-		}
-		if (collisionPoint[0] != 0 && collisionPoint[1] != 0)
-		{
-			Pair* p = new Pair();
-			p->A = A;
-			p->B = B;
-			p->contactP = collisionPoint;
-			p->distance = lowestDist;
-			pairs.push_back(p);
-		}
-	}
-	sort(pairs.begin(), pairs.end(), SortPairs);
-
-	//for all Collisions
 	for (int i = 0; i < pairs.size(); i++)
 	{
-
-		//Collision with wall object
-		if (pairs[i]->B->m_isFixed)
-		{
-			if (pairs[i]->A->m_isFixed)
-				continue;
-
-			float bounceFactor = 0.65f;
-
-			Vec2f n = Vec2f(0, 0);
-			int size = pairs[i]->B->m_Vertices.size();
-			float lowestDist = 1.0f;
-			for (int j = 0; j < size; j++)
-			{
-				Vec2f currentV = pairs[i]->B->m_Vertices[j % size]->m_Position + pairs[i]->B->m_Position;
-				Vec2f nextV = pairs[i]->B->m_Vertices[(j + 1) % size]->m_Position + pairs[i]->B->m_Position;
-				Vec2f currentNorm = Vec2f((nextV[1] - currentV[1]), -(nextV[0] - currentV[0]));
-
-				float dist = abs(((nextV[1] - currentV[1])*pairs[i]->contactP[0]) - ((nextV[0] - currentV[0]) * pairs[i]->contactP[1]) + nextV[0] * currentV[1] - nextV[1] * currentV[0]);
-				dist = dist / sqrt(pow(nextV[1] - currentV[1], 2) + pow(nextV[0] - currentV[0], 2));
-				if (dist < lowestDist)
-				{
-					lowestDist = dist;
-					n = currentNorm;
-				}
-			}
-			n = Util::normalise(n);
-			Vec2f Vn = (n * pairs[i]->A->m_Velocity) * n;
-			Vec2f Vt = pairs[i]->A->m_Velocity - Vn;
-			pairs[i]->A->m_Velocity = Vt - bounceFactor * Vn;
-			pairs[i]->A->m_Position += n * pairs[i]->distance;
-			continue;
-		}
-		else if (pairs[i]->A->m_isFixed)
-		{
-			float bounceFactor = 0.65f;
-
-			Vec2f n = Vec2f(0, 0);
-			int size = pairs[i]->A->m_Vertices.size();
-			float lowestDist = 1.0f;
-			for (int j = 0; j < size; j++)
-			{
-				Vec2f currentV = pairs[i]->A->m_Vertices[j % size]->m_Position + pairs[i]->A->m_Position;
-				Vec2f nextV = pairs[i]->A->m_Vertices[(j + 1) % size]->m_Position + pairs[i]->A->m_Position;
-				Vec2f currentNorm = Vec2f((nextV[1] - currentV[1]), -(nextV[0] - currentV[0]));
-
-				float dist = abs(((nextV[1] - currentV[1])*pairs[i]->contactP[0]) - ((nextV[0] - currentV[0]) * pairs[i]->contactP[1]) + nextV[0] * currentV[1] - nextV[1] * currentV[0]);
-				dist = dist / sqrt(pow(nextV[1] - currentV[1], 2) + pow(nextV[0] - currentV[0], 2));
-				if (dist < lowestDist)
-				{
-					lowestDist = dist;
-					n = currentNorm;
-				}
-			}
-			n = Util::normalise(n);
-			Vec2f Vn = (n * pairs[i]->B->m_Velocity) * n;
-			Vec2f Vt = pairs[i]->B->m_Velocity - Vn;
-			pairs[i]->B->m_Velocity = Vt - bounceFactor * Vn;
-			pairs[i]->B->m_Position += n * pairs[i]->distance;
-			continue;
-		}
-
-		//Resolve Collision
+		Vec2f newforce = pairs[i]->B->CollisionCheck(pairs[i]->A, pairs[i]->B->m_Velocity);
+		//uniquePairs[i]->A->m_Force -= newforce * 0.5f; 
+		pairs[i]->B->m_Force += newforce;
+		pairs[i]->A->m_Force -= newforce;
+		pairs[i]->B->m_Velocity = 0;
 
 		Vec2f relativeVelo = pairs[i]->B->m_Velocity - pairs[i]->A->m_Velocity;
 
-		Vec2f normal = Vec2f(0, 0);
+		/*Vec2f normal = Vec2f(0, 0);
 		int size = pairs[i]->A->m_Vertices.size();
 		float lowestDist = 1.0f;
 		for (int j = 0; j < size; j++)
@@ -273,8 +174,8 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 				lowestDist = dist;
 				normal = currentNorm;
 			}
-		}
-		normal = Util::normalise(normal);
+		}*/
+		Vec2f normal = Util::normalise(newforce);
 		Vec2f t = relativeVelo - ((relativeVelo * normal) * normal);
 		t = Util::normalise(t);
 		// Calculate relative velocity in terms of the normal direction
@@ -311,6 +212,202 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 		pairs[i]->B->m_Torque += 1 / pairs[i]->B->m_Inertia * Util::crossProduct(pairs[i]->B->getRadiusVec(pairs[i]->contactP), impulse);
 
 	}
+	//for (int i = 0; i < uniquePairs.size(); i++)
+	//{
+	//	RigidBody *A = uniquePairs[i]->A;
+	//	RigidBody *B = uniquePairs[i]->B;
+
+	//	// Continue on self check
+	//	if (A == B)
+	//		continue;
+
+	//	float lowestDist = 2.00f;
+	//	Vec2f collisionPoint = Vec2f(0, 0);
+	//	/*for (int i = 0; i < A->m_Vertices.size(); i++)
+	//	{
+	//		for (int j = 0; j < B->m_Vertices.size(); j++)
+	//		{
+	//			Vec2f currentV = A->m_Vertices[i %  A->m_Vertices.size()]->m_Position + A->m_Position;
+	//			Vec2f nextV = A->m_Vertices[(i + 1) % A->m_Vertices.size()]->m_Position + A->m_Position;
+	//			Vec2f currentNorm = Vec2f((nextV[1] - currentV[1]), -(nextV[0] - currentV[0]));
+	//			currentNorm = Util::normalise(currentNorm);
+	//			float dist = abs(((nextV[1] - currentV[1])* (B->m_Vertices[j]->m_Position[0] + B->m_Position[0])) - ((nextV[0] - currentV[0])*(B->m_Vertices[j]->m_Position[1] + B->m_Position[1])) + nextV[0] * currentV[1] - nextV[1] * currentV[0]);
+	//			dist = dist / sqrt(pow(nextV[1] - currentV[1], 2) + pow(nextV[0] - currentV[0], 2));
+	//			if (dist < lowestDist && ((nextV[0] - currentV[0])*((B->m_Vertices[j]->m_Position[1] + B->m_Position[1]) - currentV[1]) - (nextV[1] - currentV[1])*((B->m_Vertices[j]->m_Position[0] + B->m_Position[0]) - currentV[0])) > 0)
+	//			{
+	//				lowestDist = dist;
+	//				Vec2f alterdist = (currentNorm * dist);
+	//				collisionPoint = B->m_Vertices[j]->m_Position + B->m_Position + alterdist;
+	//				B->m_ImpactPoints.push_back(B->m_Vertices[j]->m_Position);
+	//			}
+	//		}
+	//	}*/
+	//	for (int i = 0; i < B->m_Vertices.size(); i++)
+	//	{
+	//		bool isInside = true;
+	//		for (int j = 0; j < A->m_Vertices.size(); j++)
+	//		{
+	//			Vec2f currentV = A->m_Vertices[j]->m_Position + A->m_Position;
+	//			Vec2f nextV = A->m_Vertices[(j + 1) % A->m_Vertices.size()]->m_Position + A->m_Position;
+	//			//Vec2f currentNorm = Vec2f((nextV[1] - currentV[1]), -(nextV[0] - currentV[0]));
+	//			//currentNorm = Util::normalise(currentNorm);
+	//			//float dist = abs(((A->m_NormalPositions[i][1]) * (B->m_Vertices[j]->m_Position[0] + B->m_Position[0]))
+	//			//	- ((nextV[0] - currentV[0])*(B->m_Vertices[j]->m_Position[1] + B->m_Position[1]))
+	//			//	+ nextV[0] * currentV[1] - nextV[1] * currentV[0]);
+	//			//dist = dist / sqrt(pow(nextV[1] - currentV[1], 2) + pow(nextV[0] - currentV[0], 2));
+	//			float distance = Util::distancePointToLine(currentV, nextV, (B->m_Vertices[i]->m_Position + B->m_Position));
+	//			if (distance >= 0)//(dist < lowestDist && ((nextV[0] - currentV[0])*((B->m_Vertices[j]->m_Position[1] + B->m_Position[1]) - currentV[1]) - (nextV[1] - currentV[1])*((B->m_Vertices[j]->m_Position[0] + B->m_Position[0]) - currentV[0])) > 0)
+	//			{
+	//				isInside = false;
+	//				break;
+	//				//lowestDist = dist;
+	//				//Vec2f alterdist = (A->m_Normals[i] * distance);
+	//			}
+	//		}
+	//		if (isInside)
+	//		{
+	//			collisionPoint = B->m_Vertices[i]->m_Position + B->m_Position;// +alterdist;
+	//			B->m_ImpactPoints.push_back(B->m_Vertices[i]->m_Position);
+	//		}
+
+	//	}
+
+	//	if (collisionPoint[0] != 0 && collisionPoint[1] != 0)
+	//	{
+	//		Pair* p = new Pair();
+	//		p->A = A;
+	//		p->B = B;
+	//		p->contactP = collisionPoint;
+	//		p->distance = lowestDist;
+	//		pairs.push_back(p);
+	//	}
+	//}
+	//sort(pairs.begin(), pairs.end(), SortPairs);
+
+	//return;
+	////for all Collisions
+	//for (int i = 0; i < pairs.size(); i++)
+	//{
+
+	//	//Collision with wall object
+	//	if (pairs[i]->B->m_isFixed)
+	//	{
+	//		if (pairs[i]->A->m_isFixed)
+	//			continue;
+
+	//		float bounceFactor = 0.65f;
+
+	//		Vec2f n = Vec2f(0, 0);
+	//		int size = pairs[i]->B->m_Vertices.size();
+	//		float lowestDist = 1.0f;
+	//		for (int j = 0; j < size; j++)
+	//		{
+	//			Vec2f currentV = pairs[i]->B->m_Vertices[j % size]->m_Position + pairs[i]->B->m_Position;
+	//			Vec2f nextV = pairs[i]->B->m_Vertices[(j + 1) % size]->m_Position + pairs[i]->B->m_Position;
+	//			Vec2f currentNorm = Vec2f((nextV[1] - currentV[1]), -(nextV[0] - currentV[0]));
+
+	//			float dist = abs(((nextV[1] - currentV[1])*pairs[i]->contactP[0]) - ((nextV[0] - currentV[0]) * pairs[i]->contactP[1]) + nextV[0] * currentV[1] - nextV[1] * currentV[0]);
+	//			dist = dist / sqrt(pow(nextV[1] - currentV[1], 2) + pow(nextV[0] - currentV[0], 2));
+	//			if (dist < lowestDist)
+	//			{
+	//				lowestDist = dist;
+	//				n = currentNorm;
+	//			}
+	//		}
+	//		n = Util::normalise(n);
+	//		Vec2f Vn = (n * pairs[i]->A->m_Velocity) * n;
+	//		Vec2f Vt = pairs[i]->A->m_Velocity - Vn;
+	//		pairs[i]->A->m_Velocity = Vt - bounceFactor * Vn;
+	//		pairs[i]->A->m_Position += n * pairs[i]->distance;
+	//		continue;
+	//	}
+	//	else if (pairs[i]->A->m_isFixed)
+	//	{
+	//		float bounceFactor = 0.65f;
+
+	//		Vec2f n = Vec2f(0, 0);
+	//		int size = pairs[i]->A->m_Vertices.size();
+	//		float lowestDist = 1.0f;
+	//		for (int j = 0; j < size; j++)
+	//		{
+	//			Vec2f currentV = pairs[i]->A->m_Vertices[j % size]->m_Position + pairs[i]->A->m_Position;
+	//			Vec2f nextV = pairs[i]->A->m_Vertices[(j + 1) % size]->m_Position + pairs[i]->A->m_Position;
+	//			Vec2f currentNorm = Vec2f((nextV[1] - currentV[1]), -(nextV[0] - currentV[0]));
+
+	//			float dist = abs(((nextV[1] - currentV[1])*pairs[i]->contactP[0]) - ((nextV[0] - currentV[0]) * pairs[i]->contactP[1]) + nextV[0] * currentV[1] - nextV[1] * currentV[0]);
+	//			dist = dist / sqrt(pow(nextV[1] - currentV[1], 2) + pow(nextV[0] - currentV[0], 2));
+	//			if (dist < lowestDist)
+	//			{
+	//				lowestDist = dist;
+	//				n = currentNorm;
+	//			}
+	//		}
+	//		n = Util::normalise(n);
+	//		Vec2f Vn = (n * pairs[i]->B->m_Velocity) * n;
+	//		Vec2f Vt = pairs[i]->B->m_Velocity - Vn;
+	//		pairs[i]->B->m_Velocity = Vt - bounceFactor * Vn;
+	//		pairs[i]->B->m_Position += n * pairs[i]->distance;
+	//		continue;
+	//	}
+
+	//	//Resolve Collision
+
+	//	Vec2f relativeVelo = pairs[i]->B->m_Velocity - pairs[i]->A->m_Velocity;
+
+	//	Vec2f normal = Vec2f(0, 0);
+	//	int size = pairs[i]->A->m_Vertices.size();
+	//	float lowestDist = 1.0f;
+	//	for (int j = 0; j < size; j++)
+	//	{
+	//		Vec2f currentV = pairs[i]->A->m_Vertices[j % size]->m_Position + pairs[i]->A->m_Position;
+	//		Vec2f nextV = pairs[i]->A->m_Vertices[(j + 1) % size]->m_Position + pairs[i]->A->m_Position;
+	//		Vec2f currentNorm = Vec2f((nextV[1] - currentV[1]), -(nextV[0] - currentV[0]));
+
+	//		float dist = abs(((nextV[1] - currentV[1])*pairs[i]->contactP[0]) - ((nextV[0] - currentV[0]) * pairs[i]->contactP[1]) + nextV[0] * currentV[1] - nextV[1] * currentV[0]);
+	//		dist = dist / sqrt(pow(nextV[1] - currentV[1], 2) + pow(nextV[0] - currentV[0], 2));
+	//		if (dist < lowestDist)
+	//		{
+	//			lowestDist = dist;
+	//			normal = currentNorm;
+	//		}
+	//	}
+	//	normal = Util::normalise(normal);
+	//	Vec2f t = relativeVelo - ((relativeVelo * normal) * normal);
+	//	t = Util::normalise(t);
+	//	// Calculate relative velocity in terms of the normal direction
+	//	float velAlongNormal = (relativeVelo * normal);
+
+	//	// Do not resolve if velocities are separating
+	//	if (velAlongNormal > 0)
+	//		return;
+
+	//	// Calculate restitution
+	//	float e = 1;
+
+	//	// Calculate impulse scalar
+	//	float j = -(1 + e) * velAlongNormal;
+	//	j /= 1 / pairs[i]->A->m_Mass
+	//		+ 1 / pairs[i]->B->m_Mass;
+	//	// Apply impulse
+	//	Vec2f impulse = j * normal;
+	//	pairs[i]->A->m_Force -= 1 / pairs[i]->A->m_Mass * impulse;
+	//	pairs[i]->B->m_Force += 1 / pairs[i]->B->m_Mass * impulse;
+	//	pairs[i]->A->m_Position -= normal * pairs[i]->distance;
+	//	pairs[i]->A->m_Position += normal * pairs[i]->distance;
+
+	//	j = -(1 + e) * (relativeVelo * t);
+	//	j /= 1 / pairs[i]->A->m_Mass
+	//		+ 1 / pairs[i]->B->m_Mass
+	//		+ (pow(Util::crossProduct(pairs[i]->A->getRadiusVec(pairs[i]->contactP), t), 2) / pairs[i]->A->m_Inertia)
+	//		+ (pow(Util::crossProduct(pairs[i]->B->getRadiusVec(pairs[i]->contactP), t), 2) / pairs[i]->B->m_Inertia);
+
+
+	//	pairs[i]->A->m_Force += 1 / pairs[i]->A->m_Mass * impulse;
+	//	pairs[i]->B->m_Force += 1 / pairs[i]->B->m_Mass * impulse;
+	//	pairs[i]->A->m_Torque += 1 / pairs[i]->A->m_Inertia * Util::crossProduct(pairs[i]->A->getRadiusVec(pairs[i]->contactP), impulse);
+	//	pairs[i]->B->m_Torque += 1 / pairs[i]->B->m_Inertia * Util::crossProduct(pairs[i]->B->getRadiusVec(pairs[i]->contactP), impulse);
+
+	//}
 }
 
 

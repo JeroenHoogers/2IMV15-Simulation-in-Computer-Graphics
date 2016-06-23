@@ -12,15 +12,14 @@ Box::Box(const Vec2f constructPos, float density, float width, float height, boo
 
 	// Add vertices
 	m_Vertices = vector<Particle*>();
-	//m_Vertices.push_back(new Particle(Vec2f(p[0] - width / 2, p[1] - height / 2)));
-	//m_Vertices.push_back(new Particle(Vec2f(p[0] + width / 2, p[1] - height / 2)));
-	//m_Vertices.push_back(new Particle(Vec2f(p[0] + width / 2, p[1] + height / 2)));
-	//m_Vertices.push_back(new Particle(Vec2f(p[0] - width / 2, p[1] + height / 2)));
+	
+	//Vertices must be defined clockwise
 	m_Vertices.push_back(new Particle(Vec2f(- width / 2, - height / 2)));
 	m_Vertices.push_back(new Particle(Vec2f(width / 2, - height / 2)));
 	m_Vertices.push_back(new Particle(Vec2f(width / 2, height / 2)));
 	m_Vertices.push_back(new Particle(Vec2f(- width / 2, height / 2)));
 
+	calculateNormals();
 	m_Mass = density * width * height;
 	reset();
 	calculateInertia();

@@ -34,4 +34,13 @@ public:
 			return a;
 		return (a / sqrt(pow(a[0], 2) + pow(a[1], 2)));
 	}
+
+	static float distancePointToLine(const Vec2f v1, const Vec2f v2, const Vec2f p)
+	{
+		//Absolute sign left out to know postion from line; |a|
+		float a = (v2[1] - v1[1]) * p[0] - (v2[0] - v2[1]) * p[1] + v2[0] * v1[1] - v2[1] * v1[0];
+		float distance = a / sqrt(pow(v2[1] - v1[1], 2) + pow(v2[0] - v1[0], 2));
+
+		return distance;
+	}
 };
