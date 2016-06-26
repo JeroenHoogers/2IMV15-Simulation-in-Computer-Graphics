@@ -126,6 +126,7 @@
     <ClCompile Include="Particle.cpp" />
     <ClCompile Include="RigidBody.cpp" />
     <ClCompile Include="Solver.cpp" />
+    <ClCompile Include="SPHSolver.cpp" />
     <ClCompile Include="WallForce.cpp" />
   </ItemGroup>
   <ItemGroup>

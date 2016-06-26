@@ -22,8 +22,8 @@ void solveRungeKutta(std::vector<Particle*> pVector, FluidContainer* fluidContai
 
 void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer, std::vector<RigidBody*> rigidBodies, std::vector<IForce*> forces);
 
-void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* fluidContainer, float kd);
-void calculateColorField(std::vector<Particle*> pVector, FluidContainer* fluidContainer, float radius);
+extern void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* fluidContainer);
+//void calculateColorField(std::vector<Particle*> pVector, FluidContainer* fluidContainer, float radius);
 void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IForce*> forces);
 
 struct Pair
@@ -71,7 +71,10 @@ void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer,
 		rigidBodies[i]->m_ImpactPoints.clear();
 	}
 
-	calculateFluidDynamics(pVector, fluidContainer, 1.0f);
+	//time_t begin_time = clock();
+	calculateFluidDynamics(pVector, fluidContainer);
+	//std::cout << float(clock() - begin_time) / CLOCKS_PER_SEC << std::endl;
+	
 	calculateRigidDynamics(rigidBodies, forces);
 	// Apply forces
 	//int size = forces.size();
@@ -192,6 +195,7 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 		float j = -(1 + e) * velAlongNormal;
 		j /= 1 / pairs[i]->A->m_Mass
 			+ 1 / pairs[i]->B->m_Mass;
+
 		// Apply impulse
 		Vec2f impulse = j * normal;
 		pairs[i]->A->m_Force -= 1 / pairs[i]->A->m_Mass * impulse;
@@ -199,17 +203,17 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 		pairs[i]->A->m_Position -= normal * pairs[i]->distance;
 		pairs[i]->A->m_Position += normal * pairs[i]->distance;
 
-		j = -(1 + e) * (relativeVelo * t);
-		j /= 1 / pairs[i]->A->m_Mass
-			+ 1 / pairs[i]->B->m_Mass
-			+ (pow(Util::crossProduct(pairs[i]->A->getRadiusVec(pairs[i]->contactP), t), 2) / pairs[i]->A->m_Inertia)
-			+ (pow(Util::crossProduct(pairs[i]->B->getRadiusVec(pairs[i]->contactP), t), 2) / pairs[i]->B->m_Inertia);
+		//j = -(1 + e) * (relativeVelo * t);
+		//j /= 1 / pairs[i]->A->m_Mass
+		//	+ 1 / pairs[i]->B->m_Mass
+		//	+ (pow(Util::crossProduct(pairs[i]->A->getRadiusVec(pairs[i]->contactP), t), 2) / pairs[i]->A->m_Inertia)
+		//	+ (pow(Util::crossProduct(pairs[i]->B->getRadiusVec(pairs[i]->contactP), t), 2) / pairs[i]->B->m_Inertia);
 
 
-		pairs[i]->A->m_Force += 1 / pairs[i]->A->m_Mass * impulse;
-		pairs[i]->B->m_Force += 1 / pairs[i]->B->m_Mass * impulse;
-		pairs[i]->A->m_Torque += 1 / pairs[i]->A->m_Inertia * Util::crossProduct(pairs[i]->A->getRadiusVec(pairs[i]->contactP), impulse);
-		pairs[i]->B->m_Torque += 1 / pairs[i]->B->m_Inertia * Util::crossProduct(pairs[i]->B->getRadiusVec(pairs[i]->contactP), impulse);
+		//pairs[i]->A->m_Force += 1 / pairs[i]->A->m_Mass * impulse;
+		//pairs[i]->B->m_Force += 1 / pairs[i]->B->m_Mass * impulse;
+		//pairs[i]->A->m_Torque += 1 / pairs[i]->A->m_Inertia * Util::crossProduct(pairs[i]->A->getRadiusVec(pairs[i]->contactP), impulse);
+		//pairs[i]->B->m_Torque += 1 / pairs[i]->B->m_Inertia * Util::crossProduct(pairs[i]->B->getRadiusVec(pairs[i]->contactP), impulse);
 
 	}
 	//for (int i = 0; i < uniquePairs.size(); i++)
@@ -407,214 +411,6 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 	//	pairs[i]->A->m_Torque += 1 / pairs[i]->A->m_Inertia * Util::crossProduct(pairs[i]->A->getRadiusVec(pairs[i]->contactP), impulse);
 	//	pairs[i]->B->m_Torque += 1 / pairs[i]->B->m_Inertia * Util::crossProduct(pairs[i]->B->getRadiusVec(pairs[i]->contactP), impulse);
 
-	//}
-}
-
-
-//--------------------------------------------------------------
-// Calculate fluid values
-//--------------------------------------------------------------
-void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* fluidContainer, float kd)
-{
-	if (pVector.size() < 1)
-		return;
-	float radius = pVector[0]->m_Radius;
-	float dist = 0.0f;
-	kd = 0.006f;					// Stiffness (higher = less compressable)	
-	float mu = 0.5f;				// Viscosity Coefficient (lower = thicker fluids)
-	float restDensity = 120.0f;
-
-	//float dist = 0.0f;
-	//kd = 0.0045f;					// Stiffness (higher = less compressable)	
-	//float mu = 0.056f;				// Viscosity Coefficient (lower = thicker fluids)
-	//float restDensity = 203.0f;
-
-	// Update the spatial hashing grid 
-	//const clock_t begin_time = clock();
-	fluidContainer->UpdateGrid(pVector);
-	//std::cout << float(clock() - begin_time) / CLOCKS_PER_SEC << std::endl;
-
-
-	// Calculate particle densities, pressures and quantities
-	for (int i = 0; i < pVector.size(); i++)
-	{
-		// TODO: iterating over cells might be faster since the neighbours will be the same for all particles within a cell
-		// reset force
-		//pVector[i]->m_Force = Vec2f(0, 0);
-
-		pVector[i]->m_Density = 0;		// Rho_j
-		pVector[i]->m_Quantity = 1;		// A_j
-		pVector[i]->m_Pressure = 0;
-
-		radius = pVector[i]->m_Radius;
-
-		//vector<int> neighbours = fluidContainer->FindNeighbours(pVector[i]->m_GridId);
-
-		int j = 0;
-
-		//for (int j = 0; j < pVector.size(); j++)
-		//{
-		if (pVector[i]->m_GridId != -1)
-		{
-			for (int k = 0; k < fluidContainer->m_Neighbours[pVector[i]->m_GridId].size(); k++)
-			{
-				j = fluidContainer->m_Neighbours[pVector[i]->m_GridId][k];
-
-				// m * W(|r-r_j|,h)
-				dist = pVector[j]->distTo(pVector[i]->m_Position);
-
-				//pVector[i]->m_Density += pVector[j]->m_Mass * pVector[j]->getW(dist);
-
-				//if(pVector[j]->m_isFixed)	// Decrease influence radius for solid objects
-				//	pVector[i]->m_Density += pVector[j]->m_Mass * Kernels::getWPoly6(pVector[i]->m_Position - pVector[j]->m_Position, radius * 0.1);
-				//else
-				pVector[i]->m_Density += pVector[j]->m_Mass * Kernels::getWPoly6(pVector[i]->m_Position - pVector[j]->m_Position, radius);
-			}
-		}
-		// P_i = k(rho_i - restDensity_i)
-		//pVector[i]->m_Pressure = kd * (pow(pVector[i]->m_Density / restDensity, 7) -1.0f);
-		pVector[i]->m_Pressure = kd * (pVector[i]->m_Density - restDensity);
-
-	}
-
-	Vec2f pressureForce = 0;
-	Vec2f viscocityForce = 0;
-	float scalar = 0;
-
-	dist = 0;
-
-	float color = 0;
-
-	// Calculate pressure force
-	for (int i = 0; i < pVector.size(); i++)
-	{
-		pressureForce = 0;
-		viscocityForce = 0;
-
-		pVector[i]->m_Color = 0;
-
-		radius = pVector[i]->m_Radius;
-
-		//vector<int> neighbours = fluidContainer->FindNeighbours(pVector[i]->m_GridId);
-		int j = 0;
-		Vec2f vscalar;
-		scalar = 0;
-
-		if (pVector[i]->m_GridId != -1)
-		{
-			for (int k = 0; k < fluidContainer->m_Neighbours[pVector[i]->m_GridId].size(); k++)
-			{
-				j = fluidContainer->m_Neighbours[pVector[i]->m_GridId][k];
-				// m_j * (p_i + p_j / 2 * rho_j) * WGrad(|r-r_j|,h)
-				dist = pVector[j]->distTo(pVector[i]->m_Position);
-
-				Vec2f posDiff = pVector[i]->m_Position - pVector[j]->m_Position;
-				// calculate pressure force
-				scalar = (pVector[i]->m_Pressure + pVector[j]->m_Pressure) / (2.0f * pVector[j]->m_Density);
-				pressureForce += pVector[j]->m_Mass * scalar * Kernels::getWGradSpiky(posDiff, radius);
-
-
-
-
-				// calculate viscocity force
-
-
-				vscalar = (pVector[j]->m_Velocity - pVector[i]->m_Velocity) / (pVector[j]->m_Density);
-				/*	if (pVector[j]->m_isFixed)
-				vscalar *= 0;*/
-
-				viscocityForce += pVector[j]->m_Mass * vscalar * Kernels::getWViscosityLaplace(posDiff, radius);
-
-
-
-			}
-		}
-
-		// Add forces to the accumulator
-		pVector[i]->m_Force += -pressureForce;
-
-		pVector[i]->m_Force += mu * viscocityForce;
-
-		pVector[i]->m_Force += Vec2f(0.0f, -0.000981) * pVector[i]->m_Density;			// Gravity
-
-
-																						// Calculate surface tension
-																						//calculateColorField(pVector, fluidContainer, radius);
-
-	}
-}
-
-
-
-void calculateColorField(std::vector<Particle*> pVector, FluidContainer* fluidContainer, float radius)
-{
-	//// TODO: Use color field to identify surfaces
-	//
-	//float color = 0.0f;
-	//Vec2f colorGrad = Vec2f(0, 0);
-	//float colorLaplacian = 0.0f;
-
-	//float sigma = 0.01f;
-
-	//float surfaceThreshold = 0.0f;
-
-	//Vec2f rDiff = Vec2f(0, 0);
-	//float scalar = 0.0f;
-
-
-
-	////// for each cell in fluidcontainer.
-	////for (int x = 0; x < fluidContainer->m_GridRows; x++)
-	////{
-	////	for (int y = 0; y < fluidContainer->m_GridCols; y++)
-	////	{
-	//for (int i = 0; i < pVector.size(); i++)
-	//{
-
-	//	color = 0.0f;
-	//	colorGrad = Vec2f(0, 0);
-	//	colorLaplacian = 0.0f;
-
-	//	surfaceThreshold = 0.1f;
-
-	//	rDiff = Vec2f(0, 0);
-	//	scalar = 0.0f;
-
-	//		
-	//	int j = 0;
-
-	//	vector<int> neighbours = fluidContainer->FindNeighbours(pVector[i]->m_GridId);
-
-	//	// Calculate surface tension
-	//	for (int k = 0; k < fluidContainer->m_Neighbours[pVector[i]->m_GridId].size(); k++)
-	//	{
-	//		j = fluidContainer->m_Neighbours[pVector[i]->m_GridId][k];
-
-	//		rDiff = pVector[i]->m_Position - pVector[j]->m_Position;
-
-	//		// calculate color force
-	//		scalar = 1.0f / pVector[j]->m_Density;
-
-	//		color += pVector[j]->m_Mass * scalar * Kernels::getWPoly6(rDiff, radius);
-	//		colorGrad += pVector[j]->m_Mass * scalar * Kernels::getWGradPoly6(rDiff, radius);
-	//		colorLaplacian += pVector[j]->m_Mass * scalar * Kernels::getWLaplacePoly6(rDiff, radius);
-	//	}
-
-	//	Vec2f n = colorGrad;							//  n
-	//	float nLen = sqrt(n[0] * n[0] + n[1] * n[1]);	// |n|
-
-	//	float kappa = -colorLaplacian / nLen;
-
-	//	Vec2f surfaceForce = sigma * kappa * (n / nLen);
-
-	//	// surfaceForce = Vec2f(0, 0);
-	//	if (nLen > surfaceThreshold)
-	//	{
-	//		// apply force
-	//		pVector[i]->m_Force += surfaceForce;
-	//	}
-
-	//	//fluidContainer->m_GridColors[x][y] = 0.2f;
 	//}
 }
 

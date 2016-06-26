@@ -117,7 +117,7 @@ void FluidContainer::UpdateGrid(vector<Particle*> particles)
 			FindNeighbours(i);
 		}
 	}
-	//std::cout << float( begin_time2 - begin_time) / CLOCKS_PER_SEC  << " _ " << float(clock() - begin_time2) / CLOCKS_PER_SEC << std::endl;
+	//std::cout << float(clock() - begin_time2) / CLOCKS_PER_SEC << std::endl;
 }
 
 
@@ -156,17 +156,13 @@ void FluidContainer::FindNeighbours(int id)
 		// Check if this cell is within the grid
 		if (!(nid < 0 || nid >= m_GridRows * m_GridCols))
 		{
-			//// Check if this cell contains particles
-			if (_gridCounters[nid] > 0)
+			// Add particles
+			for (int j = 0; j < _gridCells[nid].size(); j++)
 			{
-				// Add particle ids
-				for (int j = 0; j < _gridCells[nid].size(); j++)
-				{
-					m_Neighbours[id].push_back(_gridCells[nid].at(j));
-					//ids.push_back(_gridCells[id].at(j));
-				}
+				m_Neighbours[id].push_back(_gridCells[nid].at(j));
+				//ids.push_back(_gridCells[id].at(j));
 			}
-			//ids.insert(ids.end(), _gridCells[x][y].begin(), _gridCells[x][y].end());
+			//m_Neighbours[id].insert(m_Neighbours[id].end(), _gridCells[nid].begin(), _gridCells[nid].end());
 		}
 	}
 	//return m_Neighbours[id];

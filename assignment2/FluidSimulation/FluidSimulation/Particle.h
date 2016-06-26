@@ -47,5 +47,7 @@ public:
 	bool m_isFixed;
 	bool m_isBoundary;
 
+	float m_Volume;
+
 	int m_GridId;
 };

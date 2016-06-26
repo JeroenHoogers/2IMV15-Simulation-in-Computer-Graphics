@@ -99,12 +99,8 @@ public:
 
 	//}
 
-
-
-
 	static float getWColor(float r, float h)
 	{
 		return 1.0f - (r / h);
 	}
-
 };

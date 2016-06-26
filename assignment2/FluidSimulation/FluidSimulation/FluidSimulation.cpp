@@ -82,11 +82,11 @@ static void clear_data(void)
 
 static void init_system(void)
 {
-	const float dist = 0.05;
+	const float dist = 0.04;
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
 
-	const float radius = dist * 1.25f;
+	const float radius = dist * 1.15f;
 
 	// Initialise fluid
 	for (int i = 0; i < 1 / dist; i++)
@@ -108,7 +108,7 @@ static void init_system(void)
 
 	//rigidBodies.push_back(new Box(Vec2f(0.4, -0.3), 1, 0.45, 0.15));
 
-	rigidBodies.push_back(new Box(Vec2f(0.2, -0.8), 1, 0.2, 0.2));
+	//rigidBodies.push_back(new Box(Vec2f(0.2, -0.8), 1, 0.2, 0.2));
 
 	// Calculate rigid body ghost particles for coupling
 	for (int i = 0; i < rigidBodies.size(); i++)
@@ -580,7 +580,7 @@ int main(int argc, char ** argv)
 
 	if (argc == 1) {
 		N = 64;
-		dt = 0.02;
+		dt = 0.01;
 		d = 5.f;
 		fprintf(stderr, "Using defaults : N=%d dt=%g d=%g\n",
 			N, dt, d);
