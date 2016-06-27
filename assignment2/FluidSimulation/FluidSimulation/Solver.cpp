@@ -22,7 +22,7 @@ void solveRungeKutta(std::vector<Particle*> pVector, FluidContainer* fluidContai
 
 void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer, std::vector<RigidBody*> rigidBodies, std::vector<IForce*> forces);
 
-extern void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* fluidContainer);
+extern void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* fluidContainer, vector<RigidBody*> rigidBodies);
 //void calculateColorField(std::vector<Particle*> pVector, FluidContainer* fluidContainer, float radius);
 void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IForce*> forces);
 
@@ -72,7 +72,7 @@ void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer,
 	}
 
 	//time_t begin_time = clock();
-	calculateFluidDynamics(pVector, fluidContainer);
+	calculateFluidDynamics(pVector, fluidContainer, rigidBodies);
 	//std::cout << float(clock() - begin_time) / CLOCKS_PER_SEC << std::endl;
 	
 	calculateRigidDynamics(rigidBodies, forces);
@@ -457,7 +457,6 @@ void solveEuler(std::vector<Particle*> pVector, FluidContainer* fluidContainer, 
 			matrix result = *rigidBodies[i]->m_Rotation * currentVertex;
 			rigidBodies[i]->m_Vertices[j]->m_Position = Vec2f(result.getValue(0, 0), result.getValue(1, 0));
 		}
-		rigidBodies[i]->updateGhostParticles();
 	}
 }
 

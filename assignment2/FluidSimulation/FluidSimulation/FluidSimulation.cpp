@@ -108,7 +108,7 @@ static void init_system(void)
 
 	//rigidBodies.push_back(new Box(Vec2f(0.4, -0.3), 1, 0.45, 0.15));
 
-	//rigidBodies.push_back(new Box(Vec2f(0.2, -0.8), 1, 0.2, 0.2));
+	rigidBodies.push_back(new Box(Vec2f(0.2, -0.8), 1, 0.2, 0.2));
 
 	// Calculate rigid body ghost particles for coupling
 	for (int i = 0; i < rigidBodies.size(); i++)

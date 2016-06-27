@@ -46,6 +46,7 @@ public:
 
 	bool m_isFixed;
 	bool m_isBoundary;
+	bool m_isActive;
 
 	float m_Volume;
 

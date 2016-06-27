@@ -43,58 +43,67 @@ void Particle::draw(bool renderFluid)
 	//glVertex2f(m_Position[0]-h/2.0, m_Position[1]+h/2.0);
 	//glEnd();
 
-	// Don't draw boundary particles
+	// Draw boundary particles
 	if (m_isBoundary)
-		return;
-
-
-	if (!renderFluid)
 	{
-		glBegin(GL_LINE_LOOP);
-		glColor4f(1.0, 1.0, 1.0, 0.05);
-		for (int i = 0; i < 360; i = i + 18)
-		{
-			float degInRad = i * M_PI / 180;
-			glVertex2f(m_Position[0] + cos(degInRad)*m_Radius, m_Position[1] + sin(degInRad)*m_Radius);
-		}
-		glEnd();
+		glColor4f(1.0, 0.3, 0.3, 1.0);
 
-		glColor3f((m_Pressure * 0.8)+0.4f, 0.3f, 1.0f - (m_Pressure * 0.8));
-		
-		glPointSize(8.0f);
+		glPointSize(15.0f);
 
 		glBegin(GL_POINTS);
 		glVertex2f(m_Position[0], m_Position[1]);
 		glEnd();
 	}
-	else
+	else // Draw fluid particles
 	{
-		//glBegin(GL_TRIANGLE_FAN);
+		if (!renderFluid)
+		{
+			glBegin(GL_LINE_LOOP);
+			glColor4f(1.0, 1.0, 1.0, 0.05);
+			for (int i = 0; i < 360; i = i + 18)
+			{
+				float degInRad = i * M_PI / 180;
+				glVertex2f(m_Position[0] + cos(degInRad)*m_Radius, m_Position[1] + sin(degInRad)*m_Radius);
+			}
+			glEnd();
 
-		float v = sqrt(m_Velocity * m_Velocity) * 0.3;
-		float p = (0.8 - m_Pressure) * 0.2;
-		glColor4f(0.3, 0.3, 1.0, 1.0);
-		////glColor4f(0.5, 0.5, 1.0, 0.5);
-		//glVertex2f(m_Position[0], m_Position[1]);
+			glColor3f((m_Pressure * 0.8) + 0.4f, 0.3f, 1.0f - (m_Pressure * 0.8));
 
-		////glColor4f((m_Pressure)+0.4f, 0.4f, 1.0f - (m_Pressure), 0.4);
+			glPointSize(8.0f);
+
+			glBegin(GL_POINTS);
+			glVertex2f(m_Position[0], m_Position[1]);
+			glEnd();
+		}
+		else
+		{
+			//glBegin(GL_TRIANGLE_FAN);
+
+			float v = sqrt(m_Velocity * m_Velocity) * 0.3;
+			float p = (0.8 - m_Pressure) * 0.2;
+			glColor4f(0.3, 0.3, 1.0, 1.0);
+			////glColor4f(0.5, 0.5, 1.0, 0.5);
+			//glVertex2f(m_Position[0], m_Position[1]);
+
+			////glColor4f((m_Pressure)+0.4f, 0.4f, 1.0f - (m_Pressure), 0.4);
 
 
-		//float size = 0.035f;
+			//float size = 0.035f;
 
-		////glColor4f(0.4, 0.3, 1.0, 0.0);
-		//for (int i = 0; i < 360; i = i + 50)
-		//{
-		//	float degInRad = i * M_PI / 180;
-		//	glVertex2f(m_Position[0] + cos(degInRad) * size, m_Position[1] + sin(degInRad) *size);
-		//}
+			////glColor4f(0.4, 0.3, 1.0, 0.0);
+			//for (int i = 0; i < 360; i = i + 50)
+			//{
+			//	float degInRad = i * M_PI / 180;
+			//	glVertex2f(m_Position[0] + cos(degInRad) * size, m_Position[1] + sin(degInRad) *size);
+			//}
 
-		//glVertex2f(m_Position[0] + cos(0) * size, m_Position[1] + sin(0) * size);
-		//glEnd();
-		glPointSize(12.0f + 0.1 * (m_Density - 260));
-		glBegin(GL_POINTS);
-		glVertex2f(m_Position[0], m_Position[1]);
-		glEnd();
+			//glVertex2f(m_Position[0] + cos(0) * size, m_Position[1] + sin(0) * size);
+			//glEnd();
+			glPointSize(12.0f + 0.1 * (m_Density - 260));
+			glBegin(GL_POINTS);
+			glVertex2f(m_Position[0], m_Position[1]);
+			glEnd();
+		}
 	}
 }
 float Particle::getMass()

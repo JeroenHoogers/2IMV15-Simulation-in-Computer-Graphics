@@ -12,14 +12,15 @@
 using namespace std;
 
 
-void calculateFluidDynamics(vector<Particle*> pVector, FluidContainer* fluidContainer);
-void calculateBoundaryVolumes(vector<Particle*> pVector, FluidContainer* fluidContainer, float radius, int start, int end);
+void calculateFluidDynamics(vector<Particle*> pVector, FluidContainer* fluidContainer, vector<RigidBody*> rigidBodies);
+
+void calculateBoundaryVolumes(vector<Particle*> pVector, FluidContainer* fluidContainer, vector<RigidBody*> rigidBodies, float radius, int start, int end);
 void calculateFluidDensities(vector<Particle*> pVector, FluidContainer* fluidContainer, float radius, float kd, float restDensity, int start, int end);
 void calculateFluidForces(vector<Particle*> pVector, FluidContainer* fluidContainer, float radius, float mu, int start, int end);
 void calculateSurfaceTension(std::vector<Particle*> pVector, FluidContainer* fluidContainer, float radius);
 
 //-----------------------------------------------------------------------------------------------------------------//
-void calculateFluidDynamics(vector<Particle*> pVector, FluidContainer* fluidContainer)
+void calculateFluidDynamics(vector<Particle*> pVector, FluidContainer* fluidContainer, vector<RigidBody*> rigidBodies)
 {
 	if (pVector.size() < 1)
 		return;
@@ -46,11 +47,17 @@ void calculateFluidDynamics(vector<Particle*> pVector, FluidContainer* fluidCont
 
 	vector<thread> threads;
 
+	// Update ghost particles of rigid body objects
+	for (int i = 0; i < rigidBodies.size(); i++)
+	{
+		rigidBodies[i]->updateGhostParticles();
+	}
+
 	// Update the spatial hashing grid 
 	fluidContainer->UpdateGrid(pVector);
 
 	// Calculate Boundary Volumes
-	calculateBoundaryVolumes(pVector, fluidContainer, radius, 0, n);
+	calculateBoundaryVolumes(pVector, fluidContainer, rigidBodies, radius, 0, n);
 
 	// Calculate Fluid Densities
 	for (int i = 0; i < nrThreads; i++)
@@ -81,7 +88,7 @@ void calculateFluidDynamics(vector<Particle*> pVector, FluidContainer* fluidCont
 
 
 //-----------------------------------------------------------------------------------------------------------------//
-void calculateBoundaryVolumes(vector<Particle*> pVector, FluidContainer* fluidContainer, float radius, int start, int end)
+void calculateBoundaryVolumes(vector<Particle*> pVector, FluidContainer* fluidContainer, vector<RigidBody*> rigidBodies, float radius, int start, int end)
 {
 	Particle pi = Particle(Vec2f(0, 0), 1.0f);
 	Particle pj = Particle(Vec2f(0, 0), 1.0f);
@@ -92,10 +99,12 @@ void calculateBoundaryVolumes(vector<Particle*> pVector, FluidContainer* fluidCo
 		// Calculate only boundary particle volumes in this step
 		if (pVector[i]->m_isBoundary)
 		{
+	
 			pi = *pVector[i];
 			if (pi.m_GridId != -1)
 			{
 				float volume = 0;
+				bool active = false;
 
 				for (int j = 0; j < fluidContainer->m_Neighbours[pi.m_GridId].size(); j++)
 				{
@@ -103,10 +112,13 @@ void calculateBoundaryVolumes(vector<Particle*> pVector, FluidContainer* fluidCo
 
 					if (pj.m_isBoundary)
 						volume += Kernels::getWPoly6(pi.m_Position - pj.m_Position, radius);
+					else
+						active = true;	// boundary particle has fluid neighbour(s) so we activate it.
 				}
 
 				// V_b_i = 1 / W_ik
 				pVector[i]->m_Volume = 1.0f / volume;
+				pVector[i]->m_isActive = active;
 			}
 		}
 	}
@@ -126,7 +138,7 @@ void calculateFluidDensities(vector<Particle*> pVector, FluidContainer* fluidCon
 		// Reset previous variables
 		float density = 0;
 
-		if (pi.m_GridId != -1 && !pi.m_isBoundary)
+		if (pi.m_GridId != -1)// && !pi.m_isBoundary) // TODO: Handle boundaries differently
 		{
 			for (int j = 0; j < fluidContainer->m_Neighbours[pi.m_GridId].size(); j++)
 			{

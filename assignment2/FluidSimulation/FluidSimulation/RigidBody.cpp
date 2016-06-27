@@ -173,8 +173,12 @@ void RigidBody::generateGhostParticles()
 			// Generate ghost particle
 			m_GhostParticles.push_back(
 				new Particle(
-					v1 * 0.8f + m_Position + dir * (j * density),
+					v1 + m_Position + dir * (j * density),
 					0.4f, 0.05, false, true));
+
+			//new Particle(
+			//	v1 * 0.8f + m_Position + dir * (j * density),
+			//	0.4f, 0.05, false, true));
 
 			m_GhostParticles[m_GhostParticles.size() - 1]->m_LocalPosition = v1 + dir * (j * density);
 		}
