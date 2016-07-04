@@ -68,6 +68,7 @@ void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer,
 	{
 		rigidBodies[i]->m_Force = Vec2f(0, 0);
 		rigidBodies[i]->m_Torque = 0;
+		rigidBodies[i]->m_Orientation = 0;
 		rigidBodies[i]->m_ImpactPoints.clear();
 	}
 
@@ -461,6 +462,10 @@ void solveEuler(std::vector<Particle*> pVector, FluidContainer* fluidContainer, 
 			matrix result = *rigidBodies[i]->m_Rotation * currentVertex;
 			rigidBodies[i]->m_Vertices[j]->m_Position = Vec2f(result.getValue(0, 0), result.getValue(1, 0));
 		}
+		//Drag force
+		//rigidBodies[i]->m_AngularVelocity *= 0.98f;
+
+
 		//rigidBodies[i]->updateGhostParticles();
 	}
 }

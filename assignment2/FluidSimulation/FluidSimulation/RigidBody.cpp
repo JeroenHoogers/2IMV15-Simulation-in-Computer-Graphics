@@ -22,6 +22,7 @@ void RigidBody::reset()
 	m_Velocity = Vec2f(0.0, 0.0);
 	m_Force = Vec2f(0.0, 0.0);
 	m_AngularVelocity = 0;
+	
 	m_Orientation = 0;
 	updateRotation(0);
 
@@ -335,7 +336,13 @@ void RigidBody::updateGhostParticles()
 {
 	// Update ghost particle positions
 	for (int i = 0; i < m_GhostParticles.size(); i++)
-	{
+{
+		matrix currentVertex = matrix(2, 1);
+		currentVertex.setValue(0, 0, m_GhostParticles[i]->m_LocalPosition[0]);
+		currentVertex.setValue(1, 0, m_GhostParticles[i]->m_LocalPosition[1]);
+		matrix result = *m_Rotation * currentVertex;
+		m_GhostParticles[i]->m_LocalPosition = Vec2f(result.getValue(0, 0), result.getValue(1, 0));
+		
 		// TODO: apply rotation
 		m_GhostParticles[i]->m_Position = m_GhostParticles[i]->m_LocalPosition + m_Position;
 	}
