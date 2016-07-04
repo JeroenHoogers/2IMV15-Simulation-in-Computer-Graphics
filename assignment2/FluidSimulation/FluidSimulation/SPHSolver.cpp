@@ -245,9 +245,12 @@ void calculateRigidForces(FluidContainer* fluidContainer, vector<RigidBody*> rig
 			}
 		}
 		rigidBodies[b]->m_Force += totalBoundaryForce * 0.01f;
+		rigidBodies[b]->m_Force += Vec2f(0.0f, -0.981) * rigidBodies[b]->m_Mass;
 		rigidBodies[b]->m_Torque += totalTorque;
 	}
 }
+
+
 //-----------------------------------------------------------------------------------------------------------------//
 void calculateSurfaceTension(std::vector<Particle*> pVector, FluidContainer* fluidContainer, float radius)
 {

@@ -107,10 +107,10 @@ static void init_system(void)
 
 	fluidContainer = new FluidContainer(radius, 2.0f, 2.0f);
 
-	//rigidBodies.push_back(new Box(Vec2f(0.4, -0.3), 1, 0.45, 0.15));
+	//rigidBodies.push_back(new Box(Vec2f(-0.4, 0.5), 1.5, 0.45, 0.15));
 
-	rigidBodies.push_back(new Box(Vec2f(0.4, -0.8), 3, 0.2, 0.2));
-	forces.push_back(new GravityForce(rigidBodies[rigidBodies.size() - 1]));
+	rigidBodies.push_back(new Box(Vec2f(-0.2, 0.7), 3, 0.2, 0.2));
+	//forces.push_back(new GravityForce(rigidBodies[rigidBodies.size() - 1]));
 
 	// Calculate rigid body ghost particles for coupling
 	for (int i = 0; i < rigidBodies.size(); i++)

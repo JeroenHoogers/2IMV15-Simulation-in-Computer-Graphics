@@ -35,7 +35,7 @@ void RigidBody::reset()
 void RigidBody::draw()
 {
 	// Draw polygon
-	glColor3f(0.2, 0.4, 0.6);
+	glColor3f(0.9, 0.8, 0.65);
 
 	glBegin(GL_POLYGON);
 	for (int i = 0; i < m_Vertices.size(); i++)
@@ -51,17 +51,17 @@ void RigidBody::draw()
 		glVertex2f(m_ImpactPoints[i][0], m_ImpactPoints[i][1]);
 	}
 	glEnd();
-	glColor3f(0.1, 0.8, 0.6);
-	glBegin(GL_LINES);
-	//Draw vertices
-	for (int i = 0; i < m_Normals.size(); i++)
-	{
-		Vec2f n = m_NormalPositions[i] + m_Position;
-		glVertex2f(n[0], n[1]);
-		n += m_Normals[i] * 0.2f;
-		glVertex2f(n[0], n[1]);
-	}
-	glEnd();
+	//glColor3f(0.1, 0.8, 0.6);
+	//glBegin(GL_LINES);
+	////Draw normals
+	//for (int i = 0; i < m_Normals.size(); i++)
+	//{
+	//	Vec2f n = m_NormalPositions[i] + m_Position;
+	//	glVertex2f(n[0], n[1]);
+	//	n += m_Normals[i] * 0.2f;
+	//	glVertex2f(n[0], n[1]);
+	//}
+	//glEnd();
 	// Draw vertices
 	//for (int i = 0; i < m_Vertices.size(); i++)
 	//{
