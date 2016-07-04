@@ -47,7 +47,7 @@ void RigidBody::draw()
 	//Draw vertices
 	for (int i = 0; i < m_ImpactPoints.size(); i++)
 	{
-		glVertex2f(m_ImpactPoints[i][0] + m_Position[0], m_ImpactPoints[i][1] + m_Position[1]);
+		glVertex2f(m_ImpactPoints[i][0], m_ImpactPoints[i][1]);
 	}
 	glEnd();
 	glColor3f(0.1, 0.8, 0.6);
@@ -174,7 +174,7 @@ void RigidBody::generateGhostParticles()
 			m_GhostParticles.push_back(
 				new Particle(
 					v1 + m_Position + dir * (j * density),
-					0.4f, 0.05, false, true));
+					0.4f, 0.05, true, true));
 
 			//new Particle(
 			//	v1 * 0.8f + m_Position + dir * (j * density),
@@ -215,7 +215,7 @@ vector<float> RigidBody::Project(Vec2f axis, float min, float max) {
 	return result;
 }
 
-Vec2f RigidBody::CollisionCheck(RigidBody* other, Vec2f velocity) {
+Vec2f RigidBody::CollisionCheck(RigidBody* other, Vec2f velocity, float dt) {
 	//PolygonCollisionResult result = new PolygonCollisionResult();
 	m_Intersect = true;
 	m_WillIntersect = true;
@@ -254,12 +254,15 @@ Vec2f RigidBody::CollisionCheck(RigidBody* other, Vec2f velocity) {
 		maxB = resultB[1];
 		// Check if the polygon projections are currentlty intersecting
 		if (DistInterval(minA, maxA, minB, maxB) > 0)
+		{
+			//clear the predicted intersect points
 			m_Intersect = false;
+		}
 
 		// ===== 2. Now find if the polygons *will* intersect =====
 
 		// Project the velocity on the current axis
-		float velocityProjection = axis * velocity;
+		float velocityProjection = axis * velocity * dt;
 
 		// Get the projection of polygon A during the movement
 		if (velocityProjection < 0) {
@@ -298,14 +301,43 @@ Vec2f RigidBody::CollisionCheck(RigidBody* other, Vec2f velocity) {
 	return m_MinTranslation;
 }
 
+Vec2f RigidBody::findImpactPoint(RigidBody* other)
+{
+	Vec2f closestPoint = Vec2f(0, 0);
+	Vec2f checkPoint = Vec2f((m_Position[0] + other->m_Position[0]) / 2, (m_Position[1] + other->m_Position[1]) / 2);
+	float minDist = FLT_MAX;
+
+	for (int i = 0; i < m_Vertices.size(); i++)
+	{
+		Vec2f vertPosition = m_Vertices[i]->m_Position + m_Position;
+		float currentDist = sqrt(pow(vertPosition[0] - checkPoint[0], 2) + pow(vertPosition[1] - checkPoint[1], 2));
+		if (minDist > currentDist)
+		{
+			minDist = currentDist;
+			closestPoint = vertPosition;
+		}
+	}
+	for (int i = 0; i < other->m_Vertices.size(); i++)
+	{
+		Vec2f vertPosition = other->m_Vertices[i]->m_Position + other->m_Position;
+		float currentDist = sqrt(pow(vertPosition[0] - checkPoint[0], 2) + pow(vertPosition[1] - checkPoint[1], 2));
+		if (minDist > currentDist)
+		{
+			minDist = currentDist;
+			closestPoint = vertPosition;
+		}
+	}
+	m_ImpactPoints.push_back(closestPoint);
+	return closestPoint;
+}
+
 void RigidBody::updateGhostParticles()
 {
 	// Update ghost particle positions
 	for (int i = 0; i < m_GhostParticles.size(); i++)
 	{
 		// TODO: apply rotation
-		// HACK: 0.8 is used to position the particles slightly inside the rigidbody such that the fluid doesn't leave a gap
-		m_GhostParticles[i]->m_Position = m_GhostParticles[i]->m_LocalPosition * 0.8f + m_Position;
+		m_GhostParticles[i]->m_Position = m_GhostParticles[i]->m_LocalPosition + m_Position;
 	}
 }
 
@@ -320,12 +352,6 @@ void RigidBody::updateRotation(float angle)
 	m_Rotation->setValue(0, 1, -sin(angle));
 	m_Rotation->setValue(1, 0, sin(angle));
 	m_Rotation->setValue(1, 1, cos(angle));
-}
-
-Vec2f RigidBody::getRadiusVec(Vec2f pos)
-{
-	//return (abs(pos[0] - m_Position[0]), abs(pos[1] - m_Position[1]));
-	return m_Position - pos;
 }
 
 float RigidBody::getMass()

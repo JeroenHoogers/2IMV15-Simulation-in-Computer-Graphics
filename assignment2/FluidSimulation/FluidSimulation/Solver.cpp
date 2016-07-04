@@ -20,11 +20,11 @@ void solveLeapFrog(std::vector<Particle*> pVector, FluidContainer* fluidContaine
 void solveMidpoint(std::vector<Particle*> pVector, FluidContainer* fluidContainer, std::vector<RigidBody*> rigidBodies, std::vector<IForce*> forces, float dt);
 void solveRungeKutta(std::vector<Particle*> pVector, FluidContainer* fluidContainer, std::vector<RigidBody*> rigidBodies, std::vector<IForce*> forces, float dt);
 
-void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer, std::vector<RigidBody*> rigidBodies, std::vector<IForce*> forces);
+void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer, std::vector<RigidBody*> rigidBodies, std::vector<IForce*> forces, float dt);
 
 extern void calculateFluidDynamics(std::vector<Particle*> pVector, FluidContainer* fluidContainer, vector<RigidBody*> rigidBodies);
 //void calculateColorField(std::vector<Particle*> pVector, FluidContainer* fluidContainer, float radius);
-void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IForce*> forces);
+void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IForce*> forces, float dt);
 
 struct Pair
 {
@@ -55,7 +55,7 @@ void simulation_step(std::vector<Particle*> pVector, FluidContainer* fluidContai
 //--------------------------------------------------------------
 // Reset and apply forces to particles
 //--------------------------------------------------------------
-void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer, std::vector<RigidBody*> rigidBodies, std::vector<IForce*> forces)
+void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer, std::vector<RigidBody*> rigidBodies, std::vector<IForce*> forces, float dt)
 {
 	// Reset forces
 	for (int i = 0; i < pVector.size(); i++)
@@ -75,7 +75,7 @@ void applyForces(std::vector<Particle*> pVector, FluidContainer* fluidContainer,
 	calculateFluidDynamics(pVector, fluidContainer, rigidBodies);
 	//std::cout << float(clock() - begin_time) / CLOCKS_PER_SEC << std::endl;
 	
-	calculateRigidDynamics(rigidBodies, forces);
+	calculateRigidDynamics(rigidBodies, forces, dt);
 	// Apply forces
 	//int size = forces.size();
 	for (int i = 0; i < forces.size(); i++)
@@ -99,7 +99,7 @@ bool SortPairs(Pair* lhs, Pair* rhs)
 //--------------------------------------------------------------
 // Calculate rigid body values
 //--------------------------------------------------------------
-void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IForce*> forces)
+void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IForce*> forces, float dt)
 {
 	//Broad phase collision finding
 	vector<Pair*> pairs = vector<Pair*>();
@@ -153,11 +153,14 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 	//Narrow phase collisions
 	for (int i = 0; i < pairs.size(); i++)
 	{
-		Vec2f newforce = pairs[i]->B->CollisionCheck(pairs[i]->A, pairs[i]->B->m_Velocity);
+		Vec2f newforce = pairs[i]->B->CollisionCheck(pairs[i]->A, pairs[i]->B->m_Velocity, dt);
 		//uniquePairs[i]->A->m_Force -= newforce * 0.5f; 
+		if (newforce[0] == 0 && newforce[1] == 0)
+			continue;
+		Vec2f contactPoint = pairs[i]->B->findImpactPoint(pairs[i]->A);
 		pairs[i]->B->m_Force += newforce;
 		pairs[i]->A->m_Force -= newforce;
-		pairs[i]->B->m_Velocity = 0;
+		//pairs[i]->B->m_Velocity = 0;
 
 		Vec2f relativeVelo = pairs[i]->B->m_Velocity - pairs[i]->A->m_Velocity;
 
@@ -200,20 +203,20 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 		Vec2f impulse = j * normal;
 		pairs[i]->A->m_Force -= 1 / pairs[i]->A->m_Mass * impulse;
 		pairs[i]->B->m_Force += 1 / pairs[i]->B->m_Mass * impulse;
-		pairs[i]->A->m_Position -= normal * pairs[i]->distance;
-		pairs[i]->A->m_Position += normal * pairs[i]->distance;
+		//pairs[i]->A->m_Position -= normal * pairs[i]->distance;
+		//pairs[i]->A->m_Position += normal * pairs[i]->distance;
 
-		//j = -(1 + e) * (relativeVelo * t);
-		//j /= 1 / pairs[i]->A->m_Mass
-		//	+ 1 / pairs[i]->B->m_Mass
-		//	+ (pow(Util::crossProduct(pairs[i]->A->getRadiusVec(pairs[i]->contactP), t), 2) / pairs[i]->A->m_Inertia)
-		//	+ (pow(Util::crossProduct(pairs[i]->B->getRadiusVec(pairs[i]->contactP), t), 2) / pairs[i]->B->m_Inertia);
+		j = -(1 + e) * (relativeVelo * t);
+		j /= 1 / pairs[i]->A->m_Mass
+			+ 1 / pairs[i]->B->m_Mass
+			+ (pow(Util::crossProduct(contactPoint - pairs[i]->A->m_Position, t), 2) / pairs[i]->A->m_Inertia)
+			+ (pow(Util::crossProduct(contactPoint - pairs[i]->B->m_Position, t), 2) / pairs[i]->B->m_Inertia);
 
 
-		//pairs[i]->A->m_Force += 1 / pairs[i]->A->m_Mass * impulse;
-		//pairs[i]->B->m_Force += 1 / pairs[i]->B->m_Mass * impulse;
-		//pairs[i]->A->m_Torque += 1 / pairs[i]->A->m_Inertia * Util::crossProduct(pairs[i]->A->getRadiusVec(pairs[i]->contactP), impulse);
-		//pairs[i]->B->m_Torque += 1 / pairs[i]->B->m_Inertia * Util::crossProduct(pairs[i]->B->getRadiusVec(pairs[i]->contactP), impulse);
+		pairs[i]->A->m_Force += impulse;
+		pairs[i]->B->m_Force += impulse;
+		pairs[i]->B->m_Torque += Util::crossProduct(contactPoint - pairs[i]->B->m_Position, impulse);
+		//pairs[i]->B->m_Torque -= (1 / pairs[i]->B->m_Inertia * Util::crossProduct(pairs[i]->B->getRadiusVec(contactPoint), impulse)) * 0.1f;
 
 	}
 	//for (int i = 0; i < uniquePairs.size(); i++)
@@ -419,7 +422,7 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 //--------------------------------------------------------------
 void solveEuler(std::vector<Particle*> pVector, FluidContainer* fluidContainer, std::vector<RigidBody*> rigidBodies, std::vector<IForce*> forces, float dt)
 {
-	applyForces(pVector, fluidContainer, rigidBodies, forces);
+	applyForces(pVector, fluidContainer, rigidBodies, forces, dt);
 
 	// Loop particles
 	for (int i = 0; i < pVector.size(); i++)
@@ -444,11 +447,12 @@ void solveEuler(std::vector<Particle*> pVector, FluidContainer* fluidContainer, 
 		if (rigidBodies[i]->m_isFixed)
 			continue;
 		rigidBodies[i]->m_Velocity += rigidBodies[i]->m_Force * (1.0f / rigidBodies[i]->m_Mass) * dt;
-		rigidBodies[i]->m_AngularVelocity += rigidBodies[i]->m_Torque * (1.0f / rigidBodies[i]->m_Inertia) * dt;
+  		rigidBodies[i]->m_AngularVelocity += rigidBodies[i]->m_Torque * (1.0f / rigidBodies[i]->m_Inertia) * dt;
 		rigidBodies[i]->m_Position += rigidBodies[i]->m_Velocity * dt;
 		rigidBodies[i]->m_Orientation += rigidBodies[i]->m_AngularVelocity * dt;
 		rigidBodies[i]->updateRotation(rigidBodies[i]->m_Orientation);
-
+		if (i == 0)
+			cout << rigidBodies[i]->m_Orientation << endl;
 		for (int j = 0; j < rigidBodies[i]->m_Vertices.size(); j++)
 		{
 			matrix currentVertex = matrix(2, 1);
@@ -457,6 +461,7 @@ void solveEuler(std::vector<Particle*> pVector, FluidContainer* fluidContainer, 
 			matrix result = *rigidBodies[i]->m_Rotation * currentVertex;
 			rigidBodies[i]->m_Vertices[j]->m_Position = Vec2f(result.getValue(0, 0), result.getValue(1, 0));
 		}
+		//rigidBodies[i]->updateGhostParticles();
 	}
 }
 
@@ -475,7 +480,7 @@ void solveLeapFrog(std::vector<Particle*> pVector, FluidContainer* fluidContaine
 	//	startVelocities.push_back(pVector[i]->m_Velocity);
 	//}
 
-	applyForces(pVector, fluidContainer, rigidBodies, forces);
+	applyForces(pVector, fluidContainer, rigidBodies, forces, dt);
 
 	for (int i = 0; i < pVector.size(); i++)
 	{
@@ -483,7 +488,7 @@ void solveLeapFrog(std::vector<Particle*> pVector, FluidContainer* fluidContaine
 		pVector[i]->m_Velocity -= 0.5f * (pVector[i]->m_Force / pVector[i]->m_Mass) * dt;
 	}
 
-	applyForces(pVector, fluidContainer, rigidBodies, forces);
+	applyForces(pVector, fluidContainer, rigidBodies, forces, dt);
 
 	for (int i = 0; i < pVector.size(); i++)
 	{
@@ -511,7 +516,7 @@ void solveMidpoint(std::vector<Particle*> pVector, FluidContainer* fluidContaine
 	}
 
 	// Apply forces
-	applyForces(pVector, fluidContainer, rigidBodies, forces);
+	applyForces(pVector, fluidContainer, rigidBodies, forces, dt);
 
 	for (int i = 0; i < pVector.size(); i++)
 	{
@@ -526,7 +531,7 @@ void solveMidpoint(std::vector<Particle*> pVector, FluidContainer* fluidContaine
 	}
 
 	// Apply forces
-	applyForces(pVector, fluidContainer, rigidBodies, forces);
+	applyForces(pVector, fluidContainer, rigidBodies, forces, dt);
 
 	for (int i = 0; i < pVector.size(); i++)
 	{
@@ -571,7 +576,7 @@ void solveRungeKutta(std::vector<Particle*> pVector, FluidContainer* fluidContai
 	}
 
 	// Apply forces
-	applyForces(pVector, fluidContainer, rigidBodies, forces);
+	applyForces(pVector, fluidContainer, rigidBodies, forces, dt);
 
 	for (int i = 0; i < pVector.size(); i++)
 	{
@@ -588,7 +593,7 @@ void solveRungeKutta(std::vector<Particle*> pVector, FluidContainer* fluidContai
 	}
 
 	// Apply forces
-	applyForces(pVector, fluidContainer, rigidBodies, forces);
+	applyForces(pVector, fluidContainer, rigidBodies, forces, dt);
 
 	for (int i = 0; i < pVector.size(); i++)
 	{
@@ -605,7 +610,7 @@ void solveRungeKutta(std::vector<Particle*> pVector, FluidContainer* fluidContai
 	}
 
 	// Apply forces
-	applyForces(pVector, fluidContainer, rigidBodies, forces);
+	applyForces(pVector, fluidContainer, rigidBodies, forces, dt);
 
 	for (int i = 0; i < pVector.size(); i++)
 	{
@@ -621,7 +626,7 @@ void solveRungeKutta(std::vector<Particle*> pVector, FluidContainer* fluidContai
 	}
 
 	// Apply forces
-	applyForces(pVector, fluidContainer, rigidBodies, forces);
+	applyForces(pVector, fluidContainer, rigidBodies, forces, dt);
 
 	for (int i = 0; i < pVector.size(); i++)
 	{

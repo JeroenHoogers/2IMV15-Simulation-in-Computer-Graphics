@@ -46,7 +46,6 @@ public:
 	
 	~RigidBody();
 
-	Vec2f getRadiusVec(Vec2f pos);
 	float getMass() override;
 	Vec2f getVelocity() override;
 	void setVelocity(Vec2f) override;
@@ -65,8 +64,8 @@ public:
 	virtual vector<float> getExtremes();
 	float DistInterval(float minA, float maxA, float minB, float maxB);
 	vector<float> Project(Vec2f axis, float min, float max);
-	Vec2f CollisionCheck(RigidBody* polygonB, Vec2f velocity);
-
+	Vec2f CollisionCheck(RigidBody* polygonB, Vec2f velocity, float dt);
+	Vec2f findImpactPoint(RigidBody* other);
 	void updateRotation(float angle);
 
 	virtual void calculateInertia() = 0;
