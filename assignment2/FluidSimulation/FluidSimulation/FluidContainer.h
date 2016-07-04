@@ -34,7 +34,7 @@ public:
 	int m_GridCols;
 
 	//float** m_GridColors;
-	//Vec2f** m_CenterPoints;
+	Vec2f* m_CenterPoints;
 
 	void setColor(Vec2f point, float color);
 

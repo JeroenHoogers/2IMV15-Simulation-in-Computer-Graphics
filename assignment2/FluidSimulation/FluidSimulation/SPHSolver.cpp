@@ -14,9 +14,10 @@ using namespace std;
 
 void calculateFluidDynamics(vector<Particle*> pVector, FluidContainer* fluidContainer, vector<RigidBody*> rigidBodies);
 
-void calculateBoundaryVolumes(vector<Particle*> pVector, FluidContainer* fluidContainer, vector<RigidBody*> rigidBodies, float radius, int start, int end);
+void calculateBoundaryVolumes(vector<Particle*> pVector, FluidContainer* fluidContainer, vector<RigidBody*> rigidBodies, float radius);
 void calculateFluidDensities(vector<Particle*> pVector, FluidContainer* fluidContainer, float radius, float kd, float restDensity, int start, int end);
 void calculateFluidForces(vector<Particle*> pVector, FluidContainer* fluidContainer, float radius, float mu, int start, int end);
+void calculateRigidForces(FluidContainer* fluidContainer, vector<RigidBody*> rigidBodies);
 void calculateSurfaceTension(std::vector<Particle*> pVector, FluidContainer* fluidContainer, float radius);
 
 //-----------------------------------------------------------------------------------------------------------------//
@@ -57,7 +58,7 @@ void calculateFluidDynamics(vector<Particle*> pVector, FluidContainer* fluidCont
 	fluidContainer->UpdateGrid(pVector);
 
 	// Calculate Boundary Volumes
-	calculateBoundaryVolumes(pVector, fluidContainer, rigidBodies, radius, 0, n);
+	calculateBoundaryVolumes(pVector, fluidContainer, rigidBodies, radius);
 
 	// Calculate Fluid Densities
 	for (int i = 0; i < nrThreads; i++)
@@ -80,6 +81,10 @@ void calculateFluidDynamics(vector<Particle*> pVector, FluidContainer* fluidCont
 
 	threads.clear();
 
+	// Calculate fluid -> rigid body forces
+	calculateRigidForces(fluidContainer, rigidBodies);
+
+
 	//calculateFluidForces(pVector, fluidContainer, radius, mu, 0, n);
 
 	// Calculate surface tension
@@ -88,19 +93,18 @@ void calculateFluidDynamics(vector<Particle*> pVector, FluidContainer* fluidCont
 
 
 //-----------------------------------------------------------------------------------------------------------------//
-void calculateBoundaryVolumes(vector<Particle*> pVector, FluidContainer* fluidContainer, vector<RigidBody*> rigidBodies, float radius, int start, int end)
+void calculateBoundaryVolumes(vector<Particle*> pVector, FluidContainer* fluidContainer, vector<RigidBody*> rigidBodies, float radius)
 {
 	Particle pi = Particle(Vec2f(0, 0), 1.0f);
 	Particle pj = Particle(Vec2f(0, 0), 1.0f);
 
 	// Calculate boundary particle boundary volumes
-	for (int i = start; i < end; i++)
+	for (int b = 0; b < rigidBodies.size(); b++)
 	{
-		// Calculate only boundary particle volumes in this step
-		if (pVector[i]->m_isBoundary)
+		for (int i = 0; i < rigidBodies[b]->m_GhostParticles.size(); i++)
 		{
-	
-			pi = *pVector[i];
+			// Calculate only boundary particle volumes in this step
+			pi = *rigidBodies[b]->m_GhostParticles[i];
 			if (pi.m_GridId != -1)
 			{
 				float volume = 0;
@@ -117,8 +121,8 @@ void calculateBoundaryVolumes(vector<Particle*> pVector, FluidContainer* fluidCo
 				}
 
 				// V_b_i = 1 / W_ik
-				pVector[i]->m_Volume = 1.0f / volume;
-				pVector[i]->m_isActive = active;
+				rigidBodies[b]->m_GhostParticles[i]->m_Volume = 1.0f / volume;
+				rigidBodies[b]->m_GhostParticles[i]->m_isActive = active;
 			}
 		}
 	}
@@ -137,8 +141,9 @@ void calculateFluidDensities(vector<Particle*> pVector, FluidContainer* fluidCon
 
 		// Reset previous variables
 		float density = 0;
+		float pressure = 0;
 
-		if (pi.m_GridId != -1)// && !pi.m_isBoundary) // TODO: Handle boundaries differently
+		if (pi.m_GridId != -1)// && (!pi.m_isBoundary || (pi.m_isBoundary && pi.m_isActive))) // TODO: Handle boundaries differently
 		{
 			for (int j = 0; j < fluidContainer->m_Neighbours[pi.m_GridId].size(); j++)
 			{
@@ -210,10 +215,39 @@ void calculateFluidForces(vector<Particle*> pVector, FluidContainer* fluidContai
 
 		pVector[i]->m_Force += mu * viscocityForce;
 
-		pVector[i]->m_Force += Vec2f(0.0f, -0.000981) * pi.m_Density;			// Gravity
+		// Add gravity
+		if(!pVector[i]->m_isBoundary)
+			pVector[i]->m_Force += Vec2f(0.0f, -0.000981) * pi.m_Density;			// Gravity
 	}
 }
 
+
+//-----------------------------------------------------------------------------------------------------------------//
+void calculateRigidForces(FluidContainer* fluidContainer, vector<RigidBody*> rigidBodies)
+{
+	Particle pi = Particle(Vec2f(0, 0), 1.0f);
+
+	// Calculate forces
+	for (int b = 0; b < rigidBodies.size(); b++)
+	{
+		Vec2f totalBoundaryForce = 0;
+		float totalTorque = 0;
+
+		for (int i = 0; i < rigidBodies[b]->m_GhostParticles.size(); i++)
+		{
+			pi = *rigidBodies[b]->m_GhostParticles[i];
+
+			if (pi.m_isActive)
+			{
+				// Calculate total force and torque applied to the rigid body
+				totalBoundaryForce += pi.m_Force;
+				totalTorque += Util::crossProduct((pi.m_Position - rigidBodies[b]->m_Position), pi.m_Force);
+			}
+		}
+		rigidBodies[b]->m_Force += totalBoundaryForce * 0.01f;
+		rigidBodies[b]->m_Torque += totalTorque;
+	}
+}
 //-----------------------------------------------------------------------------------------------------------------//
 void calculateSurfaceTension(std::vector<Particle*> pVector, FluidContainer* fluidContainer, float radius)
 {

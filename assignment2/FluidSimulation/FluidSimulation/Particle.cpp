@@ -46,9 +46,14 @@ void Particle::draw(bool renderFluid)
 	// Draw boundary particles
 	if (m_isBoundary)
 	{
-		glColor4f(1.0, 0.3, 0.3, 1.0);
+
+		glColor4f(0.3, 1.0, 0.3, 1.0);
+		if(m_isActive)
+			glColor4f(1.0, 0.3, 0.3, 1.0);
+			
 
 		glPointSize(15.0f);
+
 
 		glBegin(GL_POINTS);
 		glVertex2f(m_Position[0], m_Position[1]);
@@ -68,6 +73,7 @@ void Particle::draw(bool renderFluid)
 			glEnd();
 
 			glColor3f((m_Pressure * 0.8) + 0.4f, 0.3f, 1.0f - (m_Pressure * 0.8));
+
 
 			glPointSize(8.0f);
 
