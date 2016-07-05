@@ -98,32 +98,57 @@ void calculateBoundaryVolumes(vector<Particle*> pVector, FluidContainer* fluidCo
 	Particle pi = Particle(Vec2f(0, 0), 1.0f);
 	Particle pj = Particle(Vec2f(0, 0), 1.0f);
 
-	// Calculate boundary particle boundary volumes
-	for (int b = 0; b < rigidBodies.size(); b++)
+	//// Calculate boundary particle boundary volumes
+	//for (int b = 0; b < rigidBodies.size(); b++)
+	//{
+	//	for (int i = 0; i < rigidBodies[b]->m_GhostParticles.size(); i++)
+	//	{
+	//		// Calculate only boundary particle volumes in this step
+	//		pi = *rigidBodies[b]->m_GhostParticles[i];
+	//		if (pi.m_GridId != -1 && !pi.m_isBoundary)
+	//		{
+	//			float volume = 0;
+	//			bool active = false;
+
+	//			for (int j = 0; j < fluidContainer->m_Neighbours[pi.m_GridId].size(); j++)
+	//			{
+	//				pj = *pVector[fluidContainer->m_Neighbours[pi.m_GridId][j]];
+
+	//				if (pj.m_isBoundary)
+	//					volume += Kernels::getWPoly6(pi.m_Position - pj.m_Position, radius);
+	//				else
+	//					active = true;	// boundary particle has fluid neighbour(s) so we activate it.
+	//			}
+
+	//			// V_b_i = 1 / W_ik
+	//			rigidBodies[b]->m_GhostParticles[i]->m_Volume = 1.0f / volume;
+	//			rigidBodies[b]->m_GhostParticles[i]->m_isActive = active;
+	//		}
+	//	}
+	//}
+
+	for (int i = 0; i < pVector.size(); i++)
 	{
-		for (int i = 0; i < rigidBodies[b]->m_GhostParticles.size(); i++)
+		// Calculate only boundary particle volumes in this step
+		pi = *pVector[i];
+		if (pi.m_GridId != -1 && pi.m_isBoundary)
 		{
-			// Calculate only boundary particle volumes in this step
-			pi = *rigidBodies[b]->m_GhostParticles[i];
-			if (pi.m_GridId != -1)
+			float volume = 0;
+			bool active = false;
+
+			for (int j = 0; j < fluidContainer->m_Neighbours[pi.m_GridId].size(); j++)
 			{
-				float volume = 0;
-				bool active = false;
+				pj = *pVector[fluidContainer->m_Neighbours[pi.m_GridId][j]];
 
-				for (int j = 0; j < fluidContainer->m_Neighbours[pi.m_GridId].size(); j++)
-				{
-					pj = *pVector[fluidContainer->m_Neighbours[pi.m_GridId][j]];
-
-					if (pj.m_isBoundary)
-						volume += Kernels::getWPoly6(pi.m_Position - pj.m_Position, radius);
-					else
-						active = true;	// boundary particle has fluid neighbour(s) so we activate it.
-				}
-
-				// V_b_i = 1 / W_ik
-				rigidBodies[b]->m_GhostParticles[i]->m_Volume = 1.0f / volume;
-				rigidBodies[b]->m_GhostParticles[i]->m_isActive = active;
+				if (pj.m_isBoundary)
+					volume += Kernels::getWPoly6(pi.m_Position - pj.m_Position, radius);
+				else
+					active = true;	// boundary particle has fluid neighbour(s) so we activate it.
 			}
+
+			// V_b_i = 1 / W_ik
+			pVector[i]->m_Volume = 1.0f / volume;
+			pVector[i]->m_isActive = active;
 		}
 	}
 }
@@ -161,10 +186,10 @@ void calculateFluidDensities(vector<Particle*> pVector, FluidContainer* fluidCon
 		}
 
 		// P_i = k(rho_i - restDensity_i)
-		float gamma = 1.2f;
+		float gamma = 1.5f;
 		pVector[i]->m_Density = density;
-		pVector[i]->m_Pressure = kd * (density - restDensity);
-		//pVector[i]->m_Pressure = kd * restDensity * (pow((density / restDensity), gamma) - 1);
+		//pVector[i]->m_Pressure = kd * (density - restDensity);
+		pVector[i]->m_Pressure = kd * restDensity * (pow((density / restDensity), gamma) - 1);
 	}
 }
 

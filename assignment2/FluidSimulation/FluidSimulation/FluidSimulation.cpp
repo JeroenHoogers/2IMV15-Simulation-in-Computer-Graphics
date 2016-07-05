@@ -92,7 +92,7 @@ static void init_system(void)
 	// Initialise fluid
 	for (int i = 0; i < 1 / dist; i++)
 	{
-		for (int j = 0; j < 1.25 / dist; j++)
+		for (int j = 0; j < 1.2 / dist; j++)
 		{
 			//if(j == 5)
 			//	pVector.push_back(new Particle(Vec2f(-0.95 + ((j % 2) * 0.02) + dist * i, 0.25 - dist * j), 0.4f, radius, true));
@@ -100,7 +100,24 @@ static void init_system(void)
 			pVector.push_back(new Particle(Vec2f(-0.95 + ((j % 2) * 0.02) + dist * i, 0.25 - dist * j), 0.4f, radius));
 			//	forces.push_back(new GravityForce(pVector[pVector.size() - 1]));
 			//	forces.push_back(new DragForce(pVector[pVector.size() - 1]));
-			forces.push_back(new WallForce(pVector[pVector.size() - 1]));
+			//forces.push_back(new WallForce(pVector[pVector.size() - 1]));
+		}
+	}
+
+	// Create borders
+	const float density = 0.02;
+	for (int i = 0; i < 1.96 / density; i++)
+	{
+		for (int j = 0; j < 1.96 / density; j++)
+		{
+			//if(j == 5)
+			//	pVector.push_back(new Particle(Vec2f(-0.95 + ((j % 2) * 0.02) + dist * i, 0.25 - dist * j), 0.4f, radius, true));
+			//else
+			if(j == 0 || j == int(1.96 / density) || i == 0 || i == int(1.96 / density))
+				pVector.push_back(new Particle(Vec2f(-0.98 + density * i, -0.98 + density * j), 0.4f, radius, true, true));
+			//	forces.push_back(new GravityForce(pVector[pVector.size() - 1]));
+			//	forces.push_back(new DragForce(pVector[pVector.size() - 1]));
+			// forces.push_back(new WallForce(pVector[pVector.size() - 1]));
 		}
 	}
 

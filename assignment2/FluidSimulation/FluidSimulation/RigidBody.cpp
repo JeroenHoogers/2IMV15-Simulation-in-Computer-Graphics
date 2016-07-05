@@ -30,6 +30,11 @@ void RigidBody::reset()
 	{
 		m_Vertices[i]->reset();
 	}
+
+	for (int i = 0; i < m_GhostParticles.size(); i++)
+	{
+		m_GhostParticles[i]->m_LocalPosition = m_GhostParticles[i]->m_ConstructPos - m_ConstructPos;
+	}
 }
 
 void RigidBody::draw()
@@ -145,7 +150,7 @@ Vec2f RigidBody::BroadPhase(RigidBody* other)
 
 void RigidBody::generateGhostParticles()
 {
-	float density = 0.02;
+	float density = 0.015;
 
 	// Generate ghost particles on the edges of our object.
 	for (int i = 0; i < m_Vertices.size(); i++)
@@ -171,7 +176,7 @@ void RigidBody::generateGhostParticles()
 
 		for (int j = 1; j < dist / density; j++)
 		{
-			// Generate ghost particle
+			// Generate boundary particle
 			m_GhostParticles.push_back(
 				new Particle(
 					v1 + m_Position + dir * (j * density),
