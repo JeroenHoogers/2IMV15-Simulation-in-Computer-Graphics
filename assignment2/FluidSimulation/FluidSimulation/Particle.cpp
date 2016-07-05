@@ -31,6 +31,29 @@ void Particle::reset()
 	m_Force = Vec2f(0.0, 0.0);
 }
 
+void Particle::drawSurface()
+{
+	glBegin(GL_TRIANGLE_FAN);
+
+	glColor4f(1.0, 1.0, 1.0, 1.0);
+	////glColor4f(0.5, 0.5, 1.0, 0.5);
+	glVertex2f(m_Position[0], m_Position[1]);
+	glColor4f(1.0, 1.0, 1.0, 0.1);
+
+
+	float size = 0.05f;
+
+	//glColor4f(0.4, 0.3, 1.0, 0.0);
+	for (int i = 0; i < 360; i = i + 18)
+	{
+		float degInRad = i * M_PI / 180;
+		glVertex2f(m_Position[0] + cos(degInRad) * size, m_Position[1] + sin(degInRad) *size);
+	}
+
+	glVertex2f(m_Position[0] + cos(0) * size, m_Position[1] + sin(0) * size);
+	glEnd();
+}
+
 void Particle::draw(bool renderFluid)
 {
 	const double h = 0.02;
@@ -46,14 +69,11 @@ void Particle::draw(bool renderFluid)
 	// Draw boundary particles
 	if (m_isBoundary)
 	{
-		return;
 		glColor4f(0.3, 1.0, 0.3, 1.0);
 		if(m_isActive)
 			glColor4f(1.0, 0.3, 0.3, 1.0);
 			
-
-		glPointSize(15.0f);
-
+		glPointSize(2.0f);
 
 		glBegin(GL_POINTS);
 		glVertex2f(m_Position[0], m_Position[1]);

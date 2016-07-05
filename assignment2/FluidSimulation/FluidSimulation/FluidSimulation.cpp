@@ -233,7 +233,7 @@ static void draw_particles(void)
 
 	for (int ii = 0; ii< size; ii++)
 	{
-
+		//pVector[ii]->drawSurface();
 		pVector[ii]->draw(enableRenderFluid);
 	}
 

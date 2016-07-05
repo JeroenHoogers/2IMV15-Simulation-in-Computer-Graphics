@@ -161,8 +161,10 @@ void calculateFluidDensities(vector<Particle*> pVector, FluidContainer* fluidCon
 		}
 
 		// P_i = k(rho_i - restDensity_i)
+		float gamma = 1.2f;
 		pVector[i]->m_Density = density;
 		pVector[i]->m_Pressure = kd * (density - restDensity);
+		//pVector[i]->m_Pressure = kd * restDensity * (pow((density / restDensity), gamma) - 1);
 	}
 }
 
@@ -216,8 +218,8 @@ void calculateFluidForces(vector<Particle*> pVector, FluidContainer* fluidContai
 		pVector[i]->m_Force += mu * viscocityForce;
 
 		// Add gravity
-		if(!pVector[i]->m_isBoundary)
-			pVector[i]->m_Force += Vec2f(0.0f, -0.000981) * pi.m_Density;			// Gravity
+		//if(!pVector[i]->m_isBoundary)
+		pVector[i]->m_Force += Vec2f(0.0f, -0.000981) * pi.m_Density;			// Gravity
 	}
 }
 

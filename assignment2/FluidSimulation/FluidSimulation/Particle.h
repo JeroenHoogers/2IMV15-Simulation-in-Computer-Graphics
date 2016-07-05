@@ -21,6 +21,7 @@ public:
 
 	void reset();
 	void draw(bool renderFluid = false);
+	void drawSurface();
 
 	float distTo(Vec2f p);
 
