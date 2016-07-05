@@ -39,8 +39,29 @@ public:
 	{
 		//Absolute sign left out to know postion from line; |a|
 		float a = (v2[1] - v1[1]) * p[0] - (v2[0] - v2[1]) * p[1] + v2[0] * v1[1] - v2[1] * v1[0];
-		float distance = a / sqrt(pow(v2[1] - v1[1], 2) + pow(v2[0] - v1[0], 2));
+		float distance = abs(a) / sqrt(pow(v2[1] - v1[1], 2) + pow(v2[0] - v1[0], 2));
 
+		return distance;
+	}
+	static float distancePointToLineSegment(const Vec2f v1, const Vec2f v2, const Vec2f p)
+	{
+		// Return distance between line segment v1,v2 and point p
+		Vec2f V1ToV2 = v2 - v1;
+		Vec2f V1ToP = p - v1;
+		Vec2f PToV1 = v1 - p;
+		float distance;
+		const float lsqrd = V1ToV2 * V1ToV2;   
+		if (lsqrd == 0.0)		//v == w
+		{
+			distance = sqrt(V1ToP * V1ToP);
+		}			
+		else
+		{
+			const float t = std::fmax(0, std::fmin(1, (V1ToP * V1ToV2) / lsqrd));
+			const Vec2f projection = v1 + t * V1ToV2;
+			Vec2f PtoProjection = projection - p;
+			distance = sqrt(PtoProjection * PtoProjection);
+		}
 		return distance;
 	}
 };

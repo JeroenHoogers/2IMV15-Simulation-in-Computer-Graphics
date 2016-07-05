@@ -217,7 +217,6 @@ vector<float> RigidBody::Project(Vec2f axis, float min, float max) {
 }
 
 Vec2f RigidBody::CollisionCheck(RigidBody* other, Vec2f velocity, float dt) {
-	//PolygonCollisionResult result = new PolygonCollisionResult();
 	m_Intersect = true;
 	m_WillIntersect = true;
 	m_MinTranslation = Vec2f(0, 0);
@@ -302,34 +301,98 @@ Vec2f RigidBody::CollisionCheck(RigidBody* other, Vec2f velocity, float dt) {
 	return m_MinTranslation;
 }
 
-Vec2f RigidBody::findImpactPoint(RigidBody* other)
+vector<Vec2f> RigidBody::findImpactPoint(RigidBody* other)
 {
-	Vec2f closestPoint = Vec2f(0, 0);
-	Vec2f checkPoint = Vec2f((m_Position[0] + other->m_Position[0]) / 2, (m_Position[1] + other->m_Position[1]) / 2);
-	float minDist = FLT_MAX;
+	vector<Vec2f> closestPoints;
+	Vec2f e1;
+	Vec2f e2;
+	Vec2f p;
+	for (int j = 0; j < m_Vertices.size(); j++)
+	{
+		p = m_Vertices[j]->m_Position + m_Position;
+		bool inside = true;
+		for (int i = 0; i < other->m_Vertices.size(); i++)
+		{
 
-	for (int i = 0; i < m_Vertices.size(); i++)
-	{
-		Vec2f vertPosition = m_Vertices[i]->m_Position + m_Position;
-		float currentDist = sqrt(pow(vertPosition[0] - checkPoint[0], 2) + pow(vertPosition[1] - checkPoint[1], 2));
-		if (minDist > currentDist)
+			//Get the points of an edge of the other rigid body
+			e1 = (other->m_Vertices[i]->m_Position + other->m_Position);
+			e2 = (other->m_Vertices[(i + 1) % other->m_Vertices.size()]->m_Position + other->m_Position);
+			
+			float dist = Util::distancePointToLineSegment(e1, e2, p);
+			float side = (p[0] - e1[0])*(e2[1] - e1[1]) - (p[1] - e1[1])*(e2[0] - e1[0]); //Find on which side of the line the point lies
+			if (side >= 0)
+				inside = false; //The point is outside on of the edges
+
+			//The point collides with an edge of the other rigid body
+			if (dist < 0.001)
+			{
+				bool pointFound = false;
+				//Don't include equal points
+				for (int k = 0; k < closestPoints.size(); k++)
+				{
+					if (p[0] == closestPoints[k][0] && p[1] == closestPoints[k][1]) 
+					{
+						pointFound = true;
+						break;
+					}
+
+				}
+				if (!pointFound)
+				{
+					closestPoints.push_back(p);
+					m_ImpactPoints.push_back(p);
+				}
+			}
+		}
+		//The point lies within the other rigid body
+		if (inside)
 		{
-			minDist = currentDist;
-			closestPoint = vertPosition;
+
+			bool pointFound = false;
+			//Don't include equal points
+			for (int k = 0; k < closestPoints.size(); k++)
+			{
+				if (p[0] == closestPoints[k][0] && p[1] == closestPoints[k][1]) 
+				{
+					pointFound = true;
+					break;
+				}
+
+			}
+			if (!pointFound)
+			{
+				closestPoints.push_back(p);
+				m_ImpactPoints.push_back(p);
+			}
 		}
 	}
-	for (int i = 0; i < other->m_Vertices.size(); i++)
-	{
-		Vec2f vertPosition = other->m_Vertices[i]->m_Position + other->m_Position;
-		float currentDist = sqrt(pow(vertPosition[0] - checkPoint[0], 2) + pow(vertPosition[1] - checkPoint[1], 2));
-		if (minDist > currentDist)
-		{
-			minDist = currentDist;
-			closestPoint = vertPosition;
-		}
-	}
-	m_ImpactPoints.push_back(closestPoint);
-	return closestPoint;
+
+
+	//Vec2f checkPoint = Vec2f((m_Position[0] + other->m_Position[0]) / 2, (m_Position[1] + other->m_Position[1]) / 2);
+	//float minDist = 0.15;
+
+	//for (int i = 0; i < m_Vertices.size(); i++)
+	//{
+	//	Vec2f vertPosition = m_Vertices[i]->m_Position + m_Position;
+	//	float currentDist = sqrt(pow(vertPosition[0] - checkPoint[0], 2) + pow(vertPosition[1] - checkPoint[1], 2));
+	//	if (minDist > currentDist)
+	//	{
+	//		//minDist = currentDist;
+	//		closestPoints.push_back(vertPosition);
+	//		m_ImpactPoints.push_back(vertPosition);
+	//	}
+	//}
+	//for (int i = 0; i < other->m_Vertices.size(); i++)
+	//{
+	//	Vec2f vertPosition = other->m_Vertices[i]->m_Position + other->m_Position;
+	//	float currentDist = sqrt(pow(vertPosition[0] - checkPoint[0], 2) + pow(vertPosition[1] - checkPoint[1], 2));
+	//	if (minDist > currentDist)
+	//	{
+	//		minDist = currentDist;
+	//		closestPoint = vertPosition;
+	//	}
+	//}
+	return closestPoints;
 }
 
 void RigidBody::updateGhostParticles()

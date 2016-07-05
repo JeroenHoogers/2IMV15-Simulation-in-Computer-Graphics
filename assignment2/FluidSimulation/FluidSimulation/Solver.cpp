@@ -158,12 +158,14 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 		//uniquePairs[i]->A->m_Force -= newforce * 0.5f; 
 		if (newforce[0] == 0 && newforce[1] == 0)
 			continue;
-		Vec2f contactPoint = pairs[i]->B->findImpactPoint(pairs[i]->A);
+		vector<Vec2f> contactPointsB = pairs[i]->B->findImpactPoint(pairs[i]->A);
+		vector<Vec2f> contactPointsA = pairs[i]->A->findImpactPoint(pairs[i]->B);
+		vector<Vec2f> contactPoints = contactPointsB;
+		contactPoints.insert(contactPoints.end(), contactPointsA.begin(), contactPointsA.end());
 		pairs[i]->B->m_Force += newforce;
 		pairs[i]->A->m_Force -= newforce;
 		//pairs[i]->B->m_Velocity = 0;
 
-		Vec2f relativeVelo = pairs[i]->B->m_Velocity - pairs[i]->A->m_Velocity;
 
 		/*Vec2f normal = Vec2f(0, 0);
 		int size = pairs[i]->A->m_Vertices.size();
@@ -182,41 +184,50 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 				normal = currentNorm;
 			}
 		}*/
-		Vec2f normal = Util::normalise(newforce);
-		Vec2f t = relativeVelo - ((relativeVelo * normal) * normal);
-		t = Util::normalise(t);
-		// Calculate relative velocity in terms of the normal direction
-		float velAlongNormal = (relativeVelo * normal);
+		for (int k = 0; k < contactPoints.size(); k++)
+		{
+			Vec2f rA = contactPoints[k] - pairs[i]->A->m_Position;
+			Vec2f rB = contactPoints[k] - pairs[i]->B->m_Position;
 
-		// Do not resolve if velocities are separating
-		if (velAlongNormal > 0)
-			return;
+			Vec2f pointVelA = pairs[i]->A->m_Velocity + Util::crossProduct(pairs[i]->A->m_AngularVelocity, rA);
+			Vec2f pointVelB = pairs[i]->B->m_Velocity + Util::crossProduct(pairs[i]->B->m_AngularVelocity, rB);
 
-		// Calculate restitution
-		float e = 1;
+			Vec2f relativeVelo = pointVelB - pointVelA;
+			Vec2f normal = Util::normalise(newforce);
+			Vec2f t = relativeVelo - ((relativeVelo * normal) * normal);
+			t = Util::normalise(t);
+			// Calculate relative velocity in terms of the normal direction
+			float velAlongNormal = (relativeVelo * normal);
 
-		// Calculate impulse scalar
-		float j = -(1 + e) * velAlongNormal;
-		j /= 1 / pairs[i]->A->m_Mass
-			+ 1 / pairs[i]->B->m_Mass;
+			// Do not resolve if velocities are separating
+			if (velAlongNormal > 0)
+				return;
 
-		// Apply impulse
-		Vec2f impulse = j * normal;
-		pairs[i]->A->m_Force -= 1 / pairs[i]->A->m_Mass * impulse;
-		pairs[i]->B->m_Force += 1 / pairs[i]->B->m_Mass * impulse;
-		//pairs[i]->A->m_Position -= normal * pairs[i]->distance;
-		//pairs[i]->A->m_Position += normal * pairs[i]->distance;
+			// Calculate restitution
+			float e = 1;
 
-		j = -(1 + e) * (relativeVelo * t);
-		j /= 1 / pairs[i]->A->m_Mass
-			+ 1 / pairs[i]->B->m_Mass
-			+ (pow(Util::crossProduct(contactPoint - pairs[i]->A->m_Position, t), 2) / pairs[i]->A->m_Inertia)
-			+ (pow(Util::crossProduct(contactPoint - pairs[i]->B->m_Position, t), 2) / pairs[i]->B->m_Inertia);
+			// Calculate impulse scalar
+			float j = -(1 + e) * velAlongNormal;
+			j /= 1 / pairs[i]->A->m_Mass
+				+ 1 / pairs[i]->B->m_Mass;
 
+			j += newforce*newforce;
+			// Apply impulse
+			Vec2f impulse = j * normal;
+			pairs[i]->A->m_Force -= impulse;
+			pairs[i]->B->m_Force += impulse;
+			pairs[i]->A->m_Position -= normal * pairs[i]->distance;
+			pairs[i]->A->m_Position += normal * pairs[i]->distance;
 
-		pairs[i]->A->m_Force += impulse;
-		pairs[i]->B->m_Force += impulse;
-		pairs[i]->B->m_Torque += Util::crossProduct(contactPoint - pairs[i]->B->m_Position, impulse);
+			j = -(1 + e) * (relativeVelo * t);
+			j /= 1 / pairs[i]->A->m_Mass
+				+ 1 / pairs[i]->B->m_Mass
+				+ (pow(Util::crossProduct(contactPoints[k] - pairs[i]->A->m_Position, t), 2) / pairs[i]->A->m_Inertia)
+				+ (pow(Util::crossProduct(contactPoints[k] - pairs[i]->B->m_Position, t), 2) / pairs[i]->B->m_Inertia);
+
+			pairs[i]->B->m_Torque += Util::crossProduct(contactPoints[k] - pairs[i]->B->m_Position, impulse);
+		}
+		
 		//pairs[i]->B->m_Torque -= (1 / pairs[i]->B->m_Inertia * Util::crossProduct(pairs[i]->B->getRadiusVec(contactPoint), impulse)) * 0.1f;
 
 	}
@@ -452,8 +463,7 @@ void solveEuler(std::vector<Particle*> pVector, FluidContainer* fluidContainer, 
 		rigidBodies[i]->m_Position += rigidBodies[i]->m_Velocity * dt;
 		rigidBodies[i]->m_Orientation += rigidBodies[i]->m_AngularVelocity * dt;
 		rigidBodies[i]->updateRotation(rigidBodies[i]->m_Orientation);
-		if (i == 0)
-			cout << rigidBodies[i]->m_Orientation << endl;
+
 		for (int j = 0; j < rigidBodies[i]->m_Vertices.size(); j++)
 		{
 			matrix currentVertex = matrix(2, 1);

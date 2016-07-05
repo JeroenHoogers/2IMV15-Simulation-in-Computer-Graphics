@@ -65,7 +65,7 @@ public:
 	float DistInterval(float minA, float maxA, float minB, float maxB);
 	vector<float> Project(Vec2f axis, float min, float max);
 	Vec2f CollisionCheck(RigidBody* polygonB, Vec2f velocity, float dt);
-	Vec2f findImpactPoint(RigidBody* other);
+	vector<Vec2f> findImpactPoint(RigidBody* other);
 	void updateRotation(float angle);
 
 	virtual void calculateInertia() = 0;
