@@ -198,30 +198,43 @@ void FluidContainer::ClearGrid()
 
 void FluidContainer::draw()
 {
-	glColor4f(1, 1, 1, 0.1);
+	// Draw boundaries
+	glLineWidth(3);
+	glColor3f(0.3, 0.3, 0.3);
+	glBegin(GL_LINE_LOOP);
 
-	//glLineWidth(5.0);
-	glPointSize(6.0);
+	glVertex2f(-0.95f, -0.95f);
+	glVertex2f(-0.95f, 0.94f);
+	glVertex2f(0.94f, 0.94f);
+	glVertex2f(0.94f, -0.95f);
+
+	glEnd();
+	glLineWidth(1);
+
+	//glColor4f(1, 1, 1, 0.1);
+
+	////glLineWidth(5.0);
+	//glPointSize(6.0);
 
 
-	//glTranslatef(-1, -1, 0);
-	for (int i = 0; i < m_GridRows * m_GridCols; i++)
-	{
-		//glBegin(GL_LINES);
-		//glVertex2f(-1, i * _cellSize - 1);
-		//glVertex2f(_sceneWidth - 1, i * _cellSize - 1);
-		//glEnd();
+	////glTranslatef(-1, -1, 0);
+	//for (int i = 0; i < m_GridRows * m_GridCols; i++)
+	//{
+	//	//glBegin(GL_LINES);
+	//	//glVertex2f(-1, i * _cellSize - 1);
+	//	//glVertex2f(_sceneWidth - 1, i * _cellSize - 1);
+	//	//glEnd();
 
-		glBegin(GL_POINTS);
+	//	glBegin(GL_POINTS);
 
-		//if(_gridCounters[i] > 0)
-		//{ 
-		glColor4f(1, 1, 1, 0.1f + (_gridCounters[i] ));
-				
-		glVertex2f(m_CenterPoints[i][0], m_CenterPoints[i][1]);
-		//}
-		glEnd();
-	}
+	//	//if(_gridCounters[i] > 0)
+	//	//{ 
+	//	glColor4f(1, 1, 1, 0.1f + (_gridCounters[i] ));
+	//			
+	//	glVertex2f(m_CenterPoints[i][0], m_CenterPoints[i][1]);
+	//	//}
+	//	glEnd();
+	//}
 	//glBegin(GL_LINES);
 	//glColor4f(1, 1, 1, 0.1);
 	////for (int j = 0; j < m_GridCols; j++)

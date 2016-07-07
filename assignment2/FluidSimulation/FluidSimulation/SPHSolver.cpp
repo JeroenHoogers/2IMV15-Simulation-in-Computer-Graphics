@@ -37,9 +37,9 @@ void calculateFluidDynamics(vector<Particle*> pVector, FluidContainer* fluidCont
 
 
 	/// dist = 0.04
-	float kd = 0.005f;					// Stiffness (higher = less compressable)	
+	float kd = 0.006f;					// Stiffness (higher = less compressable)	
 	float mu = 1.5f;					// Viscosity Coefficient (higher = thicker fluids)
-	float restDensity = 275.0f;			// Rest density
+	float restDensity = 255.0f;			// Rest density
 
 	int n = pVector.size();
 	int nrThreads = 4;
@@ -62,7 +62,12 @@ void calculateFluidDynamics(vector<Particle*> pVector, FluidContainer* fluidCont
 
 	// Calculate Fluid Densities
 	for (int i = 0; i < nrThreads; i++)
-		threads.push_back(thread(calculateFluidDensities, pVector, fluidContainer, radius, kd, restDensity, i * (n / nrThreads), (i + 1) * (n / nrThreads)));
+	{
+		start = i * (n / nrThreads);
+		end = (i == nrThreads - 1) ? n : (i + 1) * (n / nrThreads);
+
+		threads.push_back(thread(calculateFluidDensities, pVector, fluidContainer, radius, kd, restDensity, start, end));
+	}
 
 	for (int i = 0; i < nrThreads; i++)
 		threads[i].join();
@@ -74,7 +79,12 @@ void calculateFluidDynamics(vector<Particle*> pVector, FluidContainer* fluidCont
 
 	// Calculate Fluid Forces
 	for (int i = 0; i < nrThreads; i++)
-		threads.push_back(thread(calculateFluidForces, pVector, fluidContainer, radius, mu, i * (n / nrThreads), (i + 1) * (n / nrThreads)));
+	{
+		start = i * (n / nrThreads);
+		end = (i == nrThreads - 1) ? n : (i + 1) * (n / nrThreads);
+
+		threads.push_back(thread(calculateFluidForces, pVector, fluidContainer, radius, mu, start, end));
+	}
 
 	for (int i = 0; i < nrThreads; i++)
 		threads[i].join();
@@ -188,8 +198,8 @@ void calculateFluidDensities(vector<Particle*> pVector, FluidContainer* fluidCon
 		// P_i = k(rho_i - restDensity_i)
 		float gamma = 1.5f;
 		pVector[i]->m_Density = density;
-		//pVector[i]->m_Pressure = kd * (density - restDensity);
-		pVector[i]->m_Pressure = kd * restDensity * (pow((density / restDensity), gamma) - 1);
+		pVector[i]->m_Pressure = kd * (density - restDensity);
+		//pVector[i]->m_Pressure = kd * restDensity * (pow((density / restDensity), gamma) - 1);
 	}
 }
 

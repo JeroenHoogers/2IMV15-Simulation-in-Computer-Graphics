@@ -69,6 +69,7 @@ void Particle::draw(bool renderFluid)
 	// Draw boundary particles
 	if (m_isBoundary)
 	{
+		return;
 		glColor4f(0.3, 1.0, 0.3, 1.0);
 		if(m_isActive)
 			glColor4f(1.0, 0.3, 0.3, 1.0);

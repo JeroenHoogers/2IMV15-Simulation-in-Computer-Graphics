@@ -92,37 +92,34 @@ static void init_system(void)
 	// Initialise fluid
 	for (int i = 0; i < 1 / dist; i++)
 	{
-		for (int j = 0; j < 1.2 / dist; j++)
+		for (int j = 0; j < 1.3 / dist; j++)
 		{
 			//if(j == 5)
 			//	pVector.push_back(new Particle(Vec2f(-0.95 + ((j % 2) * 0.02) + dist * i, 0.25 - dist * j), 0.4f, radius, true));
 			//else
-			pVector.push_back(new Particle(Vec2f(-0.95 + ((j % 2) * 0.02) + dist * i, 0.25 - dist * j), 0.4f, radius));
+			pVector.push_back(new Particle(Vec2f(-0.92 + ((j % 2) * 0.02) + dist * i, 0.4 - dist * j), 0.4f, radius));
 			//	forces.push_back(new GravityForce(pVector[pVector.size() - 1]));
 			//	forces.push_back(new DragForce(pVector[pVector.size() - 1]));
 			//forces.push_back(new WallForce(pVector[pVector.size() - 1]));
 		}
 	}
 
-	// Create borders
-	const float density = 0.02;
+	fluidContainer = new FluidContainer(radius, 2.0f, 2.0f);
+
+	// Create boundary particles
+	const float density = 0.03;
 	for (int i = 0; i < 1.96 / density; i++)
 	{
 		for (int j = 0; j < 1.96 / density; j++)
 		{
-			//if(j == 5)
-			//	pVector.push_back(new Particle(Vec2f(-0.95 + ((j % 2) * 0.02) + dist * i, 0.25 - dist * j), 0.4f, radius, true));
-			//else
-			if(j == 0 || j == int(1.96 / density) || i == 0 || i == int(1.96 / density))
+			if (j < 2 || j > int(1.9 / density) || i < 2 || i > int(1.9 / density))
+			{
+				//fluidContainer->m_BoundaryParticles.push_back(new Particle(Vec2f(-0.98 + density * i, -0.98 + density * j), 0.4f, radius, true, true));
 				pVector.push_back(new Particle(Vec2f(-0.98 + density * i, -0.98 + density * j), 0.4f, radius, true, true));
-			//	forces.push_back(new GravityForce(pVector[pVector.size() - 1]));
-			//	forces.push_back(new DragForce(pVector[pVector.size() - 1]));
-			// forces.push_back(new WallForce(pVector[pVector.size() - 1]));
+			}
 		}
 	}
 
-
-	fluidContainer = new FluidContainer(radius, 2.0f, 2.0f);
 
 	//rigidBodies.push_back(new Box(Vec2f(-0.4, 0.5), 1.5, 0.45, 0.15));
 
@@ -195,10 +192,10 @@ static void rigid_bodies(void)
 	rigidBodies.push_back(new Box(Vec2f(-0.37, -0.81), 1, 0.25, 0.25));
 	rigidBodies.push_back(new Box(Vec2f(-0.8, -0.78), 1, 0.25, 0.25));*/
 
-	rigidBodies.push_back(new Box(Vec2f(0.0, -1.5), 1, 3, 1, true));
-	rigidBodies.push_back(new Box(Vec2f(0.0, 1.5), 1, 3, 1, true));
-	rigidBodies.push_back(new Box(Vec2f(1.5, 0.0), 1, 1, 3, true));
-	rigidBodies.push_back(new Box(Vec2f(-1.5, 0.0), 1, 1, 3, true));
+	rigidBodies.push_back(new Box(Vec2f(0.0, -1.5), 1, 1.98, 1, true));
+	rigidBodies.push_back(new Box(Vec2f(0.0, 1.5), 1, 1.98, 1, true));
+	rigidBodies.push_back(new Box(Vec2f(1.5, 0.0), 1, 1, 1.98, true));
+	rigidBodies.push_back(new Box(Vec2f(-1.5, 0.0), 1, 1, 1.98, true));
 	fluidContainer = new FluidContainer(dist / 2, 2.0f, 2.0f);
 
 	forces.push_back(new DragForce(rigidBodies[0]));
@@ -538,7 +535,7 @@ static void display_func(void)
 
 	draw_forces();
 
-	//fluidContainer->draw();
+	fluidContainer->draw();
 
 	if(enableDrawParticles)
 		draw_particles();

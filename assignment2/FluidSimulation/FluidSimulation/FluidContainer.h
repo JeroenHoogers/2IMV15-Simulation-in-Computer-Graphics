@@ -15,10 +15,9 @@ private:
 
 	vector<int>* _gridCells;
 
-	unordered_multimap<int, int> _gridMap;
-	
-
 public:
+
+	vector<Particle*> m_BoundaryParticles;
 
 	vector<int>* m_Neighbours;
 
