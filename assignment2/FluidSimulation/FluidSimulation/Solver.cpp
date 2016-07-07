@@ -154,16 +154,52 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 	//Narrow phase collisions
 	for (int i = 0; i < pairs.size(); i++)
 	{
+		/*if (pairs[i]->A->m_isFixed)
+			continue;*/
 		Vec2f newforce = pairs[i]->B->CollisionCheck(pairs[i]->A, pairs[i]->B->m_Velocity, dt);
+		Vec2f normal = Util::normalise(newforce);
 		//uniquePairs[i]->A->m_Force -= newforce * 0.5f; 
 		if (newforce[0] == 0 && newforce[1] == 0)
 			continue;
+		//if (pairs[i]->A->m_isFixed)
+		//{
+		//	newforce = Vec2f(0, 0) - pairs[i]->A->m_Position;
+		//	newforce = Util::normalise(newforce);
+		//}
+		//else if (pairs[i]->B->m_isFixed)
+		//{
+		//	newforce = Vec2f(0, 0) - pairs[i]->B->m_Position;
+		//	newforce = Util::normalise(newforce);
+		//}
 		vector<Vec2f> contactPointsB = pairs[i]->B->findImpactPoint(pairs[i]->A);
 		vector<Vec2f> contactPointsA = pairs[i]->A->findImpactPoint(pairs[i]->B);
 		vector<Vec2f> contactPoints = contactPointsB;
 		contactPoints.insert(contactPoints.end(), contactPointsA.begin(), contactPointsA.end());
-		pairs[i]->B->m_Force += newforce;
-		pairs[i]->A->m_Force -= newforce;
+
+		//if (pairs[i]->B->m_isFixed)
+		//{
+		//	Vec2f Vn = (normal * pairs[i]->A->m_Velocity) * normal;
+		//	Vec2f Vt = pairs[i]->A->m_Velocity - Vn;
+		//	pairs[i]->A->m_Force -= (Vt - Vn) * pairs[i]->A->m_Mass;
+		//	//pairs[i]->A->m_Position -= normal * 0.0001f;
+		//	//newforce += Vt - Vn;
+		//	//+= pairs[i]->A->m_Velocity - ((newforce * pairs[i]->A->m_Velocity) * newforce);
+		//}
+		//else if (pairs[i]->A->m_isFixed)
+		//{
+		//	Vec2f Vn = (normal * pairs[i]->B->m_Velocity) * normal;
+		//	Vec2f Vt = pairs[i]->B->m_Velocity - Vn;
+		//	pairs[i]->B->m_Force += (Vt - Vn) * pairs[i]->B->m_Mass;
+		//	//pairs[i]->B->m_Position += normal * 0.0001f;
+		//	//pairs[i]->B->m_Position += normal * pairs[i]->B->m_Velocity;
+		//	//newforce += Vt - Vn;
+		//	//pairs[i]->B->m_Force += pairs[i]->B->m_Velocity - ((newforce * pairs[i]->B->m_Velocity) * newforce);
+		//}
+		//else
+		//{
+			pairs[i]->A->m_Force -= newforce * pairs[i]->A->m_Mass;
+			pairs[i]->B->m_Force += newforce * pairs[i]->B->m_Mass;
+		//}
 		//pairs[i]->B->m_Velocity = 0;
 
 
@@ -193,7 +229,6 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 			Vec2f pointVelB = pairs[i]->B->m_Velocity + Util::crossProduct(pairs[i]->B->m_AngularVelocity, rB);
 
 			Vec2f relativeVelo = pointVelB - pointVelA;
-			Vec2f normal = Util::normalise(newforce);
 			Vec2f t = relativeVelo - ((relativeVelo * normal) * normal);
 			t = Util::normalise(t);
 			// Calculate relative velocity in terms of the normal direction
@@ -214,18 +249,43 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 			j += newforce*newforce;
 			// Apply impulse
 			Vec2f impulse = j * normal;
-			pairs[i]->A->m_Force -= impulse;
-			pairs[i]->B->m_Force += impulse;
-			pairs[i]->A->m_Position -= normal * pairs[i]->distance;
-			pairs[i]->A->m_Position += normal * pairs[i]->distance;
+
+			if (pairs[i]->B->m_isFixed)
+			{
+				pairs[i]->A->m_Force -= impulse;
+				pairs[i]->A->m_Position += normal * pairs[i]->distance;
+			}
+			else if (pairs[i]->A->m_isFixed)
+			{
+				pairs[i]->B->m_Force += impulse;
+				pairs[i]->B->m_Position += normal * pairs[i]->distance;
+			}
+			else
+			{
+				pairs[i]->A->m_Force -= impulse;
+				pairs[i]->B->m_Force += impulse;
+				pairs[i]->A->m_Position -= normal * pairs[i]->distance;
+				pairs[i]->B->m_Position += normal * pairs[i]->distance;
+			}
+
+			float momentOfInertiaA = pairs[i]->A->m_Mass * (rA * rA);
+			float momentOfInertiaB = pairs[i]->B->m_Mass * (rB * rB);
 
 			j = -(1 + e) * (relativeVelo * t);
 			j /= 1 / pairs[i]->A->m_Mass
 				+ 1 / pairs[i]->B->m_Mass
-				+ (pow(Util::crossProduct(contactPoints[k] - pairs[i]->A->m_Position, t), 2) / pairs[i]->A->m_Inertia)
-				+ (pow(Util::crossProduct(contactPoints[k] - pairs[i]->B->m_Position, t), 2) / pairs[i]->B->m_Inertia);
+				+ (pow(Util::crossProduct(contactPoints[k] - pairs[i]->A->m_Position, t), 2) / momentOfInertiaA)
+				+ (pow(Util::crossProduct(contactPoints[k] - pairs[i]->B->m_Position, t), 2) / momentOfInertiaB);
 
-			pairs[i]->B->m_Torque += Util::crossProduct(contactPoints[k] - pairs[i]->B->m_Position, impulse);
+			if (pairs[i]->B->m_isFixed)
+				pairs[i]->A->m_Torque -= ((1.0f / momentOfInertiaA) * Util::crossProduct(contactPoints[k] - pairs[i]->A->m_Position, impulse));
+			if (pairs[i]->A->m_isFixed)
+				pairs[i]->B->m_Torque += ((1.0f / momentOfInertiaB) * Util::crossProduct(contactPoints[k] - pairs[i]->B->m_Position, impulse));
+			else
+			{
+				pairs[i]->B->m_Torque += (1.0f / momentOfInertiaB) * Util::crossProduct(contactPoints[k] - pairs[i]->B->m_Position, impulse);
+				//pairs[i]->A->m_Torque -= (1.0f / momentOfInertiaA) * Util::crossProduct(contactPoints[k] - pairs[i]->A->m_Position, impulse);
+			}
 		}
 		
 		//pairs[i]->B->m_Torque -= (1 / pairs[i]->B->m_Inertia * Util::crossProduct(pairs[i]->B->getRadiusVec(contactPoint), impulse)) * 0.1f;
@@ -457,9 +517,11 @@ void solveEuler(std::vector<Particle*> pVector, FluidContainer* fluidContainer, 
 	for (int i = 0; i < rigidBodies.size(); i++)
 	{
 		if (rigidBodies[i]->m_isFixed)
+		{
 			continue;
+		}
 		rigidBodies[i]->m_Velocity += rigidBodies[i]->m_Force * (1.0f / rigidBodies[i]->m_Mass) * dt;
-  		rigidBodies[i]->m_AngularVelocity += rigidBodies[i]->m_Torque * (1.0f / rigidBodies[i]->m_Inertia) * dt;
+  		rigidBodies[i]->m_AngularVelocity += rigidBodies[i]->m_Torque  * (1.0f / rigidBodies[i]->m_Inertia) * dt;
 		rigidBodies[i]->m_Position += rigidBodies[i]->m_Velocity * dt;
 		rigidBodies[i]->m_Orientation += rigidBodies[i]->m_AngularVelocity * dt;
 		rigidBodies[i]->updateRotation(rigidBodies[i]->m_Orientation);
@@ -473,7 +535,7 @@ void solveEuler(std::vector<Particle*> pVector, FluidContainer* fluidContainer, 
 			rigidBodies[i]->m_Vertices[j]->m_Position = Vec2f(result.getValue(0, 0), result.getValue(1, 0));
 		}
 		//Drag force
-		//rigidBodies[i]->m_AngularVelocity *= 0.98f;
+		rigidBodies[i]->m_AngularVelocity *= 0.9999f;
 
 
 		//rigidBodies[i]->updateGhostParticles();
