@@ -147,7 +147,6 @@ Vec2f RigidBody::BroadPhase(RigidBody* other)
 	return Vec2f(0, 0);
 }
 
-
 void RigidBody::generateGhostParticles()
 {
 	float density = 0.015;
