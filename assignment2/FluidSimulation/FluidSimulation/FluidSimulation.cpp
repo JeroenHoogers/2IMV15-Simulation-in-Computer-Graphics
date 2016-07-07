@@ -121,7 +121,7 @@ static void init_system(void)
 	}
 
 
-	//rigidBodies.push_back(new Box(Vec2f(-0.4, 0.5), 1.5, 0.45, 0.15));
+	//rigidBodies.push_back(new Box(Vec2f(-0.4, 0.5), 3, 0.45, 0.15));
 
 	rigidBodies.push_back(new Box(Vec2f(-0.2, 0.7), 3, 0.2, 0.2));
 	//forces.push_back(new GravityForce(rigidBodies[rigidBodies.size() - 1]));
@@ -533,14 +533,14 @@ static void display_func(void)
 {
 	pre_display();
 
-	draw_forces();
-
-	fluidContainer->draw();
-
 	if(enableDrawParticles)
 		draw_particles();
+
+	fluidContainer->draw();
 	
 	draw_rigidBodies();
+
+	draw_forces();
 
 	post_display();
 }

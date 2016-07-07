@@ -20,9 +20,8 @@ void MouseForce::draw()
 				continue;
 
 			glBegin(GL_LINES);
-			glColor3f(0.2, 0.4, 0.4);
+			glColor4f(1, 1, 1, 0.3);
 			glVertex2f(m_particles[i]->m_Position[0], m_particles[i]->m_Position[1]);
-			glColor3f(0.2, 0.4, 0.4);
 			glVertex2f(m_mousePos[0], m_mousePos[1]);
 			glEnd();
 		}
@@ -32,9 +31,8 @@ void MouseForce::draw()
 		for (int i = 0; i < m_rigidbodies.size(); i++)
 		{
 			glBegin(GL_LINES);
-			glColor3f(0.2, 0.4, 0.4);
+			glColor4f(1, 1, 1, 0.3);
 			glVertex2f(m_rigidbodies[i]->m_Position[0], m_rigidbodies[i]->m_Position[1]);
-			glColor3f(0.2, 0.4, 0.4);
 			glVertex2f(m_mousePos[0], m_mousePos[1]);
 			glEnd();
 		}

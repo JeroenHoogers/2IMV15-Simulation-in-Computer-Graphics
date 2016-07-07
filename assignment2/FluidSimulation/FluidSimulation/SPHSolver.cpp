@@ -37,9 +37,9 @@ void calculateFluidDynamics(vector<Particle*> pVector, FluidContainer* fluidCont
 
 
 	/// dist = 0.04
-	float kd = 0.006f;					// Stiffness (higher = less compressable)	
-	float mu = 1.5f;					// Viscosity Coefficient (higher = thicker fluids)
-	float restDensity = 255.0f;			// Rest density
+	float kd = 0.005f;					// Stiffness (higher = less compressable)	
+	float mu = 1.75f;					// Viscosity Coefficient (higher = thicker fluids)
+	float restDensity = 275.0f;			// Rest density
 
 	int n = pVector.size();
 	int nrThreads = 4;
@@ -196,10 +196,14 @@ void calculateFluidDensities(vector<Particle*> pVector, FluidContainer* fluidCon
 		}
 
 		// P_i = k(rho_i - restDensity_i)
-		float gamma = 1.5f;
+		float gamma = 1.3f;
 		pVector[i]->m_Density = density;
-		pVector[i]->m_Pressure = kd * (density - restDensity);
-		//pVector[i]->m_Pressure = kd * restDensity * (pow((density / restDensity), gamma) - 1);
+
+		// 
+		//pVector[i]->m_Pressure = kd * (density - restDensity);
+
+		// Tait equation
+		pVector[i]->m_Pressure = kd * restDensity * (pow((density / restDensity), gamma) - 1);
 	}
 }
 

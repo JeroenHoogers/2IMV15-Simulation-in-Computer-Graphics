@@ -199,7 +199,7 @@ void FluidContainer::ClearGrid()
 void FluidContainer::draw()
 {
 	// Draw boundaries
-	glLineWidth(3);
+	glLineWidth(4);
 	glColor3f(0.3, 0.3, 0.3);
 	glBegin(GL_LINE_LOOP);
 
