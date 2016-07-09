@@ -115,6 +115,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Box.cpp" />
+    <ClCompile Include="Cloth.cpp" />
     <ClCompile Include="DragForce.cpp" />
     <ClCompile Include="FluidContainer.cpp" />
     <ClCompile Include="FluidSimulation.cpp" />
@@ -127,10 +128,12 @@
     <ClCompile Include="RigidBody.cpp" />
     <ClCompile Include="Solver.cpp" />
     <ClCompile Include="SPHSolver.cpp" />
+    <ClCompile Include="SpringForce.cpp" />
     <ClCompile Include="WallForce.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Box.h" />
+    <ClInclude Include="Cloth.h" />
     <ClInclude Include="DragForce.h" />
     <ClInclude Include="FluidContainer.h" />
     <ClInclude Include="GLUtil.h" />
@@ -143,6 +146,7 @@
     <ClInclude Include="MouseForce.h" />
     <ClInclude Include="Particle.h" />
     <ClInclude Include="RigidBody.h" />
+    <ClInclude Include="SpringForce.h" />
     <ClInclude Include="Utility.h" />
     <ClInclude Include="WallForce.h" />
   </ItemGroup>

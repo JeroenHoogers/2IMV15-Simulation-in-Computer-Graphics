@@ -6,6 +6,7 @@
 #include "Box.h"
 #include "IForce.h"
 #include "MouseForce.h"
+#include "SpringForce.h"
 #include "DragForce.h"
 #include "GravityForce.h"
 #include "FluidContainer.h"
@@ -52,7 +53,8 @@ static int method = 0;
 static bool enableMouse = true;
 static bool enableStandard = true;
 static bool enableBodies = false;
-static bool enableHair = false;
+static bool enableMoreBodies = false;
+static bool enableCloth = false;
 static bool enableDrawParticles = true;
 static bool enableRenderFluid = false;
 static bool enableDrawGrid = true;
@@ -81,6 +83,115 @@ static void clear_data(void)
 	}
 }
 
+static void createClothGrid(float radius)
+{
+	const double dist = 0.07;
+	const int length = 12; // Should be an even number
+	const Vec2f center(0.5, 0.0);
+	const Vec2f offset(dist, 0.0);
+	const Vec2f offseth(0.0, dist);
+	double mass = 0.5;
+	radius *= 0.9f;
+	//Initialise grid
+	for (int i = -(length / 2); i < (length / 2); i++)
+	{
+		for (int j = -(length / 2); j < (length / 2); j++)
+		{
+			//add a higher mass to outer particles
+			/*if (i == -(length / 2) || i == (length / 2) - 1 || j == -(length / 2) || j == (length / 2) - 1)
+				mass = 2.0;
+			else
+				mass = 0.5;*/
+
+			//set 2 fixed points for the cloth
+			if (/*(j == -(length / 2) || j == (length / 2 - 1) || j == 1) &&*/ i == (length / 2 - 1))
+			{
+				pVector.push_back(new Particle(center + ((float)i * offseth) + ((float)j * offset), mass, radius, true, true));
+			}
+			else
+			{
+				pVector.push_back(new Particle(center + ((float)i * offseth) + ((float)j * offset), mass, radius, false, true));
+			}
+
+			//pVector.push_back(new Particle(center + ((float)i * offseth) + ((float)j * offset), mass, true));
+			//add remaining points
+			//if ((j == -(length / 2) || j == (length / 2 - 1) || j == -1) && i == (length / 2 - 1))
+			//{
+				//constraints.push_back(new WireConstraint(pVector[pVector.size() - 1], pVector[pVector.size() - 1]->m_ConstructPos, 0));
+				//constraints.push_back(new WireConstraint(pVector[pVector.size() - 1], pVector[pVector.size() - 1]->m_ConstructPos, 1));
+				//constraints.push_back(new PointConstraint(pVector[pVector.size() - 1], pVector[pVector.size() - 1]->m_ConstructPos));
+			//}
+		}
+	}
+
+	for (int i = 0; i < pVector.size(); i++)
+	{
+		// Add gravity
+		//forces.push_back(new GravityForce(pVector[i]));
+
+		// Add drag
+		forces.push_back(new DragForce(pVector[i]));
+	}
+
+	//Add spring force
+	for (int i = 0; i < pVector.size() - 1; i++)
+	{
+		//add horizontal springs
+		if (!((i + 1) % length == 0))
+			forces.push_back(new SpringForce(pVector[i], pVector[i + 1], dist, 20.04, 2.25));
+		if (i < pVector.size() - length)
+		{
+			//add vertical springs
+			forces.push_back(new SpringForce(pVector[i], pVector[i + length], dist, 20.04, 2.25));
+
+			//add diagonal springs
+			if (!((i + 1) % length == 0))
+				forces.push_back(new SpringForce(pVector[i + length], pVector[i + 1], dist * sqrt(2), 20.06, 2.5));
+			if (!((i) % length == 0))
+				forces.push_back(new SpringForce(pVector[i + length], pVector[i - 1], dist * sqrt(2), 20.06, 2.5));
+
+			//add horizontal damping springs
+			if (i < pVector.size() - (2 * length))
+			{
+				forces.push_back(new SpringForce(pVector[i], pVector[i + 2 * length], 2 * dist, 20.02, 2.1, false));
+
+				//if (pVector[i + 2]->m_isFixed == false)
+				//	forces.push_back(new AngularForce(pVector[i], pVector[i + 1], pVector[i + 2], 180, 0.005, 0.05));
+			}
+		}
+		//add vertical damping springs
+		if (!((i + 2) % length == 0) && !((i + 1) % length == 0))
+		{
+			forces.push_back(new SpringForce(pVector[i], pVector[i + 2], 2 * dist, 10.02, 2.1, false));
+			//if (pVector[i + 2]->m_isFixed == false)
+			//	forces.push_back(new AngularForce(pVector[i], pVector[i + 1], pVector[i + 2], 180, 0.005, 0.05));
+		}
+
+	}
+
+	//Add mouse force
+	/*if (enableMouse)
+	{
+		mouseForce = new MouseForce(pVector[0], Vec2f(0, 0), dist, 1.0, 1.0);
+		forces.push_back(mouseForce);
+	}*/
+
+	//Contstraints
+	//test : 
+	//constraints.push_back(new CircularWireConstraint(pVector[length*length - 1], pVector[length*length - 1]->m_ConstructPos + offseth, dist));
+	//constraints.push_back(new CircularWireConstraint(pVector[length*length - length], pVector[length*length - length]->m_ConstructPos + offseth, dist));
+	// TODO : LineWireConstraint
+
+	// Add Wall forces
+	for (int i = 0; i < pVector.size(); i++)
+	{
+		forces.push_back(new WallForce(pVector[i]));
+	}
+
+	//Angular springs
+	//{ }
+}
+
 static void init_system(void)
 {
 	const float dist = 0.04;
@@ -88,6 +199,11 @@ static void init_system(void)
 	const Vec2f offset(dist, 0.0);
 
 	const float radius = dist * 1.15f;
+	
+	if (enableCloth)
+	{
+		createClothGrid(radius);
+	}
 
 	// Initialise fluid
 	for (int i = 0; i < 1 / dist; i++)
@@ -123,21 +239,23 @@ static void init_system(void)
 
 	//rigidBodies.push_back(new Box(Vec2f(-0.4, 0.5), 3, 0.45, 0.15));
 
-	rigidBodies.push_back(new Box(Vec2f(-0.2, 0.7), 3, 0.2, 0.2));
-	//forces.push_back(new GravityForce(rigidBodies[rigidBodies.size() - 1]));
-
-	// Calculate rigid body ghost particles for coupling
-	for (int i = 0; i < rigidBodies.size(); i++)
+	if (enableMoreBodies)
 	{
-		rigidBodies[i]->generateGhostParticles();
+		rigidBodies.push_back(new Box(Vec2f(-0.2, 0.7), 3, 0.2, 0.2));
+		//forces.push_back(new GravityForce(rigidBodies[rigidBodies.size() - 1]));
 
-		// Add ghost particles to fluid simulation for rigidbody to fluid interaction
-		for (int j = 0; j < rigidBodies[i]->m_GhostParticles.size(); j++)
+		// Calculate rigid body ghost particles for coupling
+		for (int i = 0; i < rigidBodies.size(); i++)
 		{
-			pVector.push_back(rigidBodies[i]->m_GhostParticles[j]);
+			rigidBodies[i]->generateGhostParticles();
+
+			// Add ghost particles to fluid simulation for rigidbody to fluid interaction
+			for (int j = 0; j < rigidBodies[i]->m_GhostParticles.size(); j++)
+			{
+				pVector.push_back(rigidBodies[i]->m_GhostParticles[j]);
+			}
 		}
 	}
-
 	std::cout << "particles: " << pVector.size() << std::endl;
 
 	//pVector.push_back(new Particle(center + offset + offset, 1));
@@ -181,33 +299,37 @@ static void rigid_bodies(void)
 	const float dist = 0.12;
 	const Vec2f center(0.0, 0.0);
 	const Vec2f offset(dist, 0.0);
+	
+	if (!enableMoreBodies)
+	{
+		rigidBodies.push_back(new Box(center, 3, 0.5, 0.5));
+		rigidBodies.push_back(new Box(Vec2f(0.35, -0.4), 3, 0.25, 0.25));
+		forces.push_back(new DragForce(rigidBodies[0]));
+		forces.push_back(new DragForce(rigidBodies[1]));
+		forces.push_back(new GravityForce(rigidBodies[0]));
+		forces.push_back(new GravityForce(rigidBodies[1]));
+	}
 
-	rigidBodies.push_back(new Box(center, 3, 0.5, 0.5));
-	rigidBodies.push_back(new Box(Vec2f(0.35, -0.4), 3, 0.25, 0.25));
-	/*rigidBodies.push_back(new Box(Vec2f(0.35, -0.54), 1, 0.25, 0.25));
-	rigidBodies.push_back(new Box(Vec2f(-0.38, -0.34), 1, 0.25, 0.25));
-	rigidBodies.push_back(new Box(Vec2f(0.33, 0.44), 1, 0.25, 0.25));
-	rigidBodies.push_back(new Box(Vec2f(-0.36, 0.63), 1, 0.25, 0.25));
-	rigidBodies.push_back(new Box(Vec2f(-0.31, 0.25), 1, 0.25, 0.25));
-	rigidBodies.push_back(new Box(Vec2f(-0.37, -0.81), 1, 0.25, 0.25));
-	rigidBodies.push_back(new Box(Vec2f(-0.8, -0.78), 1, 0.25, 0.25));*/
-
-	rigidBodies.push_back(new Box(Vec2f(0.0, -1.5), 1, 1.98, 1, true));
-	rigidBodies.push_back(new Box(Vec2f(0.0, 1.5), 1, 1.98, 1, true));
-	rigidBodies.push_back(new Box(Vec2f(1.5, 0.0), 1, 1, 1.98, true));
-	rigidBodies.push_back(new Box(Vec2f(-1.5, 0.0), 1, 1, 1.98, true));
 	fluidContainer = new FluidContainer(dist / 2, 2.0f, 2.0f);
 
-	forces.push_back(new DragForce(rigidBodies[0]));
-	forces.push_back(new DragForce(rigidBodies[1]));
-	forces.push_back(new GravityForce(rigidBodies[0]));
-	//forces.push_back(new GravityForce(rigidBodies[1]));
-	/*forces.push_back(new GravityForce(rigidBodies[2]));
-	forces.push_back(new GravityForce(rigidBodies[3]));
-	forces.push_back(new GravityForce(rigidBodies[4]));
-	forces.push_back(new GravityForce(rigidBodies[5]));
-	forces.push_back(new GravityForce(rigidBodies[6]));*/
 
+	if (enableMoreBodies)
+	{
+		rigidBodies.push_back(new Box(Vec2f(0.40, 0.7), 4, 0.25, 0.25));
+		rigidBodies.push_back(new Box(Vec2f(0.35, 0.4), 4, 0.25, 0.25));
+		rigidBodies.push_back(new Box(Vec2f(0, -0.60), 4, 0.60, 0.60));
+		rigidBodies.push_back(new Box(Vec2f(0, -0.95), 4, 0.1, 0.1));
+		forces.push_back(new GravityForce(rigidBodies[0]));
+		forces.push_back(new GravityForce(rigidBodies[1]));
+		forces.push_back(new GravityForce(rigidBodies[2]));
+		forces.push_back(new GravityForce(rigidBodies[3]));
+	}
+
+	//Boundaries (Static rigid bodies)
+	rigidBodies.push_back(new Box(Vec2f(0.0, -1.5), 1, 2, 1, true));
+	rigidBodies.push_back(new Box(Vec2f(0.0, 1.5), 1, 2, 1, true));
+	rigidBodies.push_back(new Box(Vec2f(1.5, 0.0), 1, 1, 2, true));
+	rigidBodies.push_back(new Box(Vec2f(-1.5, 0.0), 1, 1, 2, true));
 
 	std::cout << "particles: " << pVector.size();
 	if (enableMouse)
@@ -215,7 +337,6 @@ static void rigid_bodies(void)
 		mouseForce = new MouseForce(vector<Particle*>(), Vec2f(0, 0), dist, 1.0, 1.0);
 		forces.push_back(mouseForce);
 	}
-
 }
 
 /*
@@ -450,41 +571,54 @@ static void key_func(unsigned char key, int x, int y)
 		dsim = !dsim;
 		break;
 
-	case '1':
-		method = 0;
-		break;
-	case '2':
-		method = 1;
-		break;
-	case '3':
-		method = 2;
 		break;
 	case '4':
 		enableRenderFluid = !enableRenderFluid;
 		break;
 	case '5':
-		enableMouse = !enableMouse;
+		enableStandard = true;
+		enableBodies = false;
+		enableMoreBodies = false;
+		enableCloth = false;
+		
+		free_data();
+		load_Scene();
 		break;
 	case '6':
-		enableStandard = !enableStandard;
-		if (enableStandard)
-		{
-			enableBodies = false;
-		}
+		enableStandard = true;
+		enableBodies = false;
+		enableMoreBodies = false;
+		enableCloth = true;
+		
 		free_data();
 		load_Scene();
 		break;
 	case '7':
-		enableBodies = !enableBodies;
-		if (enableBodies)
-		{
-			enableStandard = false;
-		}
+		enableStandard = true;
+		enableBodies = false;
+		enableMoreBodies = true;
+		enableCloth = false;
+		
+		free_data();
+		load_Scene();
+		break;
+	case '8':
+		enableBodies = true;
+		enableStandard = false;
+		enableMoreBodies = false;
+		enableCloth = false;
+		
 		free_data();
 		load_Scene();
 		break;
 	case '9':
-		enableDrawParticles = !enableDrawParticles;
+		enableBodies = true;
+		enableStandard = false;
+		enableMoreBodies = true;
+		enableCloth = false;
+		
+		free_data();
+		load_Scene();
 		break;
 	}
 }
@@ -611,13 +745,11 @@ int main(int argc, char ** argv)
 	printf("\n\nHow to use this application:\n\n");
 	printf("\t Toggle construction/simulation display with the spacebar key\n");
 	printf("\t Use the '1-9' keys to enable/disable the following functions : \n");
-	printf("\t 1 : Eulers method \n");
-	printf("\t 2 : Midpoint \n");
-	printf("\t 3 : RungKutta \n");
-	printf("\t 5 : Mouse interaction \n");
-	printf("\t 6 : Standard display \n");
-	printf("\t 7 : Rigid Body display \n");
-	printf("\t 9 : Draw particles \n");
+	printf("\t 5 : Standard Fluid \n");
+	printf("\t 6 : Fluid with Cloth \n");
+	printf("\t 7 : Fluid with Rigid Body \n");
+	printf("\t 8 : Simple Rigid Body \n");
+	printf("\t 9 : Multiple Rigid Bodies \n");
 	printf("\t Dump frames by pressing the 'd' key\n");
 	printf("\t Quit by pressing the 'q' key\n");
 

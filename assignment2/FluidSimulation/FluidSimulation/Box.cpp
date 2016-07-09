@@ -9,7 +9,6 @@ Box::Box(const Vec2f constructPos, float density, float width, float height, boo
 	m_isFixed = isFixed;
 	m_Torque = 0;
 	Vec2f p = constructPos;
-
 	// Add vertices
 	m_Vertices = vector<Particle*>();
 	
@@ -20,7 +19,7 @@ Box::Box(const Vec2f constructPos, float density, float width, float height, boo
 	m_Vertices.push_back(new Particle(Vec2f(- width / 2, height / 2)));
 
 	calculateNormals();
-	m_Mass = density * width * height;
+	m_Mass = 0.03 * density;// * width * height;
 	reset();
 	calculateInertia();
 

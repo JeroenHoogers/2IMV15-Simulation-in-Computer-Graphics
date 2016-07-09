@@ -1,7 +1,7 @@
 #include "GravityForce.h"
 
 GravityForce::GravityForce(IPhysicsObject* p) :
-	m_p(p), m_Gravity(Vec2f(0, -0.00581))
+	m_p(p), m_Gravity(Vec2f(0, -0.00981))
 {
 }
 

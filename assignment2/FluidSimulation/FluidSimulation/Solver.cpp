@@ -136,6 +136,7 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 		boxA = *(Box*)pairs[i]->A;
 		boxB = *(Box*)pairs[i]->B;
 
+		
 		//Check for actual Collision
 		Vec2f newforce = pairs[i]->B->CollisionCheck(pairs[i]->A, boxB.m_Velocity, dt);
 		Vec2f normal = Util::normalise(newforce);
@@ -145,57 +146,16 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 			&& (boxB.m_Force[0] + newforce[0] == 0 && boxB.m_Force[1] + newforce[1] == 0))
 			continue;
 
+		//Apply linear forces to the bodies
+		pairs[i]->A->m_Force -= newforce;
+		pairs[i]->B->m_Force += newforce;
+
 		//Determine contact points from both bodies.
 		vector<Vec2f> contactPoints = pairs[i]->B->findImpactPoint(pairs[i]->A);
 		vector<Vec2f> contactPointsB = pairs[i]->A->findImpactPoint(pairs[i]->B);
 		contactPoints.insert(contactPoints.end(), contactPointsB.begin(), contactPointsB.end());
 
-		//Apply linear forces to the bodies
-		pairs[i]->A->m_Force -= newforce;
-		pairs[i]->B->m_Force += newforce;
 
-		//Correct positions to avoid penetration
-		//Determine Y-axis penetration depth
-		float minA = 0; float minB = 0; float maxA = 0; float maxB = 0;
-		vector<float> resultA = pairs[i]->A->Project(Vec2f(0, 1), minA, maxA);
-		vector<float> resultB = pairs[i]->B->Project(Vec2f(0, 1), minB, maxB);
-		minA = resultA[0];
-		maxA = resultA[1];
-		minB = resultB[0];
-		maxB = resultB[1];
-		float penetrationY = abs(pairs[i]->A->DistInterval(minA, maxA, minB, maxB));
-
-		//Determine X-axis penetration depth
-		resultA = pairs[i]->A->Project(Vec2f(1, 0), minA, maxA);
-		resultB = pairs[i]->B->Project(Vec2f(1, 0), minB, maxB);
-		minA = resultA[0];
-		maxA = resultA[1];
-		minB = resultB[0];
-		maxB = resultB[1];
-		float penetrationX = abs(pairs[i]->A->DistInterval(minA, maxA, minB, maxB));
-
-		//Get the least penetration
-		float penetration = min(penetrationX, penetrationY);
-
-		//Correct actual penetration
-		const float perct = 0.1; // correction percentage
-		const float allowpen = 0.01; // allowed penetration, to avoid stuttering at rest.
-		float massInverseA = (1 / boxA.m_Mass);
-		float massInverseB = (1 / boxB.m_Mass);
-		Vec2f corr = max(penetration - allowpen, 0.0f) / (massInverseA + massInverseB) * perct * normal;
-		if (boxA.m_isFixed)
-		{
-			pairs[i]->B->m_Position += 2.0f * (massInverseB * corr);
-		}
-		else if (boxB.m_isFixed)
-		{
-			pairs[i]->A->m_Position -= 2.0f * (massInverseA * corr);
-		}
-		else
-		{
-			pairs[i]->A->m_Position -= massInverseA * corr;
-			pairs[i]->B->m_Position += massInverseB * corr;
-		}
 
 		//Loop all contact points to determine angular rotations
 		for (int k = 0; k < contactPoints.size(); k++)
@@ -215,7 +175,7 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 
 			// Do not resolve if velocities are separating
 			if (velAlongNormal > 0)
-				return;
+				continue;
 
 			// Calculate restitution
 			float e = 1;
@@ -243,6 +203,51 @@ void calculateRigidDynamics(std::vector<RigidBody*> rigidBodies, std::vector<IFo
 				pairs[i]->A->m_Torque -= ((1.0f / momentOfInertiaA) * Util::crossProduct(contactPoints[k] - boxA.m_Position, impulse));
 			}
 		}
+		////Correct positions to avoid penetration
+
+		//Vec2f relativeNormal = Util::normalise(boxB.m_Position - boxA.m_Position);
+
+		////Determine Y-axis penetration depth
+		//float minA = 0; float minB = 0; float maxA = 0; float maxB = 0;
+		//vector<float> resultA = pairs[i]->A->Project(Vec2f(0, 1), minA, maxA);
+		//vector<float> resultB = pairs[i]->B->Project(Vec2f(0, 1), minB, maxB);
+		//minA = resultA[0];
+		//maxA = resultA[1];
+		//minB = resultB[0];
+		//maxB = resultB[1];
+		//float penetrationY = abs(pairs[i]->A->DistInterval(minA, maxA, minB, maxB));
+
+		////Determine X-axis penetration depth
+		//resultA = pairs[i]->A->Project(Vec2f(1, 0), minA, maxA);
+		//resultB = pairs[i]->B->Project(Vec2f(1, 0), minB, maxB);
+		//minA = resultA[0];
+		//maxA = resultA[1];
+		//minB = resultB[0];
+		//maxB = resultB[1];
+		//float penetrationX = abs(pairs[i]->A->DistInterval(minA, maxA, minB, maxB));
+
+		////Get the least penetration
+		//float penetration = min(penetrationX, penetrationY);
+
+		////Correct actual penetration
+		//const float perct = 0.2; // correction percentage
+		//const float allowpen = 0.1; // allowed penetration, to avoid stuttering at rest.
+		//float massInverseA = (1 / boxA.m_Mass);
+		//float massInverseB = (1 / boxB.m_Mass);
+		//Vec2f corr = max(penetration - allowpen, 0.0f) / (massInverseA + massInverseB) * perct * relativeNormal;
+		//if (boxA.m_isFixed)
+		//{
+		//	pairs[i]->B->m_Position += 2.0f * (massInverseB * corr);
+		//}
+		//else if (boxB.m_isFixed)
+		//{
+		//	pairs[i]->A->m_Position -= 2.0f * (massInverseA * corr);
+		//}
+		//else
+		//{
+		//	pairs[i]->A->m_Position -= massInverseA * corr;
+		//	pairs[i]->B->m_Position += massInverseB * corr;
+		//}
 	}
 }
 
