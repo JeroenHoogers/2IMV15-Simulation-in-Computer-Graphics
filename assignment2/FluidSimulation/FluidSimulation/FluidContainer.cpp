@@ -1,12 +1,14 @@
 #include "FluidContainer.h"
-#include "GLUtil.h"
 #include <algorithm>
+#include <time.h>
 
 using namespace std;
 
+//-----------------------------------------------------------------------------------------------------------------//
 FluidContainer::FluidContainer(float radius, float sceneWidth, float sceneHeight)
 {
 	_cellSize = radius;
+	_radius = radius;
 
 	_sceneWidth = sceneWidth;
 	_sceneHeight = sceneHeight;
@@ -46,8 +48,17 @@ FluidContainer::FluidContainer(float radius, float sceneWidth, float sceneHeight
 
 		//}
 	}
+
+
+	// Initialize fluid renderer
+	_fbo = 0;
+	_fluidTexture = 0;
+	_particleTexture = 0;
+	_textureSize = 512;
+	_threshold = 0.8f;
 }
 
+//-----------------------------------------------------------------------------------------------------------------//
 FluidContainer::~FluidContainer()
 {
 	//// Release memory
@@ -70,8 +81,7 @@ FluidContainer::~FluidContainer()
 	//delete[] _centerPoints;
 }
 
-#include <time.h>
-
+//-----------------------------------------------------------------------------------------------------------------//
 void FluidContainer::UpdateGrid(vector<Particle*> particles)
 {
 	//ClearGrid();
@@ -120,18 +130,16 @@ void FluidContainer::UpdateGrid(vector<Particle*> particles)
 	//std::cout << float(clock() - begin_time2) / CLOCKS_PER_SEC << std::endl;
 }
 
-
+//-----------------------------------------------------------------------------------------------------------------//
 int FluidContainer::CalcHash(Vec2f position)
 {
-	//float width = _sceneWidth / _cellSize;
-	//int centerX = floorf((position[0] / _cellSize) + (m_GridCols / 2.0f));
-	//int centerY = floorf((position[1] / _cellSize) + (m_GridRows / 2.0f));
 	return (
 		int((position[0] / _cellSize) + (m_GridCols / 2.0f)) +					// x
 		int((position[1] / _cellSize) + (m_GridRows / 2.0f)) * m_GridCols		// y
 	);
 }
 
+//-----------------------------------------------------------------------------------------------------------------//
 void FluidContainer::FindNeighbours(int id)
 {
 	m_Neighbours[id].clear();
@@ -169,6 +177,7 @@ void FluidContainer::FindNeighbours(int id)
 	// return ids;
 }
 
+//-----------------------------------------------------------------------------------------------------------------//
 void FluidContainer::setColor(Vec2f position, float color)
 {
 	//float width = _sceneWidth / _cellSize;
@@ -182,7 +191,7 @@ void FluidContainer::setColor(Vec2f position, float color)
 	}
 }
 
-
+//-----------------------------------------------------------------------------------------------------------------//
 void FluidContainer::ClearGrid()
 {
 	for (int i = 0; i < m_GridRows * m_GridCols; i++)
@@ -196,6 +205,230 @@ void FluidContainer::ClearGrid()
 	}
 }
 
+//-----------------------------------------------------------------------------------------------------------------//
+void FluidContainer::SetupFluidRendering()
+{
+	cout << "OpenGL Version: " << glGetString(GL_VERSION) << endl;
+
+	// Initialize fluid shader
+	//_fluidShader = Shader(
+	//	"Content//Shaders//fluid.vert",
+	//	"Content//Shaders//fluid.frag");
+
+	// Generate fluid texture
+	glGenTextures(1, &_fluidTexture);
+	glBindTexture(GL_TEXTURE_2D, _fluidTexture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _textureSize, _textureSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+
+	// Generate FBO
+	_fbo = 0;
+	if (glutExtensionSupported("GL_EXT_framebuffer_object"))//GL_EXT_framebuffer_object))
+	{
+		glGenFramebuffers(1, &_fbo);
+		glBindFramebuffer(GL_FRAMEBUFFER_EXT, _fbo);
+		glFramebufferTexture2D(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _fluidTexture, 0);
+		int result = glCheckFramebufferStatus(GL_FRAMEBUFFER_EXT);
+		if (result != GL_FRAMEBUFFER_COMPLETE_EXT)
+			cout << "Cannot initialize FBO" << endl;
+	}
+
+	if (_fbo != 0)
+		glBindFramebuffer(GL_FRAMEBUFFER_EXT, 0);
+
+
+	// Generate attenuation texture
+	glGenTextures(1, &_particleTexture);
+	glBindTexture(GL_TEXTURE_2D, _particleTexture);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	//if (!glutExtensionSupported("GL_ARB_texture_float"))
+	//{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		float radius = 8.0f;
+		int size = (radius * radius) * 2;
+		float* imageData = GenerateParticleTexture(size);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA32F_ARB, size, size, 0, GL_ALPHA, GL_FLOAT, imageData);
+	//}
+//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _textureSize, _textureSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+
+
+}
+
+//-----------------------------------------------------------------------------------------------------------------//
+float* FluidContainer::GenerateParticleTexture(int textureSize)
+{
+	float energy = 1.0f;
+	float falloff = 0.3f;
+	float energyThreshold = 0.8f;
+
+	//new BlobRenderer(1.0f, 0.4f, 0.8f, BLOB_RADIUS, TEX_SIZE, Color.LightSkyBlue);
+	
+	// Convert particle size to the nearest 2^n
+	double exponent = log2((double)textureSize);
+	textureSize = (int)pow(2.0, exponent);
+	//textureSize = 32;
+
+	// Create Particle texture
+	float* image = new float[textureSize * textureSize];
+	int center = textureSize / 2;
+
+	double centerHalf2 = (center / 2.0) * falloff;
+	centerHalf2 = centerHalf2 * centerHalf2;
+	float maxThreshold = energyThreshold - (energyThreshold * 0.1f);
+	for (int x = 0; x < textureSize; x++)
+	{
+		for (int y = 0; y < textureSize; y++)
+		{
+			Vec2f dist = Vec2f(x - center, y - center);
+			// calculate energy of this point using gaussian
+			float dist2 = dist * dist;
+			float en = (float)exp((double)-dist2 / centerHalf2) * energy;
+
+			// clamp 
+			if (en < 0.0f)
+				en = 0.0f;
+			else if (en > maxThreshold)
+				en = maxThreshold;
+
+			// set pixel alpha
+			image[x * textureSize + y] = en;
+		}
+	}
+	return image;
+}
+
+//-----------------------------------------------------------------------------------------------------------------//
+void FluidContainer::RenderFluidToTexture(vector<Particle*> particles, float radius)
+{
+	
+	// Clear if the fbo already exists
+	if (_fbo != 0)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER_EXT, _fbo);
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
+
+	glPushAttrib(GL_VIEWPORT_BIT);
+	glViewport(0, 0, _textureSize, _textureSize);
+
+	glDisable(GL_ALPHA_TEST);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, _particleTexture);
+
+	// Transform radius
+	float ratio = (radius * radius) / _textureSize;
+	float radiusW = ratio * 2.0f;
+	float radiusH = ratio * 2.0f;
+
+	// Draw particles
+	glBegin(GL_QUADS);
+	for (int i = 0; i < particles.size(); i++)
+	{
+		if (!particles[i]->m_isBoundary)
+		{
+			Vec2f pos = particles[i]->m_Position;
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex2f(pos[0] - radiusW, pos[1] - radiusH);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex2f(pos[0] + radiusW, pos[1] - radiusH);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex2f(pos[0] + radiusW, pos[1] + radiusH);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex2f(pos[0] - radiusW, pos[1] + radiusH);
+		}
+	}
+	glEnd();
+
+	// Copy framebuffer to texture
+	if (_fbo == 0)
+	{
+		glBindTexture(GL_TEXTURE_2D, _fluidTexture);
+		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, _textureSize, _textureSize, 0);
+	}
+	else
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER_EXT, 0);
+	}
+
+	glPopAttrib();
+}
+
+//-----------------------------------------------------------------------------------------------------------------//
+void FluidContainer::RenderFluid(vector<Particle*> particles, float radius)
+{
+
+	// Setup rendering
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_TEXTURE_BIT);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glAlphaFunc(GL_GEQUAL, 0.8f);
+
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+	// Render fluid to texture
+	RenderFluidToTexture(particles, radius);
+
+	// Thresholding
+	glEnable(GL_ALPHA_TEST);
+
+	glDisable(GL_TEXTURE_2D);
+	glColor4f(0.4f, 0.4f, 1.0f, 1.0f);
+
+	glBegin(GL_QUADS);
+		glVertex2f(-1.0f, -1.0f);
+		glVertex2f(1.0f, -1.0f);
+		glVertex2f(1.0f, 1.0f);
+		glVertex2f(-1.0f, 1.0f);
+	glEnd();
+
+
+	//_fluidShader.bind();
+	// Render texture
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, _fluidTexture);
+
+
+	glBegin(GL_QUADS);
+		glTexCoord2f(0.0f, 0.0f);
+		glVertex2f(-1.0f, -1.0f);
+
+		glTexCoord2f(1.0f, 0.0f);
+		glVertex2f(1.0f, -1.0f);
+
+		glTexCoord2f(1.0f, 1.0f);
+		glVertex2f(1.0f, 1.0f);
+
+		glTexCoord2f(0.0f, 1.0f);
+		glVertex2f(-1.0f, 1.0f);
+	glEnd();
+	//_fluidShader.unbind();
+
+	// End rendering
+	glPopAttrib();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+
+	glDisable(GL_ALPHA_TEST);
+}
+
+//-----------------------------------------------------------------------------------------------------------------//
 void FluidContainer::draw()
 {
 	// Draw boundaries

@@ -18,7 +18,9 @@ void calculateBoundaryVolumes(vector<Particle*> pVector, FluidContainer* fluidCo
 void calculateFluidDensities(vector<Particle*> pVector, FluidContainer* fluidContainer, float radius, float kd, float restDensity, int start, int end);
 void calculateFluidForces(vector<Particle*> pVector, FluidContainer* fluidContainer, float radius, float mu, int start, int end);
 void calculateRigidForces(FluidContainer* fluidContainer, vector<RigidBody*> rigidBodies);
-void calculateSurfaceTension(std::vector<Particle*> pVector, FluidContainer* fluidContainer, float radius);
+void calculateSurfaceTension(vector<Particle*> pVector, FluidContainer* fluidContainer, float radius);
+
+void renderFluid(vector<Particle*> pVector, float radius);
 
 //-----------------------------------------------------------------------------------------------------------------//
 void calculateFluidDynamics(vector<Particle*> pVector, FluidContainer* fluidContainer, vector<RigidBody*> rigidBodies)
@@ -38,8 +40,8 @@ void calculateFluidDynamics(vector<Particle*> pVector, FluidContainer* fluidCont
 
 	/// dist = 0.04
 	float kd = 0.005f;					// Stiffness (higher = less compressable)	
-	float mu = 1.75f;					// Viscosity Coefficient (higher = thicker fluids)
-	float restDensity = 275.0f;			// Rest density
+	float mu = 2.0f;					// Viscosity Coefficient (higher = thicker fluids)
+	float restDensity = 270.0f;			// Rest density
 
 	int n = pVector.size();
 	int nrThreads = 4;
@@ -362,4 +364,10 @@ void calculateSurfaceTension(std::vector<Particle*> pVector, FluidContainer* flu
 
 		//fluidContainer->m_GridColors[x][y] = 0.2f;
 	}
+}
+
+//-----------------------------------------------------------------------------------------------------------------//
+void calculateRender(std::vector<Particle*> pVector, FluidContainer* fluidContainer, float radius)
+{
+
 }

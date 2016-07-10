@@ -667,16 +667,22 @@ static void display_func(void)
 {
 	pre_display();
 
-	if(enableDrawParticles)
+	if (enableRenderFluid)
+	{
+		fluidContainer->RenderFluid(pVector, 8.0f);
+	}
+	else if(enableDrawParticles)
+	{
 		draw_particles();
-
-	fluidContainer->draw();
+	}
+	//fluidContainer->draw();
 	
 	draw_rigidBodies();
 
 	draw_forces();
 
 	post_display();
+	glColor4f(0.4f, 0.4f, 1.0f, 1.0f);
 }
 
 
@@ -688,6 +694,8 @@ open_glut_window --- open a glut compatible window and set callbacks
 
 static void open_glut_window(void)
 {
+	//glutInitContextVersion(3, 0);
+	//glutInitContextFlags(GLUT_FORWARD_COMPATIBLE | DEBUG);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 
 	glutInitWindowPosition(0, 0);
@@ -701,12 +709,13 @@ static void open_glut_window(void)
 	glutSwapBuffers();
 
 	glEnable(GL_LINE_SMOOTH);
+
 	glEnable(GL_POLYGON_SMOOTH);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glEnable(GL_BLEND);
 	glEnable(GL_POINT_SMOOTH);
-	glHint(GL_POINT_SMOOTH_HINT, GL_FASTEST);
+	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
 
 	pre_display();
 
@@ -716,6 +725,12 @@ static void open_glut_window(void)
 	glutReshapeFunc(reshape_func);
 	glutIdleFunc(idle_func);
 	glutDisplayFunc(display_func);
+
+	// Initialize glew
+	if (glewInit())
+		cout << "Failed to initialize glew" << endl;
+
+	fluidContainer->SetupFluidRendering();
 }
 
 
@@ -745,6 +760,7 @@ int main(int argc, char ** argv)
 	printf("\n\nHow to use this application:\n\n");
 	printf("\t Toggle construction/simulation display with the spacebar key\n");
 	printf("\t Use the '1-9' keys to enable/disable the following functions : \n");
+	printf("\t 4 : Toggle Fluid / Particle rendering \n");
 	printf("\t 5 : Standard Fluid \n");
 	printf("\t 6 : Fluid with Cloth \n");
 	printf("\t 7 : Fluid with Rigid Body \n");

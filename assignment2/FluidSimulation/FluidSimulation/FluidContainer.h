@@ -2,6 +2,7 @@
 #include <vector>
 #include <unordered_map>
 #include "Particle.h"
+#include "GLUtil.h"
 
 class FluidContainer
 {
@@ -12,6 +13,16 @@ private:
 
 	float _cellSize;
 	int* _gridCounters;
+
+	// Rendering variables
+	float _radius;
+	int _textureSize;
+
+	GLuint _fbo;
+	GLuint _fluidTexture;
+	GLuint _particleTexture;
+
+	float _threshold;
 
 	vector<int>* _gridCells;
 
@@ -26,6 +37,11 @@ public:
 
 	void UpdateGrid(vector<Particle*> particles);
 	void FindNeighbours(int id);
+
+	void SetupFluidRendering();
+	void RenderFluid(vector<Particle*> particles, float radius);
+	void RenderFluidToTexture(vector<Particle*> particles, float radius);
+	float* GenerateParticleTexture(int particleSize);
 
 	int CalcHash(Vec2f position);
 
