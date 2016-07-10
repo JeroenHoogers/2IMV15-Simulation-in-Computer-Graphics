@@ -286,7 +286,7 @@ float* FluidContainer::GenerateParticleTexture(int textureSize)
 
 	double centerHalf2 = (center / 2.0) * falloff;
 	centerHalf2 = centerHalf2 * centerHalf2;
-	float maxThreshold = energyThreshold - (energyThreshold * 0.1f);
+	float maxThreshold = energyThreshold - (energyThreshold * 0.11f);
 	for (int x = 0; x < textureSize; x++)
 	{
 		for (int y = 0; y < textureSize; y++)

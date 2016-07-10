@@ -682,7 +682,6 @@ static void display_func(void)
 	draw_forces();
 
 	post_display();
-	glColor4f(0.4f, 0.4f, 1.0f, 1.0f);
 }
 
 
@@ -710,7 +709,7 @@ static void open_glut_window(void)
 
 	glEnable(GL_LINE_SMOOTH);
 
-	glEnable(GL_POLYGON_SMOOTH);
+//	glEnable(GL_POLYGON_SMOOTH);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glEnable(GL_BLEND);
